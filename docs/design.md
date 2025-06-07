@@ -1,0 +1,195 @@
+iphoneアプリ[ぽけっと計算表]をPWA対応のwebアプリ(スマートフォン専用)として再構築する。
+キーボード操作・スクリーンリーダー対応不要
+https://2dice.tech/category/ios-app/calcsheet/
+
+# 概要
+- 計算式を保存できる計算シートアプリ
+- 保存した名前付き変数を参照し、関数を組み合わせて結果を算出
+- 計算結果を、自然な数式(LaTeX形式)で表示
+
+# 機能(実装単位)
+- ベース
+    - Vite + React + TypeScript + SWC(step1-1)
+        - `tsc --noEmit`で型チェック、SWCでトランスパイル(plugin-react-swc)
+        - `npm run check`に型チェック実行設定追加
+        - vite.config.ts設定
+            - ベースパス設定('/pocket-calcsheet_cca/')
+    - github pagesへデプロイ(Github Actions設定)(step1-2)
+        - 各stepブランチ(例：feat/step1-1)からmainにPR時ビルド。mainにpush(PRマージ)でビルド&デプロイ
+            - `node-version: '22'`
+        - 手動デプロイ用スクリプト作成
+            - スクリプトは`workflow_dispatch:`で手動実行可能に設定
+            - ビルドしてpagesにデプロイ(stepブランチ/mainブランチをどちらでも手動デプロイし動作確認するため)
+    - eslint, prettierで品質管理(step1-3)
+        - `npm run check`にlint,prettier自動修正実行設定
+        - `.vscode/settings.json`に保存時のlint(fix)/整形設定
+        - github用にCIスクリプトを作成しcheckを追加、PR時とmainにpush時(PRマージ時)に実行
+    - vitest, React Testing Library(jest-dom)でユニットテスト(step1-4)
+        - testスクリプトで全テスト実行設定(ウォッチモード無効`run`)
+        - vitest-fail-on-console導入(コンソールエラー・警告を検知)
+        - `npm run check`にtest実行設定追加(CIにも追加)
+    - PlaywrightでE2Eテスト(step1-5)
+        - iOSのsafari(iphone15)とAndroidのChrome(Galaxy S9+)をテスト(モバイルブラウザ,ポートレートモード)
+        - webserver自動立ち上げ設定(CIも想定)
+        - page.on('console')とRuntime.exceptionThrownでコンソールエラー/警告を検知
+        - testスクリプトで全テスト(vitest,playwright)実行設定
+            - ブラウザを起動しユーザーもテストを見られるオプションでテスト(--headed)
+        - `npm run check`にplaywright実行設定追加(check時はヘッドレス、CIにも追加)
+    - Tailwind CSS(v4.1) + shadcn/ui(v2.5.0)でUI作成(step1-6)
+        - デフォルトで作成された不要ファイル削除
+    - PWA対応(vite-plugin-pwa)(step1-7)
+        - manifest.json(ホーム画面追加)設定
+        - service-worker.js(オフライン対応)設定
+            - precache manifest で app shell を CacheFirst（初回以降オフライン起動可）  
+            - 外部 CDN（KaTeX・lucide）を StaleWhileRevalidate で最新をバックグラウンド更新
+            - API 通信なしのため NetworkFirst は不要  
+        - vite.config.ts設定
+        - iOS 用 meta タグ（apple-mobile-web-app-capable 等）追加
+        - splash-screen画像とiconの登録
+        - SafeAreaInsets (iPhone X 系の notch) を考慮した padding。
+- トップページ
+    - リスト方式の一覧(iphoneのリストをイメージ)(step2-1)
+        - トップにアプリ名と、右上に[編集]ボタンを配置
+        - 空のリストは空白表示
+    - 編集モードでの編集
+        - 編集ボタンで編集モードに入る(編集ボタンが"完了"ボタンに変わる)(step2-2)
+            - 左上に[+]ボタンが出現し要素を追加できる
+                - リスト最下部に追加し、インライン編集
+                - 初期名は空欄で入力欄にカーソル表示し、空欄で確定したら警告し確定を拒否
+                - 要素名, id, 順番を付与
+                - 完了ボタンで編集モード終了
+        - ドラッグアンドドロップで順番の入れ替えが可能(dnd-kit)(step2-3)
+            - 要素右の三本線が表示され、長押しでドラッグ
+            - ブラウザの長押しと競合回避のためPointerSensor, delay={300}, touchAction="none"
+        - 各行に削除ボタンが表示され、タップで確認(AlartDialog)後削除(step2-4)
+        - 要素名をタップすると名前の変更(インライン編集)が可能になる(step2-5)
+            - 編集エリアがキーボードの上までスクロール
+            - Enterまたは別のエリアタップで完了
+    - 要素名, id, 順番の保存/読み出し(localStorage)(step2-6)
+        - 起動時に読み出し、編集完了時に保存
+        - navigator.storage.persist()設定
+        - 状態管理ライブラリのストア内でlocalStorageへの保存・読み込み処理をカプセル化
+- リストから一つの要素を選択すると下部に3つのタブがある画面に遷移(iphoneのタブバーのイメージ)(step3-1)
+    - overviewタブ(左)
+    - variablesタブ(中央)
+    - formulaタブ(右)
+    - 各タブにはアイコンと名前を記載
+    - URLはReact-Router + HashRouterで管理(HashRouterで"/#/"→Top、"/#/:id/(overview|variables|formula)"→Tab)
+    - 左上にリストに戻るボタン(iphoneのback buttonのイメージ)を表示(全てのタブ)
+        - 押下でトップページに戻る
+- variablesタブ
+    - 画面構成(step4-1)
+        - variable1から8までの各ラベル(固定)の下に変数の名前と値のセットが並んでいる
+        - 名前と値をテキストボックスに入力可能
+        - 変数名には日本語や記号の入力禁止(`/^[A-Za-z][A-Za-z0-9_]*$/`)、同一id内での変数名の重複禁止
+            - 違反時にダイアログを表示して確定させない
+    - 値の入力にはカスタムキーボードを使用
+        - カスタムキーボード設定(step4-2)
+            - ネイティブキーボードを無効にし、カスタムキーボードを表示
+            - React Portalで実装
+            - 入力中は編集エリアをキーボードの上までスクロール
+        - カスタムキーボード仕様(step4-3)
+            - 数字キー
+            - 小数点キー
+            - 演算記号(+,-,*,/,%,^,)と括弧
+            - 関数選択キー"f(x)"
+                - 対応する関数を使用可能(関数一覧は別ファイル記載)
+                - iphoneのドラムロール(picker)UIをイメージ
+                - 関数選択時は括弧内にカーソルを配置(そのまま関数に使用する値を入力可能)
+            - 変数選択キー"var"
+                - iphoneのドラムロール(picker)風UIでvariableタブの変数名を選択
+            - Backspaceキー"BS"
+            - Enterキー"↵"
+            - カーソル移動キー(←,→)
+            - 配置イメージ画像は別途
+    - 値には式を入力可能(step4-4)
+        - 式には別の変数を代入可能(例:3.25*[var1]/3)
+        - 数式、値の直接入力も可能(0.31*10^-6, 0.00003,等)
+        - 値の上部には入力された値または計算された値が表示される(テキスト表示。LaTeX形式では無い)
+            - math.jsで計算
+            - 結果は10のべき乗を用い、SI接頭語にあわせて3の倍数(10^3,10^6,10^-3など)にする
+            - 数値は1以上1000未満になるように10のべき乗の値を調整する。
+            - 数値は小数点以下2桁まで表示する(2なら2.00、0.0003なら300.00×10^-6)
+                - 表示は小数点以下2桁以降を切り捨て。計算時は実際の値を使う
+        - Enterまたは別のエリアタップで入力完了
+        - 計算エラー発生時は"Error"表示
+        - variablesタブに遷移したときと、入力確定時に自動演算
+            - 循環参照を考慮し、入力確定後2回演算したら打ち切り
+                - 変数を上から順に全て再計算する処理を2回行う(依存関係の確認はしない)
+    - 変数名と入力値の保存/読み出し(localStorage)(step4-5)
+        - タブ表示時に読み出し、編集完了時に保存
+        - 状態管理ライブラリのストア内でlocalStorageへの保存・読み込み処理をカプセル化
+- formulaタブ
+    - "Formula"ラベルの下に数式を入力するテキストボックス(step5-1)
+        - 改行とスペースも入力可能(計算時に除去)
+        - 長い式はテキストエリア内で折り返し
+        - 別のエリアをタップで入力完了
+        - 値の入力にはvariableタブと同じカスタムキーボードを使用(ネイティブキーボード無効)
+            - ただしEnterで改行、確定は別のエリアタップ
+        - 数式の保存/読み出し(localStorage)
+            - タブ表示時に読み出し、入力完了時に保存
+            - 状態管理ライブラリのストア内でlocalStorageへの保存・読み込み処理をカプセル化
+    - "Result"ラベルの下に計算結果を表示(テキストボックスの下。結果は右詰)(step5-2)
+        - 計算結果の表示ルールはvariablesタブの計算値と同様
+            - ただし小数点以下の表示桁数だけは15桁まで表示する
+        - variablesタブの変数は計算後のラベルでは無く計算式の計算結果を使用(ラベルは値を丸めているため)
+        - formulaタブに遷移したときと、入力確定時に自動演算
+        - 計算エラー発生時は"Error"表示
+            - 式のエラー,ゼロ割
+            - variablesの変数名が変更されていた場合など
+- overviewタブ
+    - Overview(step6-1)
+        - Overviewラベルを左上に配置
+        - 要素の説明を入力するテキストボックスをその下に配置(主に数式の用途や変数が何を表すかを自然言語で複数行入力できる)
+            - テキストエリアからフォーカスが外れたら入力完了(onBlur)
+        - 説明の保存(localStorage)
+            - タブ表示時に読み出し、入力完了時に保存
+    - Formula表示(step6-2)
+        - Formulaラベルをoverviewテキストボックス左下に配置
+        - 1行目にFormulaタブで入力した数式をそのまま記述(改行・空白含む)
+        - 2行目に関数名以外の数式をKaTeXで自然な数式に変換した式を記述(改行・空白削除、LaTeX)
+            - 例:atan関数はatan表記のまま。tan^{-1}の形式に変換しない
+            - 関数を使用していない場合はこの行は不要(3行目がこの位置に来る)
+                - 関数一覧は別ファイルに記載
+            - 変数は"[var]"の形式(大括弧を使用)
+            - 例："atan(2*[var1]/[var2])"は"atan(2\times\frac{[var1]}{[var2]})"に変換
+            - 変換エラー時は生テキスト表示
+            - 長い場合は折り返し表示
+        - 3行目に関数名も含めてKaTeXで自然な数式に変換した式を記述(LaTeX)
+            - 例："atan(2*[var1]/[var2])"は"tan^{-1}(2\times\frac{[var1]}{[var2]})"に変換
+            - 変換エラー時は生テキスト表示
+            - 長い場合は折り返し表示
+        - LaTeX形式への変換テストケースは別ファイルに記載
+        - LaTeX形式への変換はmath.jsのmath.parse(expressionString), node.toTex(options)を利用してカスタム実装
+    - Result表示(step6-3)
+        - Resultラベルを数式の左下に配置
+        - 数式の計算結果を表示
+            - 計算結果の表示ルールはformulaタブの計算値と同様
+- プリセットデータ(step7-1)
+    - 別ファイル記載のプリセットデータを登録しておく
+    - 初回のみlocalStorageから表示、以降ユーザーが上書き
+        - 初回判定はlocalStorageに特定キーが存在しなければプリセットをロード(localStorageが消された場合に判断可能)
+
+# 技術スタック
+## フロントエンド
+- 実行環境: Node.js(v22)
+- パッケージ管理: npm(v10)
+- ビルドツール: Vite(v6) React TypeScript+SWCで作成
+- UI・スタイリング: Tailwind CSS(v4.1) + shadcn/ui(v2.5.0)
+- ドラッグ・アンド・ドロップ: dnd-kit(リストの順番入れ替え)
+- 状態管理: Zustand(+middleware(persist, immer))
+- ストレージ: localStorage
+- ルーティング: React-Router + HashRouter
+- PWA対応: vite-plugin-pwa
+- 数式処理: math.js
+- Latex対応: KaTeX
+
+## テスト・品質管理
+- リンター/フォーマッター: ESLint + Prettier
+- ユニットテスト: Vitest, React Testing Library(jest-dom)
+- E2Eテスト: Playwright(最小限:主にPWA周辺, safariカスタムキーボード挙動, モバイルブラウザが主)
+
+## デプロイ・ホスティング
+- ソース管理: GitHub
+- ホスティング: GitHub Pages
+
