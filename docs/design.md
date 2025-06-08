@@ -9,6 +9,9 @@ https://2dice.tech/category/ios-app/calcsheet/
 
 # 機能(実装単位)
 - ベース
+    - 手動デプロイ用スクリプト作成(step0_手動)
+        - スクリプトは`workflow_dispatch:`で手動実行可能に設定
+        - ビルドしてpagesにデプロイ(stepブランチ/mainブランチをどちらでも手動デプロイし動作確認するため)
     - Vite + React + TypeScript + SWC(step1-1)
         - `tsc --noEmit`で型チェック、SWCでトランスパイル(plugin-react-swc)
         - `npm run check`に型チェック実行設定追加
@@ -17,12 +20,8 @@ https://2dice.tech/category/ios-app/calcsheet/
     - github pagesへデプロイ(Github Actions設定)(step1-2)
         - 各stepブランチ(例：feat/step1-1)からmainにPR時ビルド。mainにpush(PRマージ)でビルド&デプロイ
             - `node-version: '22'`
-        - 手動デプロイ用スクリプト作成
-            - スクリプトは`workflow_dispatch:`で手動実行可能に設定
-            - ビルドしてpagesにデプロイ(stepブランチ/mainブランチをどちらでも手動デプロイし動作確認するため)
     - eslint, prettierで品質管理(step1-3)
         - `npm run check`にlint,prettier自動修正実行設定
-        - `.vscode/settings.json`に保存時のlint(fix)/整形設定
         - github用にCIスクリプトを作成しcheckを追加、PR時とmainにpush時(PRマージ時)に実行
     - vitest, React Testing Library(jest-dom)でユニットテスト(step1-4)
         - testスクリプトで全テスト実行設定(ウォッチモード無効`run`)

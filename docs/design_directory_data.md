@@ -1,5 +1,6 @@
 # 最終ディレクトリ構成(ファイル単位:役割)
 
+```
 pocket-calcsheet_cca/
 ├── docs/                               # 開発用ドキュメント
 ├── dist/                               # ビルド/デプロイ用成果物
@@ -134,7 +135,8 @@ pocket-calcsheet_cca/
 ├── components.json                   # shadcn/ui設定
 ├── postcss.config.js                 # PostCSS設定ファイル
 ├── vite.config.ts                    # Vite設定(PWA/ベースパス等)
-├── tsconfig.json                     # TypeScript設定(型チェック用)
+├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
+├── tsconfig.app.json                 # TypeScript設定(アプリ用)
 ├── tsconfig.node.json                # Node.js用TypeScript設定
 ├── index.html                        # アプリケーションのエントリーHTML (Viteが処理)
 ├── package.json                      # 依存関係・スクリプト定義
@@ -142,6 +144,7 @@ pocket-calcsheet_cca/
 ├── LICENSE                           # MIT ライセンス本文
 ├── README.md                         # プロジェクト説明・セットアップ手順
 └── CLAUDE.md                         # Claude Code 用
+```
 
 # データ構造
 ## 基本データ構造

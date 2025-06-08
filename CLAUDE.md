@@ -26,13 +26,29 @@
 
 #### 現状のディレクトリ構造
 
+```
 pocket-calcsheet_cca/
 ├── docs/                               # 開発用ドキュメント
 ├── .github/
 │   └── workflows/
 │       ├── claude.yml                 # claude code action実行用
 │       └── manual_deploy.yml          # 各ブランチでのテストデプロイ用
+├── public/                             # 初期サンプルページ用。step1-6で削除
+├── src/
+│   ├── assets/                       # 初期サンプルページアセット。step1-6で削除
+│   ├── App.css                       # 初期サンプルページ用。step1-6で削除
+│   ├── App.tsx                       # ルートコンポーネント(Router設定)
+│   ├── main.tsx                      # アプリケーションエントリーポイント
+│   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート (@import "tailwindcss"; を使用)
+│   └── vite-env.d.ts                 # Vite環境変数型定義
+├── vite.config.ts                    # Vite設定(PWA/ベースパス等)
+├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
+├── tsconfig.app.json                 # TypeScript設定(アプリ用)
+├── tsconfig.node.json                # Node.js用TypeScript設定
+├── index.html                        # アプリケーションのエントリーHTML (Viteが処理)
+├── package.json                      # 依存関係・スクリプト定義
 └── CLAUDE.md                           # Claude Code 用
+```
 
 ## git commit ガイドライン
 

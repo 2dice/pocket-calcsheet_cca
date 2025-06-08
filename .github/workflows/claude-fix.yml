@@ -1,19 +1,19 @@
-name: Claude Code
+name: Claude Code Fix
 
 on:
-  issues:
-    types: [opened, assigned, edited]
+  issue_comment:
+    types: [created, edited]
 
 jobs:
-  claude:
-    if: (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+  claude-fix:
+    if: (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude-fix'))
     
     runs-on: ubuntu-latest
     
     permissions:
       contents: write
       pull-requests: write
-      issues: write
+      issues: read
       id-token: write
     
     steps:
@@ -36,13 +36,22 @@ jobs:
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
-          timeout_minutes: "45"
+          timeout_minutes: "30"
           model: "claude-sonnet-4-20250514"
           allowed_tools: "Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read"
           direct_prompt: |
-            以下のガイドラインに従ってissueを実装する
+            以下のガイドラインに従って Pull Request への指摘に対処する。
+            - Pull Requestに紐付いているissueを読んで実装されている内容を理解する
+            - issue の内容・ Pull Request コメント・ Pull Request の変化点を理解する
+            - レビュー内容を深く読み込み理解する
+            - レビュー内容が妥当であれば修正を行う
+
+            実装が不十分で、追加実装や大幅な修正が必要な場合、以下のガイドラインに従う。
+
             実装ガイドライン
-            - はじめにタスクの全体像(指示された参照先ドキュメントを含む)を把握し、TODOリストを作成すること
+
+            - はじめにタスクの全体像(指示された参照先ドキュメントを含む)と実装状態を把握し、TODOリストを作成すること
+              - どこまでが実装されており、何をする必要があるかを、コードベースと Pull Request のコメントから正確に把握する
               - 実行漏れをなくすため、リストが長くなっても構わない
             - ツールの結果を受け取った後、その品質を慎重に検討し、次に進む前に最適な次のステップを決定すること
               - この新しい情報に基づいて計画し、反復するために思考(think)を使用し、最善の次のアクションを取ること。

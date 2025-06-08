@@ -1,0 +1,60 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened]
+  issue_comment:
+    types: [created, edited]
+
+jobs:
+  claude-review:
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude-review'))
+
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+      id-token: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install repgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - name: Install dependencies
+        run: npm install
+      - name: Run Claude Code
+        uses: grll/claude-code-action@beta
+        with:
+          use_oauth: 'true'
+          claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
+          claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
+          claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
+          timeout_minutes: "15"
+          model: "claude-sonnet-4-20250514"
+          allowed_tools: "Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read"
+          direct_prompt: |
+            以下のガイドラインに従い、issueに対する Pull Request をレビューする。
+            - Pull Requestに紐付いているissueを読んで実装されている内容を理解する
+            - issue の内容・ Pull Request コメント・ Pull Request の変化点を理解する
+            - issue で求められているものに対し、 Pull Request の内容とコメントの妥当化を網羅的に検証する
+                - issueとPRコメントの一致
+                - PRコメントとコードの変化点の一致
+                - コードの品質とベストプラクティス
+                - 潜在的なバグや問題点
+                - 全体的なアーキテクチャとデザインの決定
+                - 改善提案
+            - テスト/lint/format/型チェック(導入済みのものだけ)を行い警告・エラーが出ないことを確認する
+            - レビューコメントを作成する
+                - 日本語で箇条書きを効果的に使う
+                - わかりやすく簡潔に記載する
