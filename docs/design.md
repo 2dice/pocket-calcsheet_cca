@@ -18,7 +18,7 @@ https://2dice.tech/category/ios-app/calcsheet/
         - vite.config.ts設定
             - ベースパス設定('/pocket-calcsheet_cca/')
     - github pagesへデプロイ(Github Actions設定)(step1-2)
-        - 各stepブランチ(例：feat/step1-1)からmainにPR時ビルド。mainにpush(PRマージ)でビルド&デプロイ
+        - 各stepブランチ(例：feat/step1-1)からmainにpush(PRマージ)でビルド&デプロイ
             - `node-version: '22'`
     - eslint, prettierで品質管理(step1-3)
         - `npm run check`にlint,prettier自動修正実行設定
