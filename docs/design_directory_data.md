@@ -103,6 +103,7 @@ pocket-calcsheet_cca/
 ├── tests/
 │   ├── unit/
 │   │   ├── components/
+│   │   │   ├── App.test.tsx          # ベーシックテスト
 │   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
 │   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
 │   │   │   └── VariableSlot.test.tsx  # 変数スロットテスト
@@ -146,49 +147,62 @@ pocket-calcsheet_cca/
 ```
 
 # データ構造
+
 ## 基本データ構造
+
 ### ルートモデル（アプリ全体を1本にまとめた最上位オブジェクト）
+
 ※計算ロジック、Zustand Store、localStorage JSONで1つを共有
 ※シート作成/削除/更新時は sheets と entities の両方を変更する
+
 - schemaVersion
-    - 保存スキーマの世代番号
+  - 保存スキーマの世代番号
 - savedAt
-    - 最終保存日時(ISO 8601文字列)
+  - 最終保存日時(ISO 8601文字列)
 - sheets
-    - 下記"シート一覧メタ情報"の配列が格納される
+  - 下記"シート一覧メタ情報"の配列が格納される
 - entities
-    - シート実体の辞書(キー＝シートID, 値＝シートモデル)
-    - 値には下記"シートモデル"が格納される
+  - シート実体の辞書(キー＝シートID, 値＝シートモデル)
+  - 値には下記"シートモデル"が格納される
+
 #### シート一覧メタ情報
+
 - 下記"シートモデル"の"メタ情報"部分だけを複製保持(dnd高速化のため)
-- トップページはこの配列の順序どおりにレンダリング  
-- 並び替えは並び順プロパティ(order)を書き換えるだけで完結  
+- トップページはこの配列の順序どおりにレンダリング
+- 並び替えは並び順プロパティ(order)を書き換えるだけで完結
+
 #### シートモデル(１つの計算表の中身)
-- メタ情報  
-    - id : シートID(UUID相当の一意キー)
-    - name : 表示名  
-    - order : トップページ上の並び順  
-    - createdAt : 作成日時
-    - updatedAt : 更新日時  
-- 概要データ（overviewタブ）  
-    - description : 自由記述テキスト(複数行)
+
+- メタ情報
+  - id : シートID(UUID相当の一意キー)
+  - name : 表示名
+  - order : トップページ上の並び順
+  - createdAt : 作成日時
+  - updatedAt : 更新日時
+- 概要データ（overviewタブ）
+  - description : 自由記述テキスト(複数行)
 - 変数スロット(variablesタブ。要素8の配列)
-    - slot : スロット番号(1～8)
-    - varName : 変数名(空欄可。正規表現`/^[A-Za-z][A-Za-z0-9_]*$/`を満たす)
-    - expression : 入力式(文字列。数値単体または式)
-    - value : 計算結果(数値型)。未計算またはエラー時は`null`
-    - error : エラー内容(文字列)。正常時は`null`
+  - slot : スロット番号(1～8)
+  - varName : 変数名(空欄可。正規表現`/^[A-Za-z][A-Za-z0-9_]*$/`を満たす)
+  - expression : 入力式(文字列。数値単体または式)
+  - value : 計算結果(数値型)。未計算またはエラー時は`null`
+  - error : エラー内容(文字列)。正常時は`null`
 - 数式データ(formulaタブ)
-    - inputExpr : ユーザー入力式(改行・空白を含む文字列)
-    - result : 計算結果(数値型)。未計算またはエラー時は`null`
-    - error : エラー内容(文字列)正常時は`null`
+  - inputExpr : ユーザー入力式(改行・空白を含む文字列)
+  - result : 計算結果(数値型)。未計算またはエラー時は`null`
+  - error : エラー内容(文字列)正常時は`null`
+
 ## UI一時状態データ構造（永続化しない）
+
 Zust­andでは永続スライスと分離して管理し、localStorageには保存しない。
-- isEditMode : 編集モードか否か  
+
+- isEditMode : 編集モードか否か
 - keyboardState : カスタムキーボードの可視状態と入力ターゲット
-    - 例 : `visible: boolean`, `target: { type: 'variable' | 'formula'; sheetId; slot }`(slotはvariableのみ)
+  - 例 : `visible: boolean`, `target: { type: 'variable' | 'formula'; sheetId; slot }`(slotはvariableのみ)
+
 ## 永続化ポリシー(ストレージとの対応)
-- 保存キー : `pocket-calcsheet/〈スキーマ世代〉`の形式  
+
+- 保存キー : `pocket-calcsheet/〈スキーマ世代〉`の形式
 - 保存内容 : ルートモデルをJSON.stringifyした文字列
 - 起動時 : 保存内容をルートモデルに展開
 - プリセット読込 : 上記保存キーが存在しない場合のみプリセットデータを格納
