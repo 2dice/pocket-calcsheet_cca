@@ -11,10 +11,10 @@
 ## あなたの属性
 
 - あなたは以下のことに重点を置くプログラミングアシスタントのエキスパートである。
-    - Vite, TypeScript,React, Node.js, Shadcn UI, Tailwind CSS, Playwright, Vitest
-    - 最新の機能とベストプラクティスをもとに実装する
-    - 明確で読みやすく、保守しやすいコード要件を慎重かつ正確に遵守する
-    - 詳細な疑似コードで段階的に考える
+  - Vite, TypeScript,React, Node.js, Shadcn UI, Tailwind CSS, Playwright, Vitest
+  - 最新の機能とベストプラクティスをもとに実装する
+  - 明確で読みやすく、保守しやすいコード要件を慎重かつ正確に遵守する
+  - 詳細な疑似コードで段階的に考える
 
 ### Github Actions 上で追加インストールされているツール
 
@@ -42,7 +42,9 @@ pocket-calcsheet_cca/
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート (@import "tailwindcss"; を使用)
 │   └── vite-env.d.ts                 # Vite環境変数型定義
+├── .prettierignore                   # Prettier除外設定
 ├── eslint.config.js                  # ESLint設定(ignoresプロパティ含む)
+├── prettier.config.js                # Prettier設定
 ├── vite.config.ts                    # Vite設定(PWA/ベースパス等)
 ├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
 ├── tsconfig.app.json                 # TypeScript設定(アプリ用)
@@ -71,6 +73,7 @@ pocket-calcsheet_cca/
   ```
   <type>/<step>: <short summary>
   ```
+
   - 例: feat/step1-1: テンプレートを使用したプロジェクトの作成(vite+react+ts+swc)
 
 - summaryは必ず日本語であること。
@@ -99,21 +102,25 @@ pocket-calcsheet_cca/
 ## Technology Stack
 
 ### Core
+
 - Vite + React + TypeScript + SWC
 - Tailwind CSS (v4.1) + shadcn/ui (v2.5.0)
 - PWA対応 (vite-plugin-pwa)
 
 ### State Management & Storage
+
 - Zustand (+ middleware: persist, immer)
 - localStorage for data persistence
 
 ### Specialized Libraries
+
 - math.js: 数式処理・計算エンジン
-- KaTeX: LaTeX数式レンダリング  
+- KaTeX: LaTeX数式レンダリング
 - dnd-kit: ドラッグ&ドロップ (リスト並び替え)
 - React Router + HashRouter: ルーティング
 
 ### Testing & Quality
+
 - Vitest + React Testing Library (jest-dom): ユニットテスト
 - Playwright: E2Eテスト (モバイルブラウザ特化)
 - ESLint + Prettier: コード品質管理
@@ -129,7 +136,7 @@ npm run build
 
 # テスト実行
 npm run test          # Vitest + Playwright
-npm run test:unit     # Vitest のみ  
+npm run test:unit     # Vitest のみ
 npm run test:e2e      # Playwright のみ
 
 # 品質チェック
@@ -145,11 +152,13 @@ npm run preview       # ビルド後のプレビュー
 ## Architecture Overview
 
 ### Data Flow
+
 - **ルートモデル**: アプリ全体データを1つのオブジェクトで管理
 - **Zustand Store**: 永続化スライス (localStorage) + UI一時状態スライス (非永続)
 - **計算エンジン**: math.js ベースのカスタム実装で循環参照対応
 
 ### Key Components Structure
+
 - **pages/**: 各画面のルートコンポーネント (Top, Overview, Variables, Formula タブ)
 - **components/sheets/**: シート一覧・編集機能
 - **components/keyboard/**: カスタムキーボード実装 (ネイティブキーボード無効)
@@ -157,16 +166,19 @@ npm run preview       # ビルド後のプレビュー
 - **utils/calculation/**: 数式パース・LaTeX変換・数値フォーマット
 
 ### Mobile-First Design
+
 - カスタムキーボード: 数値・演算子・関数・変数選択
 - SafeArea対応: iPhone X系のnotch考慮
 - タッチ操作最適化: 長押しドラッグ、競合回避
 
 ### Data Persistence Strategy
+
 - **保存キー**: `pocket-calcsheet/〈スキーマ世代〉`
 - **スキーママイグレーション**: schemaVersion による自動変換
 - **プリセットデータ**: 初回起動時のみ自動ロード
 
 ### Specialized Calculation Features
+
 - **変数参照**: `[var1]` 形式での相互参照
 - **循環参照対応**: 2回再計算で打ち切り
 - **SI接頭語表示**: 10の3の倍数乗での数値表示
@@ -175,32 +187,38 @@ npm run preview       # ビルド後のプレビュー
 ## Development Guidelines
 
 ### Testing Philosophy
+
 - TDD: テスト先行で実装
 - モバイルブラウザ特化: iPhone Safari + Android Chrome
 - コンソールエラー検知: vitest-fail-on-console + Playwright Console監視
 
 ### Code Organization
+
 - **型定義**: types/ に集約 (sheet.ts, calculation.ts など)
 - **フック分離**: 機能別カスタムフック (useCalculation.ts, useCustomKeyboard.ts など)
 - **ユーティリティ分離**: 計算・バリデーション・ストレージを utils/ で分離
 
 ### PWA Requirements
+
 - オフライン動作: Service Worker + Cache First
-- ホーム画面追加: manifest.json + apple-mobile-web-app-*
+- ホーム画面追加: manifest.json + apple-mobile-web-app-\*
 - アイコン・スプラッシュ: 複数サイズ対応
 
 ## Important Notes
 
 ### Deploy Target
+
 - GitHub Pages (ベースパス: '/pocket-calcsheet_cca/')
 - 手動デプロイ + PR時自動デプロイ
 
 ### Performance Considerations
+
 - dnd-kit最適化: シート一覧メタ情報の分離保持
 - 計算最適化: 依存関係なし・上から順に2回再計算方式
 - localStorage最適化: 編集完了時のみ保存
 
 ### Mobile Browser Compatibility
+
 - PointerSensor設定: delay={300}, touchAction="none" (長押し競合回避)
 - キーボード制御: ネイティブキーボード完全無効化
 - スクロール制御: 入力時のキーボード上部へのスクロール
