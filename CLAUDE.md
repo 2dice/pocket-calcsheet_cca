@@ -33,6 +33,7 @@ pocket-calcsheet_cca/
 ├── .github/
 │   └── workflows/
 │       ├── manual_deploy.yml         # 各ブランチでのテストデプロイ用
+│       ├── ci.yml                    # PR / main push 時のlint/test/build チェック
 │       └── deploy.yml                # main push時のビルド&GitHub Pagesデプロイ
 ├── public/                           # 初期サンプルページ用。step1-6で削除
 ├── src/
@@ -140,10 +141,9 @@ npm run test:unit     # Vitest のみ
 npm run test:e2e      # Playwright のみ
 
 # 品質チェック
-npm run check         # lint + format + typecheck + test すべて実行
-npm run lint          # ESLint チェック
+npm run lint          # ESLint 自動修正
 npm run format        # Prettier フォーマット
-npm run typecheck     # TypeScript型チェック
+npm run check         # TypeScript型チェック + lintチェック + formatチェック + test すべて実行
 
 # プレビュー
 npm run preview       # ビルド後のプレビュー
