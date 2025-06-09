@@ -1,27 +1,10 @@
 import '@testing-library/jest-dom'
+import failOnConsole from 'vitest-fail-on-console'
 
-// vitest-fail-on-consoleの設定をカスタマイズ
-import { beforeEach, afterEach } from 'vitest'
-
-let originalError: typeof console.error
-let originalWarn: typeof console.warn
-
-beforeEach(() => {
-  originalError = console.error
-  originalWarn = console.warn
-
-  console.error = (...args: unknown[]) => {
-    originalError(...args)
-    throw new Error(`Console error was called: ${args.join(' ')}`)
-  }
-
-  console.warn = (...args: unknown[]) => {
-    originalWarn(...args)
-    throw new Error(`Console warning was called: ${args.join(' ')}`)
-  }
-})
-
-afterEach(() => {
-  console.error = originalError
-  console.warn = originalWarn
+// vitest-fail-on-consoleの設定
+failOnConsole({
+  shouldFailOnError: true,
+  shouldFailOnWarn: true,
+  shouldFailOnLog: false,
+  shouldFailOnDebug: false,
 })
