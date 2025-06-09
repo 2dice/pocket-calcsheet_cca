@@ -8,7 +8,7 @@ pocket-calcsheet_cca/
 │   └── workflows/
 │       ├── claude.yml                 # claude code action実行用
 │       ├── manual_deploy.yml          # 各ブランチでのテストデプロイ用
-│       ├── ci.yml                     # PR時のlint/test/build チェック
+│       ├── ci.yml                     # PR / main push 時のlint/test/build チェック
 │       └── deploy.yml                 # main push時のビルド&GitHub Pagesデプロイ
 ├── public/
 │   ├── icons/
