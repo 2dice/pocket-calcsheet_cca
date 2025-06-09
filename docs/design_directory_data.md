@@ -125,8 +125,7 @@ pocket-calcsheet_cca/
 │       ├── vitest.setup.ts           # Vitestセットアップ
 │       └── playwright.setup.ts       # Playwrightセットアップ
 ├── .gitignore                        # Git除外設定
-├── .eslintignore                     # ESLintの無視ファイル設定
-├── eslint.config.js                    # ESLint設定
+├── eslint.config.js                    # ESLint設定(ignoresプロパティ含む)
 ├── prettier.config.js                  # Prettier設定
 ├── .prettierignore                   # Prettier除外設定
 ├── vitest.config.ts                  # Vitestテスト設定
