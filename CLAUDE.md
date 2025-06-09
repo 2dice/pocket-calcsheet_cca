@@ -33,7 +33,7 @@ pocket-calcsheet_cca/
 ├── .github/
 │   └── workflows/
 │       ├── manual_deploy.yml         # 各ブランチでのテストデプロイ用
-│       └── deploy.yml                # main push時のビルド&GitHub 
+│       └── deploy.yml                # main push時のビルド&GitHub Pagesデプロイ
 ├── public/                           # 初期サンプルページ用。step1-6で削除
 ├── src/
 │   ├── assets/                       # 初期サンプルページアセット。step1-6で削除
