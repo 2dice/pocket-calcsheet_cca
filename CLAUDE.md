@@ -43,9 +43,16 @@ pocket-calcsheet_cca/
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート (@import "tailwindcss"; を使用)
 │   └── vite-env.d.ts                 # Vite環境変数型定義
+├── tests/                            # テスト関連ファイル
+│   ├── setup/
+│   │   └── vitest.setup.ts           # Vitestセットアップ
+│   └── unit/
+│       └── components/
+│           └── App.test.tsx          # ベーシックテスト
 ├── .prettierignore                   # Prettier除外設定
 ├── eslint.config.js                  # ESLint設定(ignoresプロパティ含む)
 ├── prettier.config.js                # Prettier設定
+├── vitest.config.ts                  # Vitestテスト設定
 ├── vite.config.ts                    # Vite設定(PWA/ベースパス等)
 ├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
 ├── tsconfig.app.json                 # TypeScript設定(アプリ用)

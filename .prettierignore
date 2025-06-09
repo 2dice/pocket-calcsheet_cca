@@ -21,6 +21,9 @@ Thumbs.db
 .git/
 .gitignore
 
+# Github
+.github/
+
 # IDE
 .vscode/
 .idea/
