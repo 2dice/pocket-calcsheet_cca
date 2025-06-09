@@ -21,7 +21,7 @@ https://2dice.tech/category/ios-app/calcsheet/
         - 各stepブランチ(例：feat/step1-1)からmainにpush(PRマージ)でビルド&デプロイ
             - `node-version: '22'`
     - eslint, prettierで品質管理(step1-3)
-        - `npm run check`にlint,prettier自動修正実行設定
+        - `npm run check`にlint,prettierチェック実行設定
         - github用にCIスクリプトを作成しcheckを追加、PR時とmainにpush時(PRマージ時)に実行
     - vitest, React Testing Library(jest-dom)でユニットテスト(step1-4)
         - testスクリプトで全テスト実行設定(ウォッチモード無効`run`)
