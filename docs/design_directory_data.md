@@ -123,8 +123,7 @@ pocket-calcsheet_cca/
 │   │   ├── testData.ts               # テスト用データセット
 │   │   └── mockFunctions.ts          # モック関数定義
 │   └── setup/
-│       ├── vitest.setup.ts           # Vitestセットアップ
-│       └── playwright.setup.ts       # Playwrightセットアップ
+│       └── vitest.setup.ts           # Vitestセットアップ
 ├── .gitignore                        # Git除外設定
 ├── eslint.config.js                    # ESLint設定(ignoresプロパティ含む)
 ├── prettier.config.js                  # Prettier設定
