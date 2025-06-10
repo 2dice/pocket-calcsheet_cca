@@ -24,18 +24,12 @@ export default defineConfig({
       name: 'iPhone 15 Safari',
       use: {
         ...devices['iPhone 15'],
-        // iOS Safari用の設定
-        viewport: { width: 393, height: 852 },
-        userAgent: devices['iPhone 15'].userAgent,
       },
     },
     {
       name: 'Galaxy S9+ Chrome',
       use: {
         ...devices['Galaxy S9+'],
-        // Android Chrome用の設定
-        viewport: { width: 412, height: 846 },
-        userAgent: devices['Galaxy S9+'].userAgent,
       },
     },
   ],

@@ -37,22 +37,14 @@ const setupConsoleMonitoring = (page: Page) => {
 }
 
 test.describe('アプリケーション基本動作確認', () => {
+  let monitor: ReturnType<typeof setupConsoleMonitoring>
+
   test.beforeEach(({ page }) => {
     // 各テストの前にコンソールエラー/警告検知を設定
-    const monitor = setupConsoleMonitoring(page)
-
-    // ページ読み込み後にエラーをチェック
-    page.on('load', () => {
-      const errors = monitor.getAllErrors()
-      if (errors.length > 0) {
-        console.error('Console errors/warnings detected:', errors)
-      }
-    })
+    monitor = setupConsoleMonitoring(page)
   })
 
   test('ページが正常にロードされる', async ({ page }) => {
-    const monitor = setupConsoleMonitoring(page)
-
     await page.goto('/')
 
     // ページタイトルが存在することを確認
@@ -63,16 +55,10 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(page.locator('h1')).toBeVisible()
 
     // エラーが発生していないことを確認
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      console.error('Test failed - Console errors detected:', errors)
-      throw new Error(`Console errors/warnings detected: ${errors.join(', ')}`)
-    }
+    expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
   })
 
   test('モバイルビューポートが正しく設定されている', async ({ page }) => {
-    const monitor = setupConsoleMonitoring(page)
-
     await page.goto('/')
 
     // ビューポートサイズを取得
@@ -87,16 +73,10 @@ test.describe('アプリケーション基本動作確認', () => {
     expect(viewport!.height).toBeGreaterThan(viewport!.width)
 
     // エラーが発生していないことを確認
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      console.error('Test failed - Console errors detected:', errors)
-      throw new Error(`Console errors/warnings detected: ${errors.join(', ')}`)
-    }
+    expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
   })
 
   test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
-    const monitor = setupConsoleMonitoring(page)
-
     await page.goto('/')
 
     // ボタンが存在する場合はクリックしてみる
@@ -109,18 +89,19 @@ test.describe('アプリケーション基本動作確認', () => {
     }
 
     // エラーが発生していないことを確認
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      console.error('Test failed - Console errors detected:', errors)
-      throw new Error(`Console errors/warnings detected: ${errors.join(', ')}`)
-    }
+    expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
   })
 })
 
 test.describe('コンソールエラー検知機能テスト', () => {
-  test('意図的なコンソールエラーが検知される', async ({ page }) => {
-    const monitor = setupConsoleMonitoring(page)
+  let monitor: ReturnType<typeof setupConsoleMonitoring>
 
+  test.beforeEach(({ page }) => {
+    // 各テストの前にコンソールエラー/警告検知を設定
+    monitor = setupConsoleMonitoring(page)
+  })
+
+  test('意図的なコンソールエラーが検知される', async ({ page }) => {
     await page.goto('/')
 
     // 意図的にコンソールエラーを発生させる
@@ -137,8 +118,6 @@ test.describe('コンソールエラー検知機能テスト', () => {
   })
 
   test('意図的なコンソール警告が検知される', async ({ page }) => {
-    const monitor = setupConsoleMonitoring(page)
-
     await page.goto('/')
 
     // 意図的にコンソール警告を発生させる
