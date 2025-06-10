@@ -17,6 +17,8 @@ export default tseslint.config(
       'package-lock.json',
       '.cache/',
       '.parcel-cache/',
+      'playwright-report/',
+      'test-results/',
     ],
   },
   {
@@ -42,7 +44,11 @@ export default tseslint.config(
         test: 'readonly',
       },
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        project: [
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+          './tsconfig.e2e.json',
+        ],
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -56,6 +62,17 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+    },
+  },
+  // E2E tests specific configuration
+  {
+    files: ['tests/e2e/**/*.ts', 'playwright.config.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
     },
   }
 )

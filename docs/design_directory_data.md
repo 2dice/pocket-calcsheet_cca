@@ -137,6 +137,7 @@ pocket-calcsheet_cca/
 ├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
 ├── tsconfig.app.json                 # TypeScript設定(アプリ用)
 ├── tsconfig.node.json                # Node.js用TypeScript設定
+├── tsconfig.e2e.json                 # E2Eテスト用TypeScript設定
 ├── index.html                        # アプリケーションのエントリーHTML (Viteが処理)
 ├── package.json                      # 依存関係・スクリプト定義
 ├── package-lock.json                 # npm依存関係ロック
