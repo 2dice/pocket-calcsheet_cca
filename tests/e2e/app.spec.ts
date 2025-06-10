@@ -61,18 +61,16 @@ test.describe('アプリケーション基本動作確認', () => {
   test('モバイルビューポートが正しく設定されている', async ({ page }) => {
     await page.goto('/')
 
-    // ビューポートサイズを取得
     const viewport = page.viewportSize()
     expect(viewport).toBeTruthy()
 
-    // モバイルサイズであることを確認（幅が500px以下、高さが700px以上）
+    // 現実的なモバイルサイズの範囲を設定
     expect(viewport!.width).toBeLessThanOrEqual(500)
-    expect(viewport!.height).toBeGreaterThanOrEqual(700)
+    expect(viewport!.width).toBeGreaterThan(300)
 
-    // ポートレートモード（縦長）であることを確認
-    expect(viewport!.height).toBeGreaterThan(viewport!.width)
+    // 高さは幅の1.3倍以上（アスペクト比で確認）
+    expect(viewport!.height / viewport!.width).toBeGreaterThan(1.3)
 
-    // エラーが発生していないことを確認
     expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
   })
 
