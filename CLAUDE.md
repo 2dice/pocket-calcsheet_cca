@@ -46,17 +46,21 @@ pocket-calcsheet_cca/
 ├── tests/                            # テスト関連ファイル
 │   ├── setup/
 │   │   └── vitest.setup.ts           # Vitestセットアップ
-│   └── unit/
-│       └── components/
-│           └── App.test.tsx          # ベーシックテスト
+│   ├── unit/
+│   │   └── components/
+│   │       └── App.test.tsx          # ベーシックテスト
+│   └── e2e/
+│       └── app.spec.ts               # 基本動作E2Eテスト
 ├── .prettierignore                   # Prettier除外設定
 ├── eslint.config.js                  # ESLint設定(ignoresプロパティ含む)
 ├── prettier.config.js                # Prettier設定
 ├── vitest.config.ts                  # Vitestテスト設定
+├── playwright.config.ts              # Playwrightテスト設定(モバイル)
 ├── vite.config.ts                    # Vite設定(PWA/ベースパス等)
 ├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
 ├── tsconfig.app.json                 # TypeScript設定(アプリ用)
 ├── tsconfig.node.json                # Node.js用TypeScript設定
+├── tsconfig.e2e.json                 # E2Eテスト用TypeScript設定
 ├── index.html                        # アプリケーションのエントリーHTML (Viteが処理)
 ├── package.json                      # 依存関係・スクリプト定義
 └── CLAUDE.md                         # Claude Code 用

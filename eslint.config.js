@@ -17,6 +17,8 @@ export default tseslint.config(
       'package-lock.json',
       '.cache/',
       '.parcel-cache/',
+      'playwright-report/',
+      'test-results/',
     ],
   },
   {
@@ -42,7 +44,11 @@ export default tseslint.config(
         test: 'readonly',
       },
       parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        project: [
+          './tsconfig.node.json',
+          './tsconfig.app.json',
+          './tsconfig.e2e.json',
+        ],
         tsconfigRootDir: import.meta.dirname,
       },
     },
