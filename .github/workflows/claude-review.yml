@@ -13,28 +13,35 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude-review'))
 
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       pull-requests: write
       issues: read
       id-token: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
+
       - name: Install repgrep
         run: sudo apt-get update && sudo apt-get install -y ripgrep
-      - name: Install dependencies
-        run: npm install
+
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install webkit chromium --with-deps 
+
+      - name: Reset working directory
+        run: |
+          git clean -fd
+          git reset --hard HEAD
+
       - name: Run Claude Code
         uses: grll/claude-code-action@beta
         with:
@@ -42,9 +49,9 @@ jobs:
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
-          timeout_minutes: "15"
-          model: "claude-sonnet-4-20250514"
-          allowed_tools: "Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read"
+          timeout_minutes: '15'
+          model: 'claude-sonnet-4-20250514'
+          allowed_tools: 'Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read'
           direct_prompt: |
             以下のガイドラインに従い、issueに対する Pull Request をレビューする。
             - Pull Requestに紐付いているissueを読んで実装されている内容を理解する

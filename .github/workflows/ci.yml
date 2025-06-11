@@ -9,7 +9,7 @@ on:
 jobs:
   quality-check:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,10 +23,10 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-      
+
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      
+        run: npx playwright install webkit chromium --with-deps
+
       - name: Run check
         run: npm run check
 

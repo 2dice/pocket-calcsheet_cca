@@ -1,11 +1,34 @@
 import { describe, test, expect, vi } from 'vitest'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import App from '../../../src/App'
 
 describe('App - テスト環境の動作確認', () => {
   test('アプリケーションがクラッシュせずにレンダリングされる', () => {
     const { container } = render(<App />)
     expect(container).toBeTruthy()
+  })
+
+  test('Pocket CalcSheetタイトルが表示される', () => {
+    render(<App />)
+    expect(screen.getByText('Pocket CalcSheet')).toBeInTheDocument()
+  })
+
+  test('Buttonコンポーネントが表示される', () => {
+    render(<App />)
+    expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument()
+  })
+
+  test('Tailwindクラスが適用されている', () => {
+    render(<App />)
+    const mainDiv = screen.getByText('Pocket CalcSheet').closest('div')
+    expect(mainDiv).toHaveClass(
+      'flex',
+      'min-h-svh',
+      'flex-col',
+      'items-center',
+      'justify-center',
+      'gap-4'
+    )
   })
 
   test('DOM環境が正しく設定されている', () => {

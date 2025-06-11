@@ -35,10 +35,12 @@ pocket-calcsheet_cca/
 │       ├── manual_deploy.yml         # 各ブランチでのテストデプロイ用
 │       ├── ci.yml                    # PR / main push 時のlint/test/build チェック
 │       └── deploy.yml                # main push時のビルド&GitHub Pagesデプロイ
-├── public/                           # 初期サンプルページ用。step1-6で削除
 ├── src/
-│   ├── assets/                       # 初期サンプルページアセット。step1-6で削除
-│   ├── App.css                       # 初期サンプルページ用。step1-6で削除
+│   ├── components/
+│   │   └── ui/                       # shadcn/uiコンポーネント
+│   │       └── button.tsx            # Buttonコンポーネント
+│   ├── lib/
+│   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート (@import "tailwindcss"; を使用)
@@ -51,6 +53,7 @@ pocket-calcsheet_cca/
 │   │       └── App.test.tsx          # ベーシックテスト
 │   └── e2e/
 │       └── app.spec.ts               # 基本動作E2Eテスト
+├── components.json                   # shadcn/ui設定
 ├── .prettierignore                   # Prettier除外設定
 ├── eslint.config.js                  # ESLint設定(ignoresプロパティ含む)
 ├── prettier.config.js                # Prettier設定
