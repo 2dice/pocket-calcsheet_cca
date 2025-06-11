@@ -36,7 +36,7 @@ https://2dice.tech/category/ios-app/calcsheet/
     - testスクリプトで全テスト(vitest,playwright)実行設定
       - ブラウザを起動しユーザーもテストを見られるオプションでテスト(--headed)
     - `npm run check`にplaywright実行設定追加(check時はヘッドレス、CIにも追加)
-  - Tailwind CSS(v4.1) + shadcn/ui(v2.5.0)でUI作成(step1-6)
+  - Tailwind CSS(v4.1) + shadcn/uiでUI作成(step1-6)
     - デフォルトで作成された不要ファイル削除
   - PWA対応(vite-plugin-pwa)(step1-7)
     - manifest.json(ホーム画面追加)設定
@@ -50,7 +50,7 @@ https://2dice.tech/category/ios-app/calcsheet/
     - SafeAreaInsets (iPhone X 系の notch) を考慮した padding。
 - トップページ
   - リスト方式の一覧(iphoneのリストをイメージ)(step2-1)
-    - トップにアプリ名と、右上に[編集]ボタンを配置
+    - トップにアプリ名と、右上に[編集]ボタンを配置(shadcnテスト用に配置されているボタンは削除)
     - 空のリストは空白表示
   - 編集モードでの編集
     - 編集ボタンで編集モードに入る(編集ボタンが"完了"ボタンに変わる)(step2-2)
@@ -178,7 +178,7 @@ https://2dice.tech/category/ios-app/calcsheet/
 - 実行環境: Node.js(v22)
 - パッケージ管理: npm(v10)
 - ビルドツール: Vite(v6) React TypeScript+SWCで作成
-- UI・スタイリング: Tailwind CSS(v4.1) + shadcn/ui(v2.5.0)
+- UI・スタイリング: Tailwind CSS(v4.1) + shadcn/ui
 - ドラッグ・アンド・ドロップ: dnd-kit(リストの順番入れ替え)
 - 状態管理: Zustand(+middleware(persist, immer))
 - ストレージ: localStorage

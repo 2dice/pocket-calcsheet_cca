@@ -7,30 +7,38 @@ on:
 jobs:
   claude:
     if: (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
-    
+
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
       pull-requests: write
       issues: write
       id-token: write
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
+
       - name: Install repgrep
         run: sudo apt-get update && sudo apt-get install -y ripgrep
-      - name: Install dependencies
-        run: npm install
+
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install webkit chromium --with-deps
+
+      - name: Reset working directory
+        run: |
+          git clean -fd
+          git reset --hard HEAD
+          rm -f package-lock.json  # 強制削除
+
       - name: Run Claude Code
         uses: grll/claude-code-action@beta
         with:
@@ -38,9 +46,9 @@ jobs:
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
-          timeout_minutes: "45"
-          model: "claude-sonnet-4-20250514"
-          allowed_tools: "Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read"
+          timeout_minutes: '45'
+          model: 'claude-sonnet-4-20250514'
+          allowed_tools: 'Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read'
           direct_prompt: |
             以下のガイドラインに従ってissueを実装する
             実装ガイドライン
@@ -66,7 +74,7 @@ jobs:
               - コメントの記載、実装と乖離した古いコメントの修正
             - IMPORTANT: 途中で間違いに気がついたら即座に軌道修正すること。
             - YOU MUST: 最後にlint/format/型チェック/テスト(導入済みのものだけ)を行い、警告・エラーがない状態でcommit/push/PRを行う
-            
+
             デバッグガイドライン
 
             - テストが失敗した場合、テストにデバッグログを含め、実行時にログから問題解決のヒントを収集すること
