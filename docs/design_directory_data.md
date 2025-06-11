@@ -94,6 +94,8 @@ pocket-calcsheet_cca/
 │   │   ├── calculation.ts            # 計算関連型定義
 │   │   ├── keyboard.ts               # キーボード関連型定義
 │   │   └── storage.ts                # ストレージ関連型定義
+│   ├── lib/
+│   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── styles/
 │   │   └── globals.css               # Tailwind v4 + カスタムスタイル(@import)
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
@@ -130,9 +132,7 @@ pocket-calcsheet_cca/
 ├── .prettierignore                   # Prettier除外設定
 ├── vitest.config.ts                  # Vitestテスト設定
 ├── playwright.config.ts              # Playwrightテスト設定(モバイル)
-├── tailwind.config.ts                # Tailwind CSS v4設定(TypeScript)
 ├── components.json                   # shadcn/ui設定
-├── postcss.config.js                 # PostCSS設定ファイル
 ├── vite.config.ts                    # Vite設定(PWA/ベースパス等)
 ├── tsconfig.json                     # TypeScript設定(共通設定、型チェック用)
 ├── tsconfig.app.json                 # TypeScript設定(アプリ用)

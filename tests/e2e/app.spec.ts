@@ -51,8 +51,11 @@ test.describe('アプリケーション基本動作確認', () => {
     const title = await page.title()
     expect(title).toBeTruthy()
 
-    // 基本的なReactアプリケーションの要素が存在することを確認
-    await expect(page.locator('h1')).toBeVisible()
+    // Pocket CalcSheetタイトルが表示されることを確認
+    await expect(page.locator('h1:has-text("Pocket CalcSheet")')).toBeVisible()
+
+    // shadcn/ui Buttonが表示されることを確認
+    await expect(page.locator('button:has-text("Click me")')).toBeVisible()
 
     // エラーが発生していないことを確認
     expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
@@ -77,14 +80,13 @@ test.describe('アプリケーション基本動作確認', () => {
   test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
     await page.goto('/')
 
-    // ボタンが存在する場合はクリックしてみる
-    const button = page.locator('button').first()
-    if (await button.isVisible()) {
-      await button.click()
+    // shadcn/ui Buttonが存在することを確認してクリック
+    const button = page.locator('button:has-text("Click me")')
+    await expect(button).toBeVisible()
+    await button.click()
 
-      // クリック後も正常に動作することを確認
-      await expect(page.locator('h1')).toBeVisible()
-    }
+    // クリック後も正常に動作することを確認
+    await expect(page.locator('h1:has-text("Pocket CalcSheet")')).toBeVisible()
 
     // エラーが発生していないことを確認
     expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
