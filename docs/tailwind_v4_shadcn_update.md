@@ -89,12 +89,12 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [
-    tailwindcss(), // フレームワークプラグインの前に追加
     react(),
+    tailwindcss(), // フレームワークプラグインの前に追加
   ],
   resolve: {
     alias: {
-      '@': '/src', // "@"をsrcフォルダにエイリアス（shadcn/ui推奨）
+      '@': path.resolve(__dirname, './src'),
     },
   },
 })
@@ -178,20 +178,6 @@ var(--font-sans)
 ## shadcn/ui v4互換性の状況
 
 **shadcn/ui v2.5は2025年3月時点でTailwind CSS v4を公式サポート**しており、コンポーネントライブラリの完全な移行が完了しています。主な変更には、React 19互換性の改善と強化されたスタイリング機能が含まれます。
-
-### 新規プロジェクトのインストール
-
-```bash
-# 最新版CLIでの初期化
-npx shadcn@latest init
-```
-
-初期化時の対話型設定：
-
-- **スタイルプリセット**：`new-york`（推奨）または`default`（非推奨）
-- **ベースカラー**：`neutral`、`slate`、`gray`などから選択
-- **CSS変数**：`true`（Tailwind v4では必須）
-- **TypeScript**：プロジェクトに応じて選択
 
 ### components.json の構成
 
