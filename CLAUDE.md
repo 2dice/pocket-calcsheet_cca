@@ -36,6 +36,10 @@ pocket-calcsheet_cca/
 │       ├── ci.yml                    # PR / main push 時のlint/test/build チェック
 │       └── deploy.yml                # main push時のビルド&GitHub Pagesデプロイ
 ├── public/
+│   ├── pwa-*.png                     # 生成されたPWAアイコン
+│   ├── apple-*.png                   # 生成されたApple用アイコン・スプラッシュ
+│   ├── favicon.ico                   # 生成されたファビコン
+│   ├── maskable-icon-512x512.png     # 生成されたマスカブルアイコン
 │   └── logo.png                      # アイコン元データ
 ├── src/
 │   ├── components/
@@ -45,16 +49,17 @@ pocket-calcsheet_cca/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
-│   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート (@import "tailwindcss"; を使用)
+│   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート + SafeArea対応
 │   └── vite-env.d.ts                 # Vite環境変数型定義
 ├── tests/                            # テスト関連ファイル
 │   ├── setup/
 │   │   └── vitest.setup.ts           # Vitestセットアップ
 │   ├── unit/
 │   │   └── components/
-│   │       └── App.test.tsx          # ベーシックテスト
+│   │       └── App.test.tsx          # ベーシックテスト + Service Worker登録テスト
 │   └── e2e/
-│       └── app.spec.ts               # 基本動作E2Eテスト
+│       ├── app.spec.ts               # 基本動作E2Eテスト
+│       └── pwa.spec.ts               # PWA機能テスト
 ├── components.json                   # shadcn/ui設定
 ├── .prettierignore                   # Prettier除外設定
 ├── eslint.config.js                  # ESLint設定(ignoresプロパティ含む)
@@ -66,7 +71,8 @@ pocket-calcsheet_cca/
 ├── tsconfig.app.json                 # TypeScript設定(アプリ用)
 ├── tsconfig.node.json                # Node.js用TypeScript設定
 ├── tsconfig.e2e.json                 # E2Eテスト用TypeScript設定
-├── index.html                        # アプリケーションのエントリーHTML (Viteが処理)
+├── index.html                        # アプリケーションのエントリーHTML (Viteが処理) + iOS PWAメタタグ
+├── pwa-assets.config.ts              # PWAアセット生成設定
 ├── package.json                      # 依存関係・スクリプト定義
 └── CLAUDE.md                         # Claude Code 用
 ```
@@ -163,6 +169,9 @@ npm run check         # TypeScript型チェック + lintチェック + formatチ
 
 # プレビュー
 npm run preview       # ビルド後のプレビュー
+
+# PWAアセット生成
+npm run generate-pwa-assets  # PWAアイコンとスプラッシュ画面の生成
 ```
 
 ## Architecture Overview

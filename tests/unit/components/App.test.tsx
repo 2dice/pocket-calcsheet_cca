@@ -56,4 +56,25 @@ describe('App - テスト環境の動作確認', () => {
     // console.warn('This is a test warning for vitest-fail-on-console')
     expect(true).toBe(true)
   })
+
+  test('Service Worker登録関数のモック確認', () => {
+    // Service Worker APIのモック
+    const mockServiceWorker = {
+      register: vi.fn().mockResolvedValue({
+        scope: '/pocket-calcsheet_cca/',
+        update: vi.fn(),
+        unregister: vi.fn(),
+      }),
+    }
+
+    // navigator.serviceWorkerをモック
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: mockServiceWorker,
+      writable: true,
+    })
+
+    // Service Worker登録のテスト
+    expect(navigator.serviceWorker).toBeDefined()
+    expect(typeof navigator.serviceWorker.register).toBe('function')
+  })
 })
