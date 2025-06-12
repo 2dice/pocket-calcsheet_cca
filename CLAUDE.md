@@ -35,6 +35,8 @@ pocket-calcsheet_cca/
 │       ├── manual_deploy.yml         # 各ブランチでのテストデプロイ用
 │       ├── ci.yml                    # PR / main push 時のlint/test/build チェック
 │       └── deploy.yml                # main push時のビルド&GitHub Pagesデプロイ
+├── public/
+│   └── logo.png                      # アイコン元データ
 ├── src/
 │   ├── components/
 │   │   └── ui/                       # shadcn/uiコンポーネント
