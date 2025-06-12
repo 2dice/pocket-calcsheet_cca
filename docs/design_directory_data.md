@@ -11,15 +11,10 @@ pocket-calcsheet_cca/
 │       ├── ci.yml                     # PR / main push 時のlint/test/build チェック
 │       └── deploy.yml                 # main push時のビルド&GitHub Pagesデプロイ
 ├── public/
-│   ├── icons/
-│   │   ├── icon-192x192.png           # PWA用アプリアイコン(192x192)
-│   │   ├── icon-512x512.png           # PWA用アプリアイコン(512x512)
-│   │   ├── apple-touch-icon.png       # iOS Safari用アイコン
-│   │   └── favicon.ico                # ブラウザファビコン
-│   ├── splash/
-│   │   ├── apple-splash-2048-2732.png # iPhone Pro Max縦向きスプラッシュ
-│   │   ├── apple-splash-1668-2224.png # iPad縦向きスプラッシュ
-│   │   └── apple-splash-2224-1668.png # iPad横向きスプラッシュ
+│   ├── pwa-*.png                      # 生成されたPWAアイコン
+│   ├── apple-*.png                    # 生成されたApple用アイコン・スプラッシュ
+│   ├── favicon.ico                    # 生成されたファビコン
+│   ├── logo.png                       # アイコン元データ
 │   ├── manifest.json                  # PWAマニフェスト(ホーム画面追加設定)
 │   └── robots.txt                     # 検索エンジン向けクロール設定
 ├── src/
@@ -139,6 +134,7 @@ pocket-calcsheet_cca/
 ├── tsconfig.node.json                # Node.js用TypeScript設定
 ├── tsconfig.e2e.json                 # E2Eテスト用TypeScript設定
 ├── index.html                        # アプリケーションのエントリーHTML (Viteが処理)
+├── pwa-assets.config.ts              # PWAアセット生成設定
 ├── package.json                      # 依存関係・スクリプト定義
 ├── package-lock.json                 # npm依存関係ロック
 ├── LICENSE                           # MIT ライセンス本文
