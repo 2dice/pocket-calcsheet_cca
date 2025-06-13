@@ -43,8 +43,12 @@ pocket-calcsheet_cca/
 │   └── logo.png                      # アイコン元データ
 ├── src/
 │   ├── components/
+│   │   ├── sheets/                   # シート関連コンポーネント
+│   │   │   └── SheetList.tsx         # トップページのシート一覧表示
 │   │   └── ui/                       # shadcn/uiコンポーネント
 │   │       └── button.tsx            # Buttonコンポーネント
+│   ├── pages/                        # ページコンポーネント
+│   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
@@ -56,7 +60,9 @@ pocket-calcsheet_cca/
 │   │   └── vitest.setup.ts           # Vitestセットアップ
 │   ├── unit/
 │   │   └── components/
-│   │       └── App.test.tsx          # ベーシックテスト + Service Worker登録テスト
+│   │       ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト
+│   │       ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
+│   │       └── TopPage.test.tsx      # トップページコンポーネントテスト
 │   └── e2e/
 │       ├── app.spec.ts               # 基本動作E2Eテスト
 │       └── pwa.spec.ts               # PWA機能テスト
