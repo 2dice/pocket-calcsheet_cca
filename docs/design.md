@@ -39,14 +39,14 @@ https://2dice.tech/category/ios-app/calcsheet/
   - Tailwind CSS(v4.1) + shadcn/uiでUI作成(step1-6)
     - デフォルトで作成された不要ファイル削除
   - PWA対応(vite-plugin-pwa)(step1-7)
-    - manifest.json(ホーム画面追加)設定
+    - manifest(ホーム画面追加)設定
     - service-worker.js(オフライン対応)設定
       - precache manifest で app shell を CacheFirst（初回以降オフライン起動可）
       - 外部 CDN（KaTeX・lucide）を StaleWhileRevalidate で最新をバックグラウンド更新
       - API 通信なしのため NetworkFirst は不要
     - vite.config.ts設定
-    - iOS 用 meta タグ（apple-mobile-web-app-capable 等）追加
-    - splash-screen画像とiconの登録
+    - iOS 用 meta タグ追加
+    - iconの登録
     - SafeAreaInsets (iPhone X 系の notch) を考慮した padding。
 - トップページ
   - リスト方式の一覧(iphoneのリストをイメージ)(step2-1)
