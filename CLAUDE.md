@@ -37,7 +37,7 @@ pocket-calcsheet_cca/
 │       └── deploy.yml                # main push時のビルド&GitHub Pagesデプロイ
 ├── public/
 │   ├── pwa-*.png                     # 生成されたPWAアイコン
-│   ├── apple-*.png                   # 生成されたApple用アイコン・スプラッシュ
+│   ├── apple-*.png                   # 生成されたApple用アイコン
 │   ├── favicon.ico                   # 生成されたファビコン
 │   ├── maskable-icon-512x512.png     # 生成されたマスカブルアイコン
 │   └── logo.png                      # アイコン元データ
@@ -223,11 +223,11 @@ npm run generate-pwa-assets  # PWAアイコンの生成
 - **フック分離**: 機能別カスタムフック (useCalculation.ts, useCustomKeyboard.ts など)
 - **ユーティリティ分離**: 計算・バリデーション・ストレージを utils/ で分離
 
-### PWA Requirements
+### PWA Requirements(vite-plugin-pwa/pwa-assets-generator)
 
 - オフライン動作: Service Worker + Cache First
-- ホーム画面追加: manifest.json + apple-mobile-web-app-\*
-- アイコン・スプラッシュ: 複数サイズ対応
+- ホーム画面追加: vite.config.ts(manifest) + index.html tag
+- アイコン: 複数サイズ対応
 
 ## Important Notes
 
