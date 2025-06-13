@@ -10,14 +10,14 @@ test.describe('PWA機能', () => {
 
     // iOS PWAメタタグ
     await expect(
-      page.locator('meta[name="apple-mobile-web-app-capable"]')
+      page.locator('meta[name="mobile-web-app-capable"]')
     ).toHaveAttribute('content', 'yes')
     await expect(
       page.locator('meta[name="apple-mobile-web-app-status-bar-style"]')
     ).toHaveAttribute('content', 'default')
     await expect(
       page.locator('meta[name="apple-mobile-web-app-title"]')
-    ).toHaveAttribute('content', 'CalcSheet')
+    ).toHaveAttribute('content', 'ぽけっと計算表')
   })
 
   test('PWAビルド時のmanifest確認（ビルドが必要）', async ({ page }) => {

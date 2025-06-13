@@ -171,7 +171,7 @@ npm run check         # TypeScript型チェック + lintチェック + formatチ
 npm run preview       # ビルド後のプレビュー
 
 # PWAアセット生成
-npm run generate-pwa-assets  # PWAアイコンとスプラッシュ画面の生成
+npm run generate-pwa-assets  # PWAアイコンの生成
 ```
 
 ## Architecture Overview

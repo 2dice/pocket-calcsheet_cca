@@ -16,8 +16,9 @@ export default defineConfig({
         config: true,
       },
       manifest: {
-        name: 'Pocket CalcSheet',
-        short_name: 'CalcSheet',
+        id: '/pocket-calcsheet_cca/',
+        name: 'ぽけっと計算表',
+        short_name: 'ぽけっと計算表',
         start_url: '/pocket-calcsheet_cca/',
         display: 'standalone',
         theme_color: '#ffffff',

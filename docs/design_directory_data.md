@@ -15,7 +15,6 @@ pocket-calcsheet_cca/
 │   ├── apple-*.png                    # 生成されたApple用アイコン・スプラッシュ
 │   ├── favicon.ico                    # 生成されたファビコン
 │   ├── logo.png                       # アイコン元データ
-│   ├── manifest.json                  # PWAマニフェスト(ホーム画面追加設定)
 │   └── robots.txt                     # 検索エンジン向けクロール設定
 ├── src/
 │   ├── components/
