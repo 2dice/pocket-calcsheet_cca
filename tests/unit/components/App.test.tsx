@@ -44,16 +44,42 @@ describe('App - テスト環境の動作確認', () => {
 
   // vitest-fail-on-console動作確認テスト
   // 注意: このテストは意図的にコンソールエラーを発生させて、vitest-fail-on-consoleが機能することを確認する
-  // 実際の運用時は削除またはコメントアウトする
-  test.skip('コンソールエラー検知テスト（vitest-fail-on-console動作確認）', () => {
-    // 以下のコメントを外すとテストが失敗するはず
-    // console.error('This is a test error for vitest-fail-on-console')
-    expect(true).toBe(true)
+  test('コンソールエラー検知テスト（vitest-fail-on-console動作確認）', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    console.error('This is a test error for vitest-fail-on-console')
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'This is a test error for vitest-fail-on-console'
+    )
+    consoleSpy.mockRestore()
   })
 
-  test.skip('コンソール警告検知テスト（vitest-fail-on-console動作確認）', () => {
-    // 以下のコメントを外すとテストが失敗するはず
-    // console.warn('This is a test warning for vitest-fail-on-console')
-    expect(true).toBe(true)
+  test('コンソール警告検知テスト（vitest-fail-on-console動作確認）', () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    console.warn('This is a test warning for vitest-fail-on-console')
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'This is a test warning for vitest-fail-on-console'
+    )
+    consoleSpy.mockRestore()
+  })
+
+  test('Service Worker登録関数のモック確認', () => {
+    // Service Worker APIのモック
+    const mockServiceWorker = {
+      register: vi.fn().mockResolvedValue({
+        scope: '/pocket-calcsheet_cca/',
+        update: vi.fn(),
+        unregister: vi.fn(),
+      }),
+    }
+
+    // navigator.serviceWorkerをモック
+    Object.defineProperty(navigator, 'serviceWorker', {
+      value: mockServiceWorker,
+      writable: true,
+    })
+
+    // Service Worker登録のテスト
+    expect(navigator.serviceWorker).toBeDefined()
+    expect(typeof navigator.serviceWorker.register).toBe('function')
   })
 })

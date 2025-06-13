@@ -57,8 +57,13 @@ test.describe('アプリケーション基本動作確認', () => {
     // shadcn/ui Buttonが表示されることを確認
     await expect(page.locator('button:has-text("Click me")')).toBeVisible()
 
-    // エラーが発生していないことを確認
-    expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
+    // コンソールエラー・警告が発生した場合はテストを失敗させる
+    const errors = monitor.getAllErrors()
+    if (errors.length > 0) {
+      throw new Error(
+        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
+      )
+    }
   })
 
   test('モバイルビューポートが正しく設定されている', async ({ page }) => {
@@ -74,7 +79,13 @@ test.describe('アプリケーション基本動作確認', () => {
     // 高さは幅の1.3倍以上（アスペクト比で確認）
     expect(viewport!.height / viewport!.width).toBeGreaterThan(1.3)
 
-    expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
+    // コンソールエラー・警告が発生した場合はテストを失敗させる
+    const errors = monitor.getAllErrors()
+    if (errors.length > 0) {
+      throw new Error(
+        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
+      )
+    }
   })
 
   test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
@@ -88,8 +99,13 @@ test.describe('アプリケーション基本動作確認', () => {
     // クリック後も正常に動作することを確認
     await expect(page.locator('h1:has-text("Pocket CalcSheet")')).toBeVisible()
 
-    // エラーが発生していないことを確認
-    expect(monitor.getAllErrors(), 'コンソールエラー検知').toEqual([])
+    // コンソールエラー・警告が発生した場合はテストを失敗させる
+    const errors = monitor.getAllErrors()
+    if (errors.length > 0) {
+      throw new Error(
+        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
+      )
+    }
   })
 })
 
