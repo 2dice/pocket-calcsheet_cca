@@ -51,6 +51,8 @@ pocket-calcsheet_cca/
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
+│   ├── types/
+│   │   └── sheet.ts                  # シートモデル型定義
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート + SafeArea対応

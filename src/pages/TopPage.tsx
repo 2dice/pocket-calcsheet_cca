@@ -20,6 +20,7 @@ export function TopPage() {
             data-testid="edit-button"
             variant="outline"
             size="sm"
+            style={{ color: '#409CFF' }}
             onClick={() => {
               // 編集機能は次のステップで実装
               console.log('編集ボタンがクリックされました')
