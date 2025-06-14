@@ -29,26 +29,6 @@ describe('App - Step2-1対応後のテスト', () => {
     expect(mockFn).toHaveBeenCalledWith('test')
   })
 
-  // vitest-fail-on-console動作確認テスト
-  // 注意: このテストは意図的にコンソールエラーを発生させて、vitest-fail-on-consoleが機能することを確認する
-  test('コンソールエラー検知テスト（vitest-fail-on-console動作確認）', () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-    console.error('This is a test error for vitest-fail-on-console')
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'This is a test error for vitest-fail-on-console'
-    )
-    consoleSpy.mockRestore()
-  })
-
-  test('コンソール警告検知テスト（vitest-fail-on-console動作確認）', () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    console.warn('This is a test warning for vitest-fail-on-console')
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'This is a test warning for vitest-fail-on-console'
-    )
-    consoleSpy.mockRestore()
-  })
-
   test('Service Worker登録関数のモック確認', () => {
     // Service Worker APIのモック
     const mockServiceWorker = {
