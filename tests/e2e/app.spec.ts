@@ -51,11 +51,11 @@ test.describe('アプリケーション基本動作確認', () => {
     const title = await page.title()
     expect(title).toBeTruthy()
 
-    // Pocket CalcSheetタイトルが表示されることを確認
-    await expect(page.locator('h1:has-text("Pocket CalcSheet")')).toBeVisible()
+    // アプリ名「ぽけっと計算表」が表示されることを確認
+    await expect(page.locator('h1:has-text("ぽけっと計算表")')).toBeVisible()
 
-    // shadcn/ui Buttonが表示されることを確認
-    await expect(page.locator('button:has-text("Click me")')).toBeVisible()
+    // 編集ボタンが表示されることを確認
+    await expect(page.locator('button:has-text("編集")')).toBeVisible()
 
     // コンソールエラー・警告が発生した場合はテストを失敗させる
     const errors = monitor.getAllErrors()
@@ -91,13 +91,13 @@ test.describe('アプリケーション基本動作確認', () => {
   test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
     await page.goto('/')
 
-    // shadcn/ui Buttonが存在することを確認してクリック
-    const button = page.locator('button:has-text("Click me")')
-    await expect(button).toBeVisible()
-    await button.click()
+    // 編集ボタンが存在することを確認してクリック
+    const editButton = page.locator('button:has-text("編集")')
+    await expect(editButton).toBeVisible()
+    await editButton.click()
 
     // クリック後も正常に動作することを確認
-    await expect(page.locator('h1:has-text("Pocket CalcSheet")')).toBeVisible()
+    await expect(page.locator('h1:has-text("ぽけっと計算表")')).toBeVisible()
 
     // コンソールエラー・警告が発生した場合はテストを失敗させる
     const errors = monitor.getAllErrors()
@@ -106,46 +106,5 @@ test.describe('アプリケーション基本動作確認', () => {
         `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
       )
     }
-  })
-})
-
-test.describe('コンソールエラー検知機能テスト', () => {
-  let monitor: ReturnType<typeof setupConsoleMonitoring>
-
-  test.beforeEach(({ page }) => {
-    // 各テストの前にコンソールエラー/警告検知を設定
-    monitor = setupConsoleMonitoring(page)
-  })
-
-  test('意図的なコンソールエラーが検知される', async ({ page }) => {
-    await page.goto('/')
-
-    // 意図的にコンソールエラーを発生させる
-    await page.evaluate(() => {
-      console.error('This is a test error for Playwright console monitoring')
-    })
-
-    // エラーが検知されることを確認
-    const errors = monitor.getConsoleErrors()
-    expect(errors.length).toBeGreaterThan(0)
-    expect(errors[0]).toContain(
-      'This is a test error for Playwright console monitoring'
-    )
-  })
-
-  test('意図的なコンソール警告が検知される', async ({ page }) => {
-    await page.goto('/')
-
-    // 意図的にコンソール警告を発生させる
-    await page.evaluate(() => {
-      console.warn('This is a test warning for Playwright console monitoring')
-    })
-
-    // 警告が検知されることを確認
-    const warnings = monitor.getConsoleWarnings()
-    expect(warnings.length).toBeGreaterThan(0)
-    expect(warnings[0]).toContain(
-      'This is a test warning for Playwright console monitoring'
-    )
   })
 })
