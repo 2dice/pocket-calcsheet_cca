@@ -9,10 +9,7 @@ export function TopPage() {
   return (
     <div data-testid="top-page" className="min-h-svh bg-gray-50">
       {/* ヘッダー */}
-      <div
-        className="px-4 py-3 flex items-center justify-between"
-        style={{ backgroundColor: '#f2f2f7' }}
-      >
+      <div className="px-4 py-3 flex items-center justify-between bg-ios-gray-50">
         <div className="flex-1" />
         <h1 className="text-xl font-semibold text-gray-900">ぽけっと計算表</h1>
         <div className="flex-1 flex justify-end">
@@ -20,7 +17,7 @@ export function TopPage() {
             data-testid="edit-button"
             variant="outline"
             size="sm"
-            style={{ color: '#409CFF' }}
+            className="text-ios-blue border-ios-blue hover:bg-ios-blue/10"
             onClick={() => {
               // 編集機能は次のステップで実装
               console.log('編集ボタンがクリックされました')
