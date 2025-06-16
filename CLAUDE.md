@@ -68,9 +68,8 @@ pocket-calcsheet_cca/
 │   │   └── vitest.setup.ts           # Vitestセットアップ
 │   ├── unit/
 │   │   ├── components/
-│   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト
-│   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
-│   │   │   └── TopPage.test.tsx      # トップページコンポーネントテスト
+│   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト
+│   │   │   └── SheetList.test.tsx    # シート一覧コンポーネントテスト
 │   │   └── store/
 │   │       └── sheetsStore.test.ts   # シートストアテスト
 │   └── e2e/

@@ -52,10 +52,7 @@ export function TopPage() {
 
   const handleEmptyNameAlertOk = useCallback(() => {
     setShowEmptyNameAlert(false)
-    // AlertDialogが完全に閉じた後にフォーカスを当てる
-    setTimeout(() => {
-      inputRef.current?.focus()
-    }, 100)
+    inputRef.current?.focus() // 直接フォーカス
   }, [])
 
   return (
