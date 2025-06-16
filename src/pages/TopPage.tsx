@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import { useUIStore, useSheetsStore } from '@/store'
 export function TopPage() {
   const [editingNewItem, setEditingNewItem] = useState(false)
   const [showEmptyNameAlert, setShowEmptyNameAlert] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
   const { sheets, addSheet } = useSheetsStore()
@@ -49,18 +50,13 @@ export function TopPage() {
     console.log('シートをクリック:', id)
   }
 
-  const handleEmptyNameAlertOk = () => {
+  const handleEmptyNameAlertOk = useCallback(() => {
     setShowEmptyNameAlert(false)
-    // AlertDialogを閉じた後、再度編集モードにフォーカスを当てる
+    // AlertDialogが完全に閉じた後にフォーカスを当てる
     setTimeout(() => {
-      const input = document.querySelector(
-        '[data-testid="new-sheet-input"]'
-      ) as HTMLInputElement
-      if (input) {
-        input.focus()
-      }
+      inputRef.current?.focus()
     }, 100)
-  }
+  }, [])
 
   return (
     <div data-testid="top-page" className="min-h-svh bg-gray-50">
@@ -74,6 +70,7 @@ export function TopPage() {
               variant="outline"
               className="text-blue-600 border-blue-600 hover:bg-blue-50"
               onClick={handleAddButtonClick}
+              aria-label="新しいシートを追加"
             >
               +
             </Button>
@@ -106,6 +103,7 @@ export function TopPage() {
           onSheetClick={handleSheetClick}
           onNewItemConfirm={handleNewItemConfirm}
           onNewItemCancel={handleNewItemCancel}
+          inputRef={inputRef}
         />
       </div>
 

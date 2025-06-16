@@ -44,6 +44,16 @@ test.describe('アプリケーション基本動作確認', () => {
     monitor = setupConsoleMonitoring(page)
   })
 
+  test.afterEach(() => {
+    // 各テスト後に共通でエラーチェック
+    const errors = monitor.getAllErrors()
+    if (errors.length > 0) {
+      throw new Error(
+        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
+      )
+    }
+  })
+
   test('ページが正常にロードされる', async ({ page }) => {
     await page.goto('/')
 
@@ -56,14 +66,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 編集ボタンが表示されることを確認
     await expect(page.locator('button:has-text("編集")')).toBeVisible()
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('モバイルビューポートが正しく設定されている', async ({ page }) => {
@@ -78,14 +80,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 高さは幅の1.3倍以上（アスペクト比で確認）
     expect(viewport!.height / viewport!.width).toBeGreaterThan(1.3)
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
@@ -98,14 +92,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // クリック後も正常に動作することを確認
     await expect(page.locator('h1:has-text("ぽけっと計算表")')).toBeVisible()
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('編集モードの切り替えが動作する', async ({ page }) => {
@@ -134,14 +120,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // +ボタンは非表示になる
     await expect(addButton).not.toBeVisible()
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('シート追加とインライン編集の動作', async ({ page }) => {
@@ -171,14 +149,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 新しいシートがリストに表示される
     await expect(page.locator('text=新しい計算シート')).toBeVisible()
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('空欄確定時のAlertDialog表示', async ({ page }) => {
@@ -218,13 +188,5 @@ test.describe('アプリケーション基本動作確認', () => {
     // 入力フィールドが再び表示され、フォーカスが当たる
     await expect(input).toBeVisible()
     await expect(input).toBeFocused()
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 })

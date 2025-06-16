@@ -7,12 +7,20 @@ interface SheetsStore {
   reset?: () => void
 }
 
+const generateId = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // フォールバック: timestamp + random
+  return Date.now().toString(36) + Math.random().toString(36).substring(2)
+}
+
 export const useSheetsStore = create<SheetsStore>((set, get) => ({
   sheets: [],
   addSheet: (name: string) => {
     const currentSheets = get().sheets
     const newSheet: SheetMeta = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name,
       order: currentSheets.length,
       createdAt: new Date().toISOString(),

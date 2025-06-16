@@ -9,6 +9,7 @@ interface SheetListProps {
   onSheetClick?: (id: string) => void
   onNewItemConfirm?: (value: string) => void
   onNewItemCancel?: () => void
+  inputRef?: React.RefObject<HTMLInputElement | null>
 }
 
 export function SheetList({
@@ -18,14 +19,23 @@ export function SheetList({
   onSheetClick,
   onNewItemConfirm,
   onNewItemCancel,
+  inputRef: externalInputRef,
 }: SheetListProps) {
   const [inputValue, setInputValue] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const internalInputRef = useRef<HTMLInputElement>(null)
+  const inputRef = externalInputRef || internalInputRef
 
   // 編集モードでfocusを当てる
   useEffect(() => {
     if (editingNewItem && inputRef.current) {
       inputRef.current.focus()
+    }
+  }, [editingNewItem, inputRef])
+
+  // 編集開始時に入力値をリセット
+  useEffect(() => {
+    if (editingNewItem) {
+      setInputValue('')
     }
   }, [editingNewItem])
 
@@ -71,6 +81,14 @@ export function SheetList({
               key={sheet.id}
               className="border-t border-gray-200 h-12 flex items-center px-4 bg-white hover:bg-gray-50 cursor-pointer"
               onClick={() => handleSheetClick(sheet.id)}
+              role="button"
+              tabIndex={0}
+              aria-label={`${sheet.name} を開く`}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleSheetClick(sheet.id)
+                }
+              }}
             >
               <span className="text-base text-gray-900">{sheet.name}</span>
             </div>
