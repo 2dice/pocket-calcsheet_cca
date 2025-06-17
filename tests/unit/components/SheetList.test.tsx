@@ -258,7 +258,7 @@ describe('SheetList', () => {
       })
     })
 
-    it('ドラッグ中の要素に半透明スタイルが適用される', () => {
+    it('ソート可能なアイテムが正しくレンダリングされる', () => {
       const mockOnReorder = vi.fn()
       render(
         <SheetList

@@ -45,12 +45,17 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     const [movedSheet] = newSheets.splice(activeIndex, 1)
     newSheets.splice(overIndex, 0, movedSheet)
 
-    // order プロパティを再計算
-    const updatedSheets = newSheets.map((sheet, index) => ({
-      ...sheet,
-      order: index,
-      updatedAt: new Date().toISOString(),
-    }))
+    // order プロパティを再計算（変更があったシートのみupdatedAt更新）
+    const updatedSheets = newSheets.map((sheet, index) => {
+      if (sheet.order !== index || sheet.id === activeId) {
+        return {
+          ...sheet,
+          order: index,
+          updatedAt: new Date().toISOString(),
+        }
+      }
+      return { ...sheet, order: index }
+    })
 
     set({ sheets: updatedSheets })
   },

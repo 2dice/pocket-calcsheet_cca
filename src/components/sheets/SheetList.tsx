@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useMemo } from 'react'
 import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Input } from '@/components/ui/input'
@@ -28,13 +28,24 @@ export function SheetList({
   inputRef: externalInputRef,
 }: SheetListProps) {
   const [inputValue, setInputValue] = useState('')
+  const [activeId, setActiveId] = useState<string | null>(null)
   const internalInputRef = useRef<HTMLInputElement>(null)
   const inputRef = externalInputRef || internalInputRef
 
   // ドラッグ&ドロップフック
   const { sensors, handleDragEnd } = useDragAndDrop({
     onReorderSheets: onReorderSheets || (() => {}),
+    onDragStart: (id: string) => setActiveId(id),
+    onDragEnd: (activeId: string, overId: string) => {
+      setActiveId(null)
+      onReorderSheets?.(activeId, overId)
+    },
   })
+
+  // sensorsのメモ化
+  const memoizedSensors = useMemo(() => sensors, [sensors])
+
+  const activeSheet = sheets.find(sheet => sheet.id === activeId)
 
   // 編集モードでfocusを当てる
   useEffect(() => {
@@ -70,9 +81,10 @@ export function SheetList({
 
   return (
     <DndContext
-      sensors={sensors}
+      sensors={memoizedSensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
+      onDragStart={({ active }) => setActiveId(String(active.id))}
       data-dnd-context
     >
       <div data-testid="sheet-list" className="w-full">
@@ -127,7 +139,15 @@ export function SheetList({
         )}
       </div>
       <DragOverlay>
-        {/* DragOverlayは必要に応じてドラッグ中のプレビューを表示 */}
+        {activeSheet && (
+          <div className="border border-gray-200 bg-white shadow-lg">
+            <SheetListItem
+              sheet={activeSheet}
+              isEditMode={isEditMode}
+              onSheetClick={() => {}}
+            />
+          </div>
+        )}
       </DragOverlay>
     </DndContext>
   )

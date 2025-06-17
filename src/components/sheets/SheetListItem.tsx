@@ -21,11 +21,17 @@ export function SheetListItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: sheet.id })
+  } = useSortable({
+    id: sheet.id,
+    disabled: !isEditMode,
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    WebkitTouchCallout: 'none',
+    WebkitUserSelect: 'none',
+    userSelect: 'none',
   }
 
   const handleClick = () => {
@@ -56,7 +62,7 @@ export function SheetListItem({
           : undefined
       }
     >
-      <div className="flex-1">
+      <div className="flex-1 select-none">
         <span className="text-base text-gray-900">{sheet.name}</span>
       </div>
       {isEditMode && (
