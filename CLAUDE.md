@@ -129,6 +129,7 @@ pocket-calcsheet_cca/
 - Issueに対する Pull Request は備考に`Close #1`等と記載しissue番号と紐付ける。
 
 ## compactコマンドガイドライン(要約)
+
 - compact 機能を使用する際は、ターミナル出力(test/build/dev等)と、コード変更処理、デバッグ時の経緯を主に圧縮すること。
 - 指示、デバッグの結果、進捗の情報は残すこと。
 
