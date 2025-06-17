@@ -45,7 +45,7 @@ jobs:
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
-          timeout_minutes: '20'
+          timeout_minutes: '25'
           model: 'claude-sonnet-4-20250514'
           allowed_tools: 'Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read'
           direct_prompt: |
@@ -72,7 +72,7 @@ jobs:
               - ドキュメントの更新(CLAUDE.md, design.md)
               - コメントの記載、実装と乖離した古いコメントの修正
             - IMPORTANT: 途中で間違いに気がついたら即座に軌道修正すること。
-            - YOU MUST: 最後にlint/format/型チェック/テスト(導入済みのものだけ)を行い、警告・エラーがない状態でcommit/push/PRを行う
+            - YOU MUST: 最後にlint/format/型チェック/テストを行い、警告・エラーがない状態でcommit/push/PRを行う
 
             デバッグガイドライン
 
