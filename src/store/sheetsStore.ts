@@ -4,7 +4,7 @@ import type { SheetMeta } from '@/types/sheet'
 interface SheetsStore {
   sheets: SheetMeta[]
   addSheet: (name: string) => void
-  reset: () => void // オプショナルを削除
+  reset: () => void
 }
 
 const generateId = () => {
