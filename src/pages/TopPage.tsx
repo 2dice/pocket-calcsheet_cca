@@ -52,7 +52,7 @@ export function TopPage() {
 
   const handleEmptyNameAlertOk = useCallback(() => {
     setShowEmptyNameAlert(false)
-    inputRef.current?.focus() // 直接フォーカス
+    inputRef.current?.focus()
   }, [])
 
   return (
