@@ -32,7 +32,6 @@ pocket-calcsheet_cca/
 │   │   ├── sheets/
 │   │   │   ├── SheetList.tsx          # トップページのシート一覧表示
 │   │   │   ├── SheetListItem.tsx      # シート一覧の個別アイテム
-│   │   │   ├── EditableSheetItem.tsx  # 編集モード時のシートアイテム
 │   │   │   └── DragHandle.tsx         # ドラッグ&ドロップ用ハンドル
 │   │   ├── keyboard/
 │   │   │   ├── CustomKeyboard.tsx     # カスタムキーボード本体

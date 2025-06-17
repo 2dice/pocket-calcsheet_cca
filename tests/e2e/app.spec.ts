@@ -44,6 +44,16 @@ test.describe('アプリケーション基本動作確認', () => {
     monitor = setupConsoleMonitoring(page)
   })
 
+  test.afterEach(() => {
+    // 各テスト後に共通でエラーチェック
+    const errors = monitor.getAllErrors()
+    if (errors.length > 0) {
+      throw new Error(
+        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
+      )
+    }
+  })
+
   test('ページが正常にロードされる', async ({ page }) => {
     await page.goto('/')
 
@@ -56,14 +66,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 編集ボタンが表示されることを確認
     await expect(page.locator('button:has-text("編集")')).toBeVisible()
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('モバイルビューポートが正しく設定されている', async ({ page }) => {
@@ -78,14 +80,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 高さは幅の1.3倍以上（アスペクト比で確認）
     expect(viewport!.height / viewport!.width).toBeGreaterThan(1.3)
-
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
   })
 
   test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
@@ -98,13 +92,101 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // クリック後も正常に動作することを確認
     await expect(page.locator('h1:has-text("ぽけっと計算表")')).toBeVisible()
+  })
 
-    // コンソールエラー・警告が発生した場合はテストを失敗させる
-    const errors = monitor.getAllErrors()
-    if (errors.length > 0) {
-      throw new Error(
-        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
-      )
-    }
+  test('編集モードの切り替えが動作する', async ({ page }) => {
+    await page.goto('/')
+
+    // 初期状態では編集ボタンが表示される
+    const editButton = page.locator('button:has-text("編集")')
+    await expect(editButton).toBeVisible()
+
+    // 編集ボタンをクリック
+    await editButton.click()
+
+    // 編集モードに切り替わり、完了ボタンが表示される
+    const completeButton = page.locator('button:has-text("完了")')
+    await expect(completeButton).toBeVisible()
+
+    // 編集モードでは+ボタンが表示される
+    const addButton = page.locator('button:has-text("+")')
+    await expect(addButton).toBeVisible()
+
+    // 完了ボタンをクリックして編集モードを終了
+    await completeButton.click()
+
+    // 編集ボタンが再び表示される
+    await expect(editButton).toBeVisible()
+
+    // +ボタンは非表示になる
+    await expect(addButton).not.toBeVisible()
+  })
+
+  test('シート追加とインライン編集の動作', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    // +ボタンをクリック
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    // 入力フィールドが表示され、フォーカスが当たる
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await expect(input).toBeVisible()
+    await expect(input).toBeFocused()
+
+    // 名前を入力
+    await input.fill('新しい計算シート')
+
+    // Enterキーで確定
+    await input.press('Enter')
+
+    // 入力フィールドが非表示になる
+    await expect(input).not.toBeVisible()
+
+    // 新しいシートがリストに表示される
+    await expect(page.locator('text=新しい計算シート')).toBeVisible()
+  })
+
+  test('空欄確定時のAlertDialog表示', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    // +ボタンをクリック
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    // 入力フィールドが表示される
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await expect(input).toBeVisible()
+
+    // 空欄のままEnterキーで確定を試行
+    await input.press('Enter')
+
+    // AlertDialogが表示される
+    const alertDialog = page.locator('[role="alertdialog"]')
+    await expect(alertDialog).toBeVisible()
+
+    // AlertDialogのタイトルを確認
+    await expect(
+      page.getByRole('heading', { name: '名前を入力してください' })
+    ).toBeVisible()
+
+    // OKボタンをクリックしてダイアログを閉じる
+    const okButton = page.locator('button:has-text("OK")')
+    await okButton.click()
+
+    // AlertDialogが非表示になる
+    await expect(alertDialog).not.toBeVisible()
+
+    // 入力フィールドが再び表示される
+    await expect(input).toBeVisible()
+    // Note: フォーカス動作はsetTimeout削除により変更されたため、E2Eテストでは確認しない
   })
 })

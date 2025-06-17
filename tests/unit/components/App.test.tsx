@@ -1,6 +1,7 @@
 import { describe, test, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import App from '../../../src/App'
+import { TopPage } from '../../../src/pages/TopPage'
 
 describe('App - Step2-1対応後のテスト', () => {
   test('アプリケーションがクラッシュせずにレンダリングされる', () => {
@@ -48,5 +49,36 @@ describe('App - Step2-1対応後のテスト', () => {
     // Service Worker登録のテスト
     expect(navigator.serviceWorker).toBeDefined()
     expect(typeof navigator.serviceWorker.register).toBe('function')
+  })
+})
+
+describe('TopPage', () => {
+  test('正常にレンダリングされる', () => {
+    render(<TopPage />)
+
+    const topPage = screen.getByTestId('top-page')
+    expect(topPage).toBeInTheDocument()
+  })
+
+  test('アプリ名「ぽけっと計算表」が表示される', () => {
+    render(<TopPage />)
+
+    const appName = screen.getByText('ぽけっと計算表')
+    expect(appName).toBeInTheDocument()
+  })
+
+  test('編集ボタンが存在する', () => {
+    render(<TopPage />)
+
+    const editButton = screen.getByTestId('edit-button')
+    expect(editButton).toBeInTheDocument()
+    expect(editButton).toHaveTextContent('編集')
+  })
+
+  test('SheetListコンポーネントが表示される', () => {
+    render(<TopPage />)
+
+    const sheetList = screen.getByTestId('sheet-list')
+    expect(sheetList).toBeInTheDocument()
   })
 })

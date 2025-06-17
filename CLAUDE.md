@@ -46,9 +46,15 @@ pocket-calcsheet_cca/
 │   │   ├── sheets/                   # シート関連コンポーネント
 │   │   │   └── SheetList.tsx         # トップページのシート一覧表示
 │   │   └── ui/                       # shadcn/uiコンポーネント
-│   │       └── button.tsx            # Buttonコンポーネント
+│   │       ├── button.tsx            # Buttonコンポーネント
+│   │       ├── input.tsx             # 基本入力フィールド
+│   │       └── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
 │   ├── pages/                        # ページコンポーネント
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
+│   ├── store/                        # Zustandストア
+│   │   ├── index.ts                  # Zustandストア統合エクスポート
+│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア
+│   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
@@ -61,10 +67,11 @@ pocket-calcsheet_cca/
 │   ├── setup/
 │   │   └── vitest.setup.ts           # Vitestセットアップ
 │   ├── unit/
-│   │   └── components/
-│   │       ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト
-│   │       ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
-│   │       └── TopPage.test.tsx      # トップページコンポーネントテスト
+│   │   ├── components/
+│   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト
+│   │   │   └── SheetList.test.tsx    # シート一覧コンポーネントテスト
+│   │   └── store/
+│   │       └── sheetsStore.test.ts   # シートストアテスト
 │   └── e2e/
 │       ├── app.spec.ts               # 基本動作E2Eテスト
 │       └── pwa.spec.ts               # PWA機能テスト
@@ -120,6 +127,11 @@ pocket-calcsheet_cca/
   ### 備考
   ```
 - Issueに対する Pull Request は備考に`Close #1`等と記載しissue番号と紐付ける。
+
+## compactコマンドガイドライン(要約)
+
+- compact 機能を使用する際は、ターミナル出力(test/build/dev等)と、コード変更処理、デバッグ時の経緯を主に圧縮すること。
+- 指示、デバッグの結果、進捗の情報は残すこと。
 
 ## Project Overview
 
