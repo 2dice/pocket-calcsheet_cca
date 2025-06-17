@@ -4,6 +4,7 @@ import type { SheetMeta } from '@/types/sheet'
 interface SheetsStore {
   sheets: SheetMeta[]
   addSheet: (name: string) => void
+  reorderSheets: (activeId: string, overId: string) => void
   reset: () => void
 }
 
@@ -29,6 +30,29 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     set(state => ({
       sheets: [...state.sheets, newSheet],
     }))
+  },
+  reorderSheets: (activeId: string, overId: string) => {
+    if (activeId === overId) return
+
+    const currentSheets = get().sheets
+    const activeIndex = currentSheets.findIndex(sheet => sheet.id === activeId)
+    const overIndex = currentSheets.findIndex(sheet => sheet.id === overId)
+
+    if (activeIndex === -1 || overIndex === -1) return
+
+    // arrayMove相当の処理でsheets配列を更新
+    const newSheets = [...currentSheets]
+    const [movedSheet] = newSheets.splice(activeIndex, 1)
+    newSheets.splice(overIndex, 0, movedSheet)
+
+    // order プロパティを再計算
+    const updatedSheets = newSheets.map((sheet, index) => ({
+      ...sheet,
+      order: index,
+      updatedAt: new Date().toISOString(),
+    }))
+
+    set({ sheets: updatedSheets })
   },
   reset: () => set({ sheets: [] }),
 }))

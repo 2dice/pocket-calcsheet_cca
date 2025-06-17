@@ -18,7 +18,7 @@ export function TopPage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
-  const { sheets, addSheet } = useSheetsStore()
+  const { sheets, addSheet, reorderSheets } = useSheetsStore()
 
   const handleEditButtonClick = () => {
     toggleEditMode()
@@ -100,6 +100,7 @@ export function TopPage() {
           onSheetClick={handleSheetClick}
           onNewItemConfirm={handleNewItemConfirm}
           onNewItemCancel={handleNewItemCancel}
+          onReorderSheets={reorderSheets}
           inputRef={inputRef}
         />
       </div>
