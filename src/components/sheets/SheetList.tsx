@@ -36,9 +36,9 @@ export function SheetList({
   const { sensors, handleDragEnd } = useDragAndDrop({
     onReorderSheets: onReorderSheets || (() => {}),
     onDragStart: (id: string) => setActiveId(id),
-    onDragEnd: (activeId: string, overId: string) => {
+    onDragEnd: () => {
       setActiveId(null)
-      onReorderSheets?.(activeId, overId)
+      // onReorderSheets呼び出しは削除（useDragAndDrop内で処理）
     },
   })
 

@@ -43,7 +43,11 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     // arrayMove相当の処理でsheets配列を更新
     const newSheets = [...currentSheets]
     const [movedSheet] = newSheets.splice(activeIndex, 1)
-    newSheets.splice(overIndex, 0, movedSheet)
+
+    // activeIndex < overIndexの場合、元々のoverIndex位置への挿入のため調整が必要
+    const adjustedOverIndex =
+      activeIndex < overIndex ? overIndex - 1 : overIndex
+    newSheets.splice(adjustedOverIndex, 0, movedSheet)
 
     // order プロパティを再計算（変更があったシートのみupdatedAt更新）
     const updatedSheets = newSheets.map((sheet, index) => {
