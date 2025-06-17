@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta } from '@/types/sheet'
 
 interface SheetsStore {
@@ -40,14 +41,8 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
 
     if (activeIndex === -1 || overIndex === -1) return
 
-    // arrayMove相当の処理でsheets配列を更新
-    const newSheets = [...currentSheets]
-    const [movedSheet] = newSheets.splice(activeIndex, 1)
-
-    // activeIndex < overIndexの場合、元々のoverIndex位置への挿入のため調整が必要
-    const adjustedOverIndex =
-      activeIndex < overIndex ? overIndex - 1 : overIndex
-    newSheets.splice(adjustedOverIndex, 0, movedSheet)
+    // arrayMoveを使用してsheets配列を更新
+    const newSheets = arrayMove(currentSheets, activeIndex, overIndex)
 
     // order プロパティを再計算（変更があったシートのみupdatedAt更新）
     const updatedSheets = newSheets.map((sheet, index) => {
