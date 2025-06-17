@@ -40,7 +40,7 @@ https://2dice.tech/category/ios-app/calcsheet/
     - デフォルトで作成された不要ファイル削除
   - PWA対応(vite-plugin-pwa)(step1-7)
     - manifest(ホーム画面追加)設定
-    - service-worker.js(オフライン対応)設定
+    - service-worker(オフライン対応)設定
       - precache manifest で app shell を CacheFirst（初回以降オフライン起動可）
       - 外部 CDN（KaTeX・lucide）を StaleWhileRevalidate で最新をバックグラウンド更新
       - API 通信なしのため NetworkFirst は不要
@@ -76,6 +76,7 @@ https://2dice.tech/category/ios-app/calcsheet/
   - formulaタブ(右)
   - 各タブにはアイコンと名前を記載
   - URLはReact-Router + HashRouterで管理(HashRouterで"/#/"→Top、"/#/:id/(overview|variables|formula)"→Tab)
+    - PWA設定のhash router対応
   - 左上にリストに戻るボタン(iphoneのback buttonのイメージ)を表示(全てのタブ)
     - 押下でトップページに戻る
 - variablesタブ
