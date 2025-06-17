@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 3
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -45,7 +45,7 @@ jobs:
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
-          timeout_minutes: '45'
+          timeout_minutes: '20'
           model: 'claude-sonnet-4-20250514'
           allowed_tools: 'Bash,View,LS,GlobTool,GrepTool,Write,Edit,Read'
           direct_prompt: |
