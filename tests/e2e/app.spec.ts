@@ -189,4 +189,61 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(input).toBeVisible()
     // Note: フォーカス動作はsetTimeout削除により変更されたため、E2Eテストでは確認しない
   })
+
+  test('編集モード時にドラッグハンドルが表示される', async ({ page }) => {
+    await page.goto('/')
+
+    // シートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('テスト用シート')
+    await input.press('Enter')
+
+    // ドラッグハンドルが表示されることを確認
+    const dragHandle = page.locator('[data-testid="drag-handle"]')
+    await expect(dragHandle).toBeVisible()
+
+    // 完了ボタンをクリックして編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // 通常モードではドラッグハンドルが表示されない
+    await expect(dragHandle).not.toBeVisible()
+  })
+
+  test('複数シートでのドラッグハンドル表示', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    // 複数のシートを追加
+    const addButton = page.locator('button:has-text("+")')
+
+    // 1つ目のシート
+    await addButton.click()
+    let input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('シート1')
+    await input.press('Enter')
+
+    // 2つ目のシート
+    await addButton.click()
+    input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('シート2')
+    await input.press('Enter')
+
+    // すべてのシートにドラッグハンドルが表示される
+    const dragHandles = page.locator('[data-testid="drag-handle"]')
+    await expect(dragHandles).toHaveCount(2)
+
+    // 各ドラッグハンドルが表示されている
+    await expect(dragHandles.nth(0)).toBeVisible()
+    await expect(dragHandles.nth(1)).toBeVisible()
+  })
 })

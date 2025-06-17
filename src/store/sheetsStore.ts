@@ -1,9 +1,11 @@
 import { create } from 'zustand'
+import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta } from '@/types/sheet'
 
 interface SheetsStore {
   sheets: SheetMeta[]
   addSheet: (name: string) => void
+  reorderSheets: (activeId: string, overId: string) => void
   reset: () => void
 }
 
@@ -29,6 +31,32 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     set(state => ({
       sheets: [...state.sheets, newSheet],
     }))
+  },
+  reorderSheets: (activeId: string, overId: string) => {
+    if (activeId === overId) return
+
+    const currentSheets = get().sheets
+    const activeIndex = currentSheets.findIndex(sheet => sheet.id === activeId)
+    const overIndex = currentSheets.findIndex(sheet => sheet.id === overId)
+
+    if (activeIndex === -1 || overIndex === -1) return
+
+    // arrayMoveを使用してsheets配列を更新
+    const newSheets = arrayMove(currentSheets, activeIndex, overIndex)
+
+    // order プロパティを再計算（変更があったシートのみupdatedAt更新）
+    const updatedSheets = newSheets.map((sheet, index) => {
+      if (sheet.order !== index || sheet.id === activeId) {
+        return {
+          ...sheet,
+          order: index,
+          updatedAt: new Date().toISOString(),
+        }
+      }
+      return { ...sheet, order: index }
+    })
+
+    set({ sheets: updatedSheets })
   },
   reset: () => set({ sheets: [] }),
 }))

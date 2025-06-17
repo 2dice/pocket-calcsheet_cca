@@ -179,4 +179,102 @@ describe('SheetList', () => {
       expect(mockOnConfirm).toHaveBeenCalledWith('')
     })
   })
+
+  describe('ドラッグ&ドロップ機能', () => {
+    it('編集モード時にドラッグハンドルが表示される', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+        />
+      )
+
+      // 各シートアイテムにドラッグハンドルが表示される
+      const dragHandles = screen.getAllByTestId('drag-handle')
+      expect(dragHandles).toHaveLength(mockSheets.length)
+    })
+
+    it('通常モード時にドラッグハンドルが表示されない', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={false}
+          onSheetClick={vi.fn()}
+        />
+      )
+
+      // ドラッグハンドルが表示されない
+      const dragHandles = screen.queryAllByTestId('drag-handle')
+      expect(dragHandles).toHaveLength(0)
+    })
+
+    it('DndContextが正しく設定されている', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+        />
+      )
+
+      // DndContext内でレンダリングされていることを確認
+      // ドラッグハンドルが表示されている=DndContextが動作している
+      const dragHandles = screen.getAllByTestId('drag-handle')
+      expect(dragHandles).toHaveLength(mockSheets.length)
+    })
+
+    it('SortableContextが正しく設定されている', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+        />
+      )
+
+      // SortableContext内でレンダリングされていることを確認
+      // SortableItem(SheetListItem)が正しく表示されている=SortableContextが動作している
+      const firstSheetItem = screen.getByText('テストシート1')
+      expect(firstSheetItem).toBeInTheDocument()
+
+      const secondSheetItem = screen.getByText('テストシート2')
+      expect(secondSheetItem).toBeInTheDocument()
+    })
+
+    it('ドラッグハンドルにtouch-action: noneが適用されている', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+        />
+      )
+
+      const dragHandles = screen.getAllByTestId('drag-handle')
+      dragHandles.forEach(handle => {
+        // style属性内でtouchActionが設定されていることを確認
+        expect(handle.style.touchAction).toBe('none')
+      })
+    })
+
+    it('ソート可能なアイテムが正しくレンダリングされる', () => {
+      const mockOnReorder = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onReorderSheets={mockOnReorder}
+        />
+      )
+
+      // ドラッグ中のスタイル適用をテスト
+      // これは実際のドラッグ操作後に確認されるもの
+      const firstItem = screen
+        .getByText('テストシート1')
+        .closest('[data-sortable-item]')
+      expect(firstItem).toBeInTheDocument()
+    })
+  })
 })

@@ -44,16 +44,20 @@ pocket-calcsheet_cca/
 ├── src/
 │   ├── components/
 │   │   ├── sheets/                   # シート関連コンポーネント
-│   │   │   └── SheetList.tsx         # トップページのシート一覧表示
+│   │   │   ├── SheetList.tsx         # トップページのシート一覧表示(DndContext)
+│   │   │   ├── SheetListItem.tsx     # シート一覧の個別アイテム(SortableItem)
+│   │   │   └── DragHandle.tsx        # ドラッグ&ドロップ用ハンドル
 │   │   └── ui/                       # shadcn/uiコンポーネント
 │   │       ├── button.tsx            # Buttonコンポーネント
 │   │       ├── input.tsx             # 基本入力フィールド
 │   │       └── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
+│   ├── hooks/                        # カスタムフック
+│   │   └── useDragAndDrop.ts         # dnd-kit操作フック
 │   ├── pages/                        # ページコンポーネント
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── store/                        # Zustandストア
 │   │   ├── index.ts                  # Zustandストア統合エクスポート
-│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア
+│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(reorderSheets実装済み)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
