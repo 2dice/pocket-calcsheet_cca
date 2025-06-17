@@ -29,9 +29,9 @@ export function SheetListItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    WebkitTouchCallout: 'none',
-    WebkitUserSelect: 'none',
-    userSelect: 'none',
+    WebkitTouchCallout: 'none' as const,
+    WebkitUserSelect: 'none' as const,
+    userSelect: 'none' as const,
   }
 
   const handleClick = () => {
