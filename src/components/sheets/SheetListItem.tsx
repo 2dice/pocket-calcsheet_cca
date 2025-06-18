@@ -90,22 +90,27 @@ export function SheetListItem({
           : undefined
       }
     >
+      {/* 削除ボタンを左側に配置（編集モード時のみ） */}
+      {isEditMode && (
+        <button
+          data-testid="delete-button"
+          onClick={handleDeleteClick}
+          className="flex items-center justify-center min-h-11 min-w-11 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors mr-2"
+          aria-label={`${sheet.name}を削除`}
+        >
+          <Trash2 className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* シート名を中央に配置 */}
       <div className="flex-1 select-none">
         <span className="text-base text-gray-900">{sheet.name}</span>
       </div>
+
+      {/* ドラッグハンドルを右側に配置（編集モード時のみ） */}
       {isEditMode && (
-        <div className="flex items-center gap-2">
-          <button
-            data-testid="delete-button"
-            onClick={handleDeleteClick}
-            className="flex items-center justify-center min-h-11 min-w-11 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-            aria-label={`${sheet.name}を削除`}
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-          <div {...attributes} {...listeners}>
-            <DragHandle isDragging={isDragging} />
-          </div>
+        <div {...attributes} {...listeners}>
+          <DragHandle isDragging={isDragging} />
         </div>
       )}
 
