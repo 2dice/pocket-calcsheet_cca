@@ -12,6 +12,7 @@ interface SheetListProps {
   editingNewItem?: boolean
   onSheetClick?: (id: string) => void
   onDeleteSheet?: (id: string) => void
+  onUpdateSheet?: (id: string, name: string) => void
   onNewItemConfirm?: (value: string) => void
   onNewItemCancel?: () => void
   onReorderSheets?: (activeId: string, overId: string) => void
@@ -24,6 +25,7 @@ export function SheetList({
   editingNewItem = false,
   onSheetClick,
   onDeleteSheet,
+  onUpdateSheet,
   onNewItemConfirm,
   onNewItemCancel,
   onReorderSheets,
@@ -117,6 +119,7 @@ export function SheetList({
                   isEditMode={isEditMode}
                   onSheetClick={handleSheetClick}
                   onDeleteSheet={onDeleteSheet}
+                  onUpdateSheet={onUpdateSheet}
                 />
               ))}
 
@@ -149,6 +152,7 @@ export function SheetList({
               isEditMode={isEditMode}
               onSheetClick={() => {}}
               onDeleteSheet={onDeleteSheet}
+              onUpdateSheet={onUpdateSheet}
             />
           </div>
         )}

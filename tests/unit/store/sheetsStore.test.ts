@@ -230,6 +230,169 @@ describe('SheetsStore', () => {
     })
   })
 
+  describe('updateSheet', () => {
+    beforeEach(() => {
+      // テスト用のシートを3つ追加
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('シート1')
+      addSheet('シート2')
+      addSheet('シート3')
+    })
+
+    it('updateSheet メソッドが存在する', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      expect(typeof updateSheet).toBe('function')
+    })
+
+    it('指定IDのシート名を更新できる', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const targetSheetId = initialSheets[1].id
+      const newName = '更新されたシート名'
+
+      updateSheet(targetSheetId, newName)
+
+      const updatedSheets = useSheetsStore.getState().sheets
+      const updatedSheet = updatedSheets.find(
+        sheet => sheet.id === targetSheetId
+      )
+
+      expect(updatedSheet?.name).toBe(newName)
+    })
+
+    it('指定IDのシートのupdatedAtが更新される', () => {
+      vi.useFakeTimers()
+
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const targetSheetId = initialSheets[0].id
+      const initialUpdatedAt = initialSheets[0].updatedAt
+
+      // 時間を進める
+      vi.advanceTimersByTime(1000)
+
+      updateSheet(targetSheetId, '新しい名前')
+
+      const updatedSheets = useSheetsStore.getState().sheets
+      const updatedSheet = updatedSheets.find(
+        sheet => sheet.id === targetSheetId
+      )
+
+      expect(updatedSheet?.updatedAt).not.toBe(initialUpdatedAt)
+      expect(updatedSheet?.updatedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      vi.useRealTimers()
+    })
+
+    it('他のシートのプロパティは変更されない', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const targetSheetId = initialSheets[1].id
+      const otherSheet1 = { ...initialSheets[0] }
+      const otherSheet2 = { ...initialSheets[2] }
+
+      updateSheet(targetSheetId, '更新されたシート名')
+
+      const updatedSheets = useSheetsStore.getState().sheets
+      const unchangedSheet1 = updatedSheets[0]
+      const unchangedSheet2 = updatedSheets[2]
+
+      expect(unchangedSheet1.name).toBe(otherSheet1.name)
+      expect(unchangedSheet1.updatedAt).toBe(otherSheet1.updatedAt)
+      expect(unchangedSheet1.createdAt).toBe(otherSheet1.createdAt)
+      expect(unchangedSheet1.order).toBe(otherSheet1.order)
+
+      expect(unchangedSheet2.name).toBe(otherSheet2.name)
+      expect(unchangedSheet2.updatedAt).toBe(otherSheet2.updatedAt)
+      expect(unchangedSheet2.createdAt).toBe(otherSheet2.createdAt)
+      expect(unchangedSheet2.order).toBe(otherSheet2.order)
+    })
+
+    it('存在しないIDで更新を試行してもエラーにならない', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      // 存在しないIDで実行してもエラーにならない
+      expect(() => {
+        updateSheet('non-existent-id', '新しい名前')
+      }).not.toThrow()
+
+      // 元の配列が変更されない
+      const unchangedSheets = useSheetsStore.getState().sheets
+      expect(unchangedSheets).toEqual(initialSheets)
+    })
+
+    it('空欄の名前でも更新できる', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const targetSheetId = initialSheets[0].id
+
+      updateSheet(targetSheetId, '')
+
+      const updatedSheets = useSheetsStore.getState().sheets
+      const updatedSheet = updatedSheets.find(
+        sheet => sheet.id === targetSheetId
+      )
+
+      expect(updatedSheet?.name).toBe('')
+    })
+
+    it('配列の順序が保持される', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const targetSheetId = initialSheets[1].id
+
+      updateSheet(targetSheetId, '更新されたシート名')
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      // 配列の長さが変わらない
+      expect(updatedSheets).toHaveLength(3)
+
+      // 順序が保持される
+      expect(updatedSheets[0].name).toBe('シート1')
+      expect(updatedSheets[1].name).toBe('更新されたシート名')
+      expect(updatedSheets[2].name).toBe('シート3')
+
+      // IDも正しく保持される
+      expect(updatedSheets[0].id).toBe(initialSheets[0].id)
+      expect(updatedSheets[1].id).toBe(initialSheets[1].id)
+      expect(updatedSheets[2].id).toBe(initialSheets[2].id)
+    })
+
+    it('更新処理が配列の整合性を保つ', () => {
+      const { updateSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const targetSheetId = initialSheets[1].id
+
+      updateSheet(targetSheetId, '更新されたシート名')
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      // すべてのシートが有効なプロパティを持つ
+      updatedSheets.forEach(sheet => {
+        expect(typeof sheet.id).toBe('string')
+        expect(sheet.id).toBeTruthy()
+        expect(typeof sheet.name).toBe('string')
+        expect(typeof sheet.order).toBe('number')
+        expect(sheet.createdAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+        )
+        expect(sheet.updatedAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+        )
+      })
+    })
+  })
+
   describe('removeSheet', () => {
     beforeEach(() => {
       // テスト用のシートを3つ追加

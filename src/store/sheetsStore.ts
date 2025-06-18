@@ -7,6 +7,7 @@ interface SheetsStore {
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
+  updateSheet: (id: string, name: string) => void
   reset: () => void
 }
 
@@ -63,6 +64,19 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     })
 
     set({ sheets: updatedSheets })
+  },
+  updateSheet: (id: string, name: string) => {
+    set(state => ({
+      sheets: state.sheets.map(sheet =>
+        sheet.id === id
+          ? {
+              ...sheet,
+              name,
+              updatedAt: new Date().toISOString(),
+            }
+          : sheet
+      ),
+    }))
   },
   reset: () => set({ sheets: [] }),
 }))

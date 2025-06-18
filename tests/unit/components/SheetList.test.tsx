@@ -278,6 +278,210 @@ describe('SheetList', () => {
     })
   })
 
+  describe('シート名編集機能（インライン編集）', () => {
+    it('通常モード時にシート名をクリックしても編集状態にならない', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={false}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      // 編集状態になっていないことを確認
+      expect(screen.queryByTestId('sheet-name-input')).not.toBeInTheDocument()
+      expect(mockOnUpdate).not.toHaveBeenCalled()
+    })
+
+    it('編集モード時にシート名をクリックすると編集状態になる', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      // 編集状態になることを確認
+      const input = screen.getByTestId('sheet-name-input')
+      expect(input).toBeInTheDocument()
+      expect(input).toHaveFocus()
+      expect(input).toHaveValue('テストシート1')
+    })
+
+    it('編集中のシート名でEnterキーを押すと編集が完了する', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      const input = screen.getByTestId('sheet-name-input')
+      fireEvent.change(input, { target: { value: '更新されたシート名' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+
+      expect(mockOnUpdate).toHaveBeenCalledWith('1', '更新されたシート名')
+    })
+
+    it('編集中のシート名からフォーカスが外れると編集が完了する', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      const input = screen.getByTestId('sheet-name-input')
+      fireEvent.change(input, { target: { value: '更新されたシート名' } })
+      fireEvent.blur(input)
+
+      expect(mockOnUpdate).toHaveBeenCalledWith('1', '更新されたシート名')
+    })
+
+    it('編集中にEscapeキーを押すと編集をキャンセルする', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      const input = screen.getByTestId('sheet-name-input')
+      fireEvent.change(input, { target: { value: '更新されたシート名' } })
+      fireEvent.keyDown(input, { key: 'Escape' })
+
+      // onUpdateSheetが呼ばれないことを確認
+      expect(mockOnUpdate).not.toHaveBeenCalled()
+
+      // 編集状態が終了することを確認
+      expect(screen.queryByTestId('sheet-name-input')).not.toBeInTheDocument()
+      expect(screen.getByText('テストシート1')).toBeInTheDocument()
+    })
+
+    it('空欄での編集完了は拒否される（onUpdateSheetが呼ばれる）', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      const input = screen.getByTestId('sheet-name-input')
+      fireEvent.change(input, { target: { value: '' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+
+      // 空欄でもonUpdateSheetが呼ばれることを確認（バリデーションは上位で処理）
+      expect(mockOnUpdate).toHaveBeenCalledWith('1', '')
+    })
+
+    it('複数のシートで個別に編集状態を管理できる', () => {
+      const mockOnUpdate = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={mockOnUpdate}
+        />
+      )
+
+      // 1つ目のシートを編集状態にする
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      // 編集用のinputが1つだけ存在することを確認
+      const inputs = screen.getAllByTestId('sheet-name-input')
+      expect(inputs).toHaveLength(1)
+      expect(inputs[0]).toHaveValue('テストシート1')
+
+      // 2つ目のシート名は通常表示のまま
+      expect(screen.getByText('テストシート2')).toBeInTheDocument()
+    })
+
+    it('編集状態のシートで削除ボタンが非表示になる', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={vi.fn()}
+          onDeleteSheet={vi.fn()}
+        />
+      )
+
+      // 初期状態では削除ボタンが表示される
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      expect(deleteButtons).toHaveLength(2)
+
+      // 1つ目のシートを編集状態にする
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      // 編集中のシートの削除ボタンは表示されない
+      const remainingDeleteButtons = screen.getAllByTestId('delete-button')
+      expect(remainingDeleteButtons).toHaveLength(1)
+    })
+
+    it('編集状態のシートでドラッグハンドルが非表示になる', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onUpdateSheet={vi.fn()}
+          onReorderSheets={vi.fn()}
+        />
+      )
+
+      // 初期状態ではドラッグハンドルが表示される
+      const dragHandles = screen.getAllByTestId('drag-handle')
+      expect(dragHandles).toHaveLength(2)
+
+      // 1つ目のシートを編集状態にする
+      const firstSheetName = screen.getByText('テストシート1')
+      fireEvent.click(firstSheetName)
+
+      // 編集中のシートのドラッグハンドルは表示されない
+      const remainingDragHandles = screen.getAllByTestId('drag-handle')
+      expect(remainingDragHandles).toHaveLength(1)
+    })
+  })
+
   describe('削除機能', () => {
     it('通常モード時に削除ボタンが表示されない', () => {
       render(

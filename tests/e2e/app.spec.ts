@@ -247,6 +247,193 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(dragHandles.nth(1)).toBeVisible()
   })
 
+  test('編集モードでシート名をタップするとインライン編集が開始される', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('編集テストシート')
+    await input.press('Enter')
+
+    // 追加されたシート名をタップ
+    const sheetName = page.locator('text=編集テストシート')
+    await sheetName.click()
+
+    // インライン編集が開始される
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await expect(editInput).toBeVisible()
+    await expect(editInput).toBeFocused()
+    await expect(editInput).toHaveValue('編集テストシート')
+  })
+
+  test('通常モードではシート名タップで編集開始されない', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードでシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('通常モードテストシート')
+    await input.press('Enter')
+
+    // 編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // シート名をタップ
+    const sheetName = page.locator('text=通常モードテストシート')
+    await sheetName.click()
+
+    // インライン編集が開始されないことを確認
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await expect(editInput).not.toBeVisible()
+  })
+
+  test('Enterキーでシート名編集が完了する', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('Enterテストシート')
+    await input.press('Enter')
+
+    // シート名をタップして編集開始
+    const sheetName = page.locator('text=Enterテストシート')
+    await sheetName.click()
+
+    // 名前を変更してEnterで確定
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await editInput.fill('更新されたシート名')
+    await editInput.press('Enter')
+
+    // 編集が完了し、新しい名前が表示される
+    await expect(editInput).not.toBeVisible()
+    await expect(page.locator('text=更新されたシート名')).toBeVisible()
+    await expect(page.locator('text=Enterテストシート')).not.toBeVisible()
+  })
+
+  test('別エリアタップでシート名編集が完了する', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('ブラーテストシート')
+    await input.press('Enter')
+
+    // シート名をタップして編集開始
+    const sheetName = page.locator('text=ブラーテストシート')
+    await sheetName.click()
+
+    // 名前を変更
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await editInput.fill('ブラーで更新された名前')
+
+    // 別のエリア（ヘッダー）をタップ
+    const header = page.locator('h1:has-text("ぽけっと計算表")')
+    await header.click()
+
+    // 編集が完了し、新しい名前が表示される
+    await expect(editInput).not.toBeVisible()
+    await expect(page.locator('text=ブラーで更新された名前')).toBeVisible()
+    await expect(page.locator('text=ブラーテストシート')).not.toBeVisible()
+  })
+
+  test('空欄確定時にAlertDialogが表示される', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('空欄テストシート')
+    await input.press('Enter')
+
+    // シート名をタップして編集開始
+    const sheetName = page.locator('text=空欄テストシート')
+    await sheetName.click()
+
+    // 名前を空欄にしてEnterで確定
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await editInput.fill('')
+    await editInput.press('Enter')
+
+    // AlertDialogが表示される
+    const alertDialog = page.locator('[role="alertdialog"]')
+    await expect(alertDialog).toBeVisible()
+
+    // AlertDialogのタイトルを確認
+    await expect(
+      page.getByRole('heading', { name: '名前を入力してください' })
+    ).toBeVisible()
+
+    // OKボタンをクリックしてダイアログを閉じる
+    const okButton = page.locator('button:has-text("OK")')
+    await okButton.click()
+
+    // AlertDialogが非表示になる
+    await expect(alertDialog).not.toBeVisible()
+
+    // 元の名前が復元される
+    await expect(page.locator('text=空欄テストシート')).toBeVisible()
+  })
+
+  test('編集中にEscapeキーを押すと編集がキャンセルされる', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('Escapeテストシート')
+    await input.press('Enter')
+
+    // シート名をタップして編集開始
+    const sheetName = page.locator('text=Escapeテストシート')
+    await sheetName.click()
+
+    // 名前を変更してEscapeでキャンセル
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await editInput.fill('キャンセルされる名前')
+    await editInput.press('Escape')
+
+    // 編集がキャンセルされ、元の名前が表示される
+    await expect(editInput).not.toBeVisible()
+    await expect(page.locator('text=Escapeテストシート')).toBeVisible()
+    await expect(page.locator('text=キャンセルされる名前')).not.toBeVisible()
+  })
+
   test('編集モード時に削除ボタンが表示される', async ({ page }) => {
     await page.goto('/')
 
