@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useSheetsStore } from '@/store/sheetsStore'
+import { validateSheetName } from '@/types/sheet'
 
 describe('SheetsStore', () => {
   // 各テストの前にストアをリセット
@@ -250,8 +251,11 @@ describe('SheetsStore', () => {
 
       const targetSheetId = initialSheets[1].id
       const newName = '更新されたシート名'
+      const validatedName = validateSheetName(newName)
 
-      updateSheet(targetSheetId, newName)
+      if (validatedName) {
+        updateSheet(targetSheetId, validatedName)
+      }
 
       const updatedSheets = useSheetsStore.getState().sheets
       const updatedSheet = updatedSheets.find(
@@ -273,7 +277,10 @@ describe('SheetsStore', () => {
       // 時間を進める
       vi.advanceTimersByTime(1000)
 
-      updateSheet(targetSheetId, '新しい名前')
+      const validatedName = validateSheetName('新しい名前')
+      if (validatedName) {
+        updateSheet(targetSheetId, validatedName)
+      }
 
       const updatedSheets = useSheetsStore.getState().sheets
       const updatedSheet = updatedSheets.find(
@@ -296,7 +303,10 @@ describe('SheetsStore', () => {
       const otherSheet1 = { ...initialSheets[0] }
       const otherSheet2 = { ...initialSheets[2] }
 
-      updateSheet(targetSheetId, '更新されたシート名')
+      const validatedName = validateSheetName('更新されたシート名')
+      if (validatedName) {
+        updateSheet(targetSheetId, validatedName)
+      }
 
       const updatedSheets = useSheetsStore.getState().sheets
       const unchangedSheet1 = updatedSheets[0]
@@ -319,28 +329,15 @@ describe('SheetsStore', () => {
 
       // 存在しないIDで実行してもエラーにならない
       expect(() => {
-        updateSheet('non-existent-id', '新しい名前')
+        const validatedName = validateSheetName('新しい名前')
+        if (validatedName) {
+          updateSheet('non-existent-id', validatedName)
+        }
       }).not.toThrow()
 
       // 元の配列が変更されない
       const unchangedSheets = useSheetsStore.getState().sheets
       expect(unchangedSheets).toEqual(initialSheets)
-    })
-
-    it('空欄の名前でも更新できる', () => {
-      const { updateSheet } = useSheetsStore.getState()
-      const initialSheets = useSheetsStore.getState().sheets
-
-      const targetSheetId = initialSheets[0].id
-
-      updateSheet(targetSheetId, '')
-
-      const updatedSheets = useSheetsStore.getState().sheets
-      const updatedSheet = updatedSheets.find(
-        sheet => sheet.id === targetSheetId
-      )
-
-      expect(updatedSheet?.name).toBe('')
     })
 
     it('配列の順序が保持される', () => {
@@ -349,7 +346,10 @@ describe('SheetsStore', () => {
 
       const targetSheetId = initialSheets[1].id
 
-      updateSheet(targetSheetId, '更新されたシート名')
+      const validatedName = validateSheetName('更新されたシート名')
+      if (validatedName) {
+        updateSheet(targetSheetId, validatedName)
+      }
 
       const updatedSheets = useSheetsStore.getState().sheets
 
@@ -373,7 +373,10 @@ describe('SheetsStore', () => {
 
       const targetSheetId = initialSheets[1].id
 
-      updateSheet(targetSheetId, '更新されたシート名')
+      const validatedName = validateSheetName('更新されたシート名')
+      if (validatedName) {
+        updateSheet(targetSheetId, validatedName)
+      }
 
       const updatedSheets = useSheetsStore.getState().sheets
 
