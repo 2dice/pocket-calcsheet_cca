@@ -277,4 +277,225 @@ describe('SheetList', () => {
       expect(firstItem).toBeInTheDocument()
     })
   })
+
+  describe('削除機能', () => {
+    it('通常モード時に削除ボタンが表示されない', () => {
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={false}
+          onSheetClick={vi.fn()}
+        />
+      )
+
+      // 削除ボタンが表示されない
+      const deleteButtons = screen.queryAllByTestId('delete-button')
+      expect(deleteButtons).toHaveLength(0)
+    })
+
+    it('編集モード時に削除ボタンが表示される', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      // 各シートアイテムに削除ボタンが表示される
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      expect(deleteButtons).toHaveLength(mockSheets.length)
+    })
+
+    it('削除ボタンクリック時にAlertDialogが表示される', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+
+      // 最初のシートの削除ボタンをクリック
+      fireEvent.click(deleteButtons[0])
+
+      // AlertDialogが表示される（onDeleteSheetはまだ呼ばれない）
+      expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+      expect(mockOnDelete).not.toHaveBeenCalled()
+    })
+
+    it('削除ボタンにTrash2アイコンが表示される', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      // 削除ボタン内のTrash2アイコンが表示される
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      expect(deleteButtons[0]).toBeInTheDocument()
+
+      // ボタン内にSVG要素が存在することを確認（lucide-reactアイコン）
+      const svgElements = deleteButtons[0].querySelectorAll('svg')
+      expect(svgElements.length).toBeGreaterThan(0)
+    })
+
+    it('削除ボタンが適切なタッチターゲットサイズを持つ', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+
+      // ボタンのスタイルを確認（44px以上のタッチターゲット）
+      deleteButtons.forEach(button => {
+        // Tailwindクラスによるサイズ設定を確認
+        expect(button.className).toMatch(/min-h-|h-/)
+        expect(button.className).toMatch(/min-w-|w-/)
+      })
+    })
+  })
+
+  describe('AlertDialog確認機能', () => {
+    it('削除ボタンクリック時にAlertDialogが表示される', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      fireEvent.click(deleteButtons[0])
+
+      // AlertDialogが表示される
+      const alertDialog = screen.getByRole('alertdialog')
+      expect(alertDialog).toBeInTheDocument()
+    })
+
+    it('AlertDialogに正しいタイトルと説明が表示される', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      fireEvent.click(deleteButtons[0])
+
+      // タイトルの確認
+      expect(screen.getByText('シートを削除')).toBeInTheDocument()
+
+      // 説明文の確認（シート名を含む）
+      expect(
+        screen.getByText(
+          '"テストシート1"を削除してもよろしいですか？この操作は取り消せません。'
+        )
+      ).toBeInTheDocument()
+    })
+
+    it('AlertDialogのキャンセルボタンで削除がキャンセルされる', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      fireEvent.click(deleteButtons[0])
+
+      // キャンセルボタンをクリック
+      const cancelButton = screen.getByText('キャンセル')
+      fireEvent.click(cancelButton)
+
+      // onDeleteSheetが呼ばれない
+      expect(mockOnDelete).not.toHaveBeenCalled()
+
+      // AlertDialogが非表示になる
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    })
+
+    it('AlertDialogの削除ボタンで削除が実行される', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+      fireEvent.click(deleteButtons[0])
+
+      // 削除確認ボタンをクリック
+      const confirmButton = screen.getByText('削除')
+      fireEvent.click(confirmButton)
+
+      // onDeleteSheetが正しいIDで呼ばれる
+      expect(mockOnDelete).toHaveBeenCalledWith('1')
+
+      // AlertDialogが非表示になる
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    })
+
+    it('複数のシートで個別のAlertDialogが正常に動作する', () => {
+      const mockOnDelete = vi.fn()
+      render(
+        <SheetList
+          sheets={mockSheets}
+          isEditMode={true}
+          onSheetClick={vi.fn()}
+          onDeleteSheet={mockOnDelete}
+        />
+      )
+
+      const deleteButtons = screen.getAllByTestId('delete-button')
+
+      // 2番目のシートの削除ボタンをクリック
+      fireEvent.click(deleteButtons[1])
+
+      // 説明文に2番目のシート名が表示される
+      expect(
+        screen.getByText(
+          '"テストシート2"を削除してもよろしいですか？この操作は取り消せません。'
+        )
+      ).toBeInTheDocument()
+
+      // 削除確認
+      const confirmButton = screen.getByText('削除')
+      fireEvent.click(confirmButton)
+
+      // 2番目のシートのIDで呼ばれる
+      expect(mockOnDelete).toHaveBeenCalledWith('2')
+    })
+  })
 })

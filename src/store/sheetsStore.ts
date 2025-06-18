@@ -5,6 +5,7 @@ import type { SheetMeta } from '@/types/sheet'
 interface SheetsStore {
   sheets: SheetMeta[]
   addSheet: (name: string) => void
+  removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
   reset: () => void
 }
@@ -30,6 +31,11 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     }
     set(state => ({
       sheets: [...state.sheets, newSheet],
+    }))
+  },
+  removeSheet: (id: string) => {
+    set(state => ({
+      sheets: state.sheets.filter(sheet => sheet.id !== id),
     }))
   },
   reorderSheets: (activeId: string, overId: string) => {

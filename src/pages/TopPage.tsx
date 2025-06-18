@@ -18,7 +18,7 @@ export function TopPage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
-  const { sheets, addSheet, reorderSheets } = useSheetsStore()
+  const { sheets, addSheet, removeSheet, reorderSheets } = useSheetsStore()
 
   const handleEditButtonClick = () => {
     toggleEditMode()
@@ -48,6 +48,10 @@ export function TopPage() {
   const handleSheetClick = (id: string) => {
     // TODO: 次のステップでルーティング実装
     console.log('シートをクリック:', id)
+  }
+
+  const handleDeleteSheet = (id: string) => {
+    removeSheet(id)
   }
 
   const handleEmptyNameAlertOk = useCallback(() => {
@@ -98,6 +102,7 @@ export function TopPage() {
           isEditMode={isEditMode}
           editingNewItem={editingNewItem}
           onSheetClick={handleSheetClick}
+          onDeleteSheet={handleDeleteSheet}
           onNewItemConfirm={handleNewItemConfirm}
           onNewItemCancel={handleNewItemCancel}
           onReorderSheets={reorderSheets}
