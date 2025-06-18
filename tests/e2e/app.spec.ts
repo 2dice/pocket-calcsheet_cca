@@ -246,4 +246,168 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(dragHandles.nth(0)).toBeVisible()
     await expect(dragHandles.nth(1)).toBeVisible()
   })
+
+  test('編集モード時に削除ボタンが表示される', async ({ page }) => {
+    await page.goto('/')
+
+    // シートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('削除テスト用シート')
+    await input.press('Enter')
+
+    // 削除ボタンが表示されることを確認
+    const deleteButton = page.locator('[data-testid="delete-button"]')
+    await expect(deleteButton).toBeVisible()
+
+    // 完了ボタンをクリックして編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // 通常モードでは削除ボタンが表示されない
+    await expect(deleteButton).not.toBeVisible()
+  })
+
+  test('削除ボタンクリックでAlertDialogが表示される', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('削除対象シート')
+    await input.press('Enter')
+
+    // 削除ボタンをクリック
+    const deleteButton = page.locator('[data-testid="delete-button"]')
+    await deleteButton.click()
+
+    // AlertDialogが表示される
+    const alertDialog = page.locator('[role="alertdialog"]')
+    await expect(alertDialog).toBeVisible()
+
+    // AlertDialogのタイトルを確認
+    await expect(
+      page.getByRole('heading', { name: 'シートを削除' })
+    ).toBeVisible()
+
+    // 説明文を確認
+    await expect(
+      page.getByText(
+        '"削除対象シート"を削除してもよろしいですか？この操作は取り消せません。'
+      )
+    ).toBeVisible()
+  })
+
+  test('削除ダイアログでキャンセルを選択すると削除されない', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('キャンセルテストシート')
+    await input.press('Enter')
+
+    // 削除ボタンをクリック
+    const deleteButton = page.locator('[data-testid="delete-button"]')
+    await deleteButton.click()
+
+    // キャンセルボタンをクリック
+    const cancelButton = page.locator('button:has-text("キャンセル")')
+    await cancelButton.click()
+
+    // AlertDialogが非表示になる
+    const alertDialog = page.locator('[role="alertdialog"]')
+    await expect(alertDialog).not.toBeVisible()
+
+    // シートがまだ存在することを確認
+    await expect(page.locator('text=キャンセルテストシート')).toBeVisible()
+  })
+
+  test('削除ダイアログで削除を選択するとシートが削除される', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('削除実行テストシート')
+    await input.press('Enter')
+
+    // 削除ボタンをクリック
+    const deleteButton = page.locator('[data-testid="delete-button"]')
+    await deleteButton.click()
+
+    // 削除ボタンをクリック
+    const confirmButton = page.locator('button:has-text("削除")')
+    await confirmButton.click()
+
+    // AlertDialogが非表示になる
+    const alertDialog = page.locator('[role="alertdialog"]')
+    await expect(alertDialog).not.toBeVisible()
+
+    // シートが削除されて存在しないことを確認
+    await expect(page.locator('text=削除実行テストシート')).not.toBeVisible()
+  })
+
+  test('複数シートがある場合の削除動作', async ({ page }) => {
+    await page.goto('/')
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+
+    // 3つのシートを追加
+    for (let i = 1; i <= 3; i++) {
+      await addButton.click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill(`シート${i}`)
+      await input.press('Enter')
+    }
+
+    // すべてのシートが表示されることを確認
+    await expect(page.locator('text=シート1')).toBeVisible()
+    await expect(page.locator('text=シート2')).toBeVisible()
+    await expect(page.locator('text=シート3')).toBeVisible()
+
+    // 2番目のシートを削除
+    const deleteButtons = page.locator('[data-testid="delete-button"]')
+    await deleteButtons.nth(1).click()
+
+    const confirmButton = page.locator('button:has-text("削除")')
+    await confirmButton.click()
+
+    // 2番目のシートが削除され、1番目と3番目が残る
+    await expect(page.locator('text=シート1')).toBeVisible()
+    await expect(page.locator('text=シート2')).not.toBeVisible()
+    await expect(page.locator('text=シート3')).toBeVisible()
+
+    // 削除後も残りのシートに削除ボタンが表示される
+    const remainingDeleteButtons = page.locator('[data-testid="delete-button"]')
+    await expect(remainingDeleteButtons).toHaveCount(2)
+  })
 })

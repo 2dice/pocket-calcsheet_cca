@@ -229,4 +229,141 @@ describe('SheetsStore', () => {
       expect(orders).toEqual([0, 1, 2])
     })
   })
+
+  describe('removeSheet', () => {
+    beforeEach(() => {
+      // テスト用のシートを3つ追加
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('シート1')
+      addSheet('シート2')
+      addSheet('シート3')
+    })
+
+    it('removeSheet メソッドが存在する', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      expect(typeof removeSheet).toBe('function')
+    })
+
+    it('指定IDのシートを削除できる', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      // 2番目のシートのIDを取得
+      const secondSheetId = initialSheets[1].id
+
+      // シートを削除
+      removeSheet(secondSheetId)
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      // 配列の長さが1つ減っている
+      expect(updatedSheets).toHaveLength(2)
+
+      // 削除されたシートが存在しない
+      expect(
+        updatedSheets.find(sheet => sheet.id === secondSheetId)
+      ).toBeUndefined()
+
+      // 残りのシートが正しく存在する
+      expect(updatedSheets[0].name).toBe('シート1')
+      expect(updatedSheets[1].name).toBe('シート3')
+    })
+
+    it('削除後のorder値が削除前の順序を維持する（歯抜けOK）', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      // 2番目のシートを削除（order=1）
+      const secondSheetId = initialSheets[1].id
+      removeSheet(secondSheetId)
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      // 残りのシートのorderが変更されない（歯抜けOK）
+      expect(updatedSheets[0].order).toBe(0) // シート1
+      expect(updatedSheets[1].order).toBe(2) // シート3
+    })
+
+    it('最初のシートを削除できる', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const firstSheetId = initialSheets[0].id
+      removeSheet(firstSheetId)
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      expect(updatedSheets).toHaveLength(2)
+      expect(updatedSheets[0].name).toBe('シート2')
+      expect(updatedSheets[1].name).toBe('シート3')
+    })
+
+    it('最後のシートを削除できる', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const lastSheetId = initialSheets[2].id
+      removeSheet(lastSheetId)
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      expect(updatedSheets).toHaveLength(2)
+      expect(updatedSheets[0].name).toBe('シート1')
+      expect(updatedSheets[1].name).toBe('シート2')
+    })
+
+    it('存在しないIDで削除を試行してもエラーにならない', () => {
+      const { removeSheet } = useSheetsStore.getState()
+
+      // 存在しないIDで実行してもエラーにならない
+      expect(() => {
+        removeSheet('non-existent-id')
+      }).not.toThrow()
+
+      // 元の配列が変更されない
+      const unchangedSheets = useSheetsStore.getState().sheets
+      expect(unchangedSheets).toHaveLength(3)
+      expect(unchangedSheets[0].name).toBe('シート1')
+      expect(unchangedSheets[1].name).toBe('シート2')
+      expect(unchangedSheets[2].name).toBe('シート3')
+    })
+
+    it('すべてのシートを削除して空にできる', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      // すべてのシートを削除
+      initialSheets.forEach(sheet => {
+        removeSheet(sheet.id)
+      })
+
+      const emptySheets = useSheetsStore.getState().sheets
+      expect(emptySheets).toHaveLength(0)
+    })
+
+    it('削除処理が配列の整合性を保つ', () => {
+      const { removeSheet } = useSheetsStore.getState()
+      const initialSheets = useSheetsStore.getState().sheets
+
+      const secondSheetId = initialSheets[1].id
+      removeSheet(secondSheetId)
+
+      const updatedSheets = useSheetsStore.getState().sheets
+
+      // すべてのシートが有効なプロパティを持つ
+      updatedSheets.forEach(sheet => {
+        expect(typeof sheet.id).toBe('string')
+        expect(sheet.id).toBeTruthy()
+        expect(typeof sheet.name).toBe('string')
+        expect(sheet.name).toBeTruthy()
+        expect(typeof sheet.order).toBe('number')
+        expect(sheet.createdAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+        )
+        expect(sheet.updatedAt).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+        )
+      })
+    })
+  })
 })
