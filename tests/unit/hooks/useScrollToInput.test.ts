@@ -9,6 +9,12 @@ const mockScrollIntoView = vi.fn()
 
 describe('useScrollToInput hook', () => {
   beforeEach(() => {
+    // requestAnimationFrameを同期的に実行するモック
+    global.requestAnimationFrame = vi.fn((cb: (time: number) => void) => {
+      cb(0)
+      return 0
+    })
+
     // windowオブジェクトのモック
     Object.defineProperty(window, 'scrollTo', {
       value: mockScrollTo,
@@ -57,7 +63,7 @@ describe('useScrollToInput hook', () => {
     expect(result.current).toBeUndefined()
   })
 
-  it('refが設定されている場合、フォーカス時にスクロール処理が実行される', async () => {
+  it('refが設定されている場合、フォーカス時にスクロール処理が実行される', () => {
     const mockElement = document.createElement('input')
     const mockRef = { current: mockElement }
 
@@ -66,7 +72,7 @@ describe('useScrollToInput hook', () => {
       top: 700,
       left: 0,
       right: 375,
-      bottom: 750, // viewportHeight(812) - 20(マージン) = 792 を超える
+      bottom: 800, // viewportHeight(812) - 20(マージン) = 792 を超える
       width: 375,
       height: 50,
       x: 0,
@@ -79,9 +85,6 @@ describe('useScrollToInput hook', () => {
     // フォーカスイベントをシミュレート
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
-
-    // requestAnimationFrameを待機
-    await new Promise(resolve => requestAnimationFrame(resolve))
 
     // スクロール処理が呼ばれることを確認
     expect(mockScrollIntoView).toHaveBeenCalled()
@@ -163,20 +166,20 @@ describe('useScrollToInput hook', () => {
     expect(mockScrollIntoView).toHaveBeenCalled()
   })
 
-  it('要素の位置がキーボードに隠れる場合にスクロールが実行される', async () => {
+  it('要素の位置がキーボードに隠れる場合にスクロールが実行される', () => {
     const mockElement = document.createElement('input')
     const mockRef = { current: mockElement }
 
     // 要素が下の方に配置されている場合のBoundingClientRect
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
-      top: 500, // 画面下部
+      top: 750, // 画面下部
       left: 0,
       right: 375,
-      bottom: 550,
+      bottom: 800, // viewportHeight(812) - 20(マージン) = 792 を超える
       width: 375,
       height: 50,
       x: 0,
-      y: 500,
+      y: 750,
       toJSON: () => {},
     }))
 
@@ -186,10 +189,7 @@ describe('useScrollToInput hook', () => {
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
 
-    // requestAnimationFrameを待機
-    await new Promise(resolve => requestAnimationFrame(resolve))
-
-    // スクロール処理が呼ばれることを確認
+    // すぐに確認できる
     expect(mockScrollIntoView).toHaveBeenCalled()
   })
 
@@ -214,12 +214,18 @@ describe('useScrollToInput hook', () => {
   it('refが変更された時にイベントリスナーが適切に管理される', () => {
     const mockElement1 = document.createElement('input')
     const mockElement2 = document.createElement('input')
-    const mockRef = { current: mockElement1 }
+    const mockRef1 = { current: mockElement1 }
+    const mockRef2 = { current: mockElement2 }
 
     const addEventListenerSpy1 = vi.spyOn(mockElement1, 'addEventListener')
+    const removeEventListenerSpy1 = vi.spyOn(
+      mockElement1,
+      'removeEventListener'
+    )
     const addEventListenerSpy2 = vi.spyOn(mockElement2, 'addEventListener')
 
-    const { rerender } = renderHook(() => useScrollToInput(mockRef))
+    let currentRef = mockRef1
+    const { rerender } = renderHook(() => useScrollToInput(currentRef))
 
     // 最初の要素にイベントリスナーが追加される
     expect(addEventListenerSpy1).toHaveBeenCalledWith(
@@ -227,9 +233,15 @@ describe('useScrollToInput hook', () => {
       expect.any(Function)
     )
 
-    // refを変更
-    mockRef.current = mockElement2
+    // refオブジェクト自体を変更
+    currentRef = mockRef2
     rerender()
+
+    // 古い要素からイベントリスナーが削除されることを確認
+    expect(removeEventListenerSpy1).toHaveBeenCalledWith(
+      'focus',
+      expect.any(Function)
+    )
 
     // 新しい要素にイベントリスナーが追加される
     expect(addEventListenerSpy2).toHaveBeenCalledWith(
@@ -238,9 +250,22 @@ describe('useScrollToInput hook', () => {
     )
   })
 
-  it('smoothスクロールオプションが正しく設定される', async () => {
+  it('smoothスクロールオプションが正しく設定される', () => {
     const mockElement = document.createElement('input')
     const mockRef = { current: mockElement }
+
+    // 要素がキーボードに隠れる位置にあることをシミュレート
+    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+      top: 750,
+      left: 0,
+      right: 375,
+      bottom: 800, // viewportHeight(812) - 20(マージン) = 792 を超える
+      width: 375,
+      height: 50,
+      x: 0,
+      y: 750,
+      toJSON: () => {},
+    }))
 
     renderHook(() => useScrollToInput(mockRef))
 
@@ -248,10 +273,7 @@ describe('useScrollToInput hook', () => {
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
 
-    // requestAnimationFrameを待機
-    await new Promise(resolve => requestAnimationFrame(resolve))
-
-    // scrollIntoViewがsmoothオプションで呼ばれることを確認
+    // すぐに確認できる
     expect(mockScrollIntoView).toHaveBeenCalledWith({
       behavior: 'smooth',
       block: 'center',

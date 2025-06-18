@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { SheetList } from '@/components/sheets/SheetList'
 import { useUIStore, useSheetsStore } from '@/store'
+import { validateSheetName } from '@/types/sheet'
 
 export function TopPage() {
   const [editingNewItem, setEditingNewItem] = useState(false)
@@ -56,11 +57,12 @@ export function TopPage() {
   }
 
   const handleUpdateSheet = (id: string, name: string) => {
-    if (name.trim() === '') {
+    const validatedName = validateSheetName(name)
+    if (!validatedName) {
       setShowEmptyNameAlert(true)
       return
     }
-    updateSheet(id, name.trim())
+    updateSheet(id, validatedName)
   }
 
   const handleEmptyNameAlertOk = useCallback(() => {

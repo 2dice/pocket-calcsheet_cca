@@ -66,7 +66,8 @@ export function SheetListItem({
       setEditValue(sheet.name)
       inputRef.current.focus()
     }
-  }, [isEditing, sheet.name])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing])
 
   const handleClick = () => {
     if (!isEditMode) {
@@ -163,7 +164,7 @@ export function SheetListItem({
             onChange={e => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
-            className="text-base border-0 shadow-none p-0 h-auto focus-visible:ring-0"
+            className="text-base border-0 shadow-none p-0 h-auto focus-visible:ring-2 focus-visible:ring-blue-500"
           />
         ) : (
           <span
