@@ -58,13 +58,18 @@ pocket-calcsheet_cca/
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── store/                        # Zustandストア
 │   │   ├── index.ts                  # Zustandストア統合エクスポート
-│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(updateSheet実装済み)
+│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(localStorage永続化対応)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
+│   ├── utils/                        # ユーティリティ関数
+│   │   └── storage/                  # ストレージ関連ユーティリティ
+│   │       ├── storageManager.ts     # localStorage抽象化レイヤー
+│   │       └── migrationManager.ts   # スキーママイグレーション
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
-│   │   └── sheet.ts                  # シートモデル型定義
-│   ├── App.tsx                       # ルートコンポーネント(Router設定)
+│   │   ├── sheet.ts                  # シートモデル型定義
+│   │   └── storage.ts                # ストレージ関連型定義
+│   ├── App.tsx                       # ルートコンポーネント(navigator.storage.persist()初期化)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート + SafeArea対応
 │   └── vite-env.d.ts                 # Vite環境変数型定義

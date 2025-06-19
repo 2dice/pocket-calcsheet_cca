@@ -16,6 +16,7 @@ import { validateSheetName } from '@/types/sheet'
 export function TopPage() {
   const [editingNewItem, setEditingNewItem] = useState(false)
   const [showEmptyNameAlert, setShowEmptyNameAlert] = useState(false)
+  const [storageError, setStorageError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
@@ -39,8 +40,17 @@ export function TopPage() {
       return
     }
 
-    addSheet(value.trim())
-    setEditingNewItem(false)
+    try {
+      addSheet(value.trim())
+      setEditingNewItem(false)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        setStorageError(error.message)
+      } else {
+        console.error('シートの追加に失敗しました:', error)
+        setStorageError('シートの追加に失敗しました。')
+      }
+    }
   }
 
   const handleNewItemCancel = () => {
@@ -53,7 +63,16 @@ export function TopPage() {
   }
 
   const handleDeleteSheet = (id: string) => {
-    removeSheet(id)
+    try {
+      removeSheet(id)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        setStorageError(error.message)
+      } else {
+        console.error('シートの削除に失敗しました:', error)
+        setStorageError('シートの削除に失敗しました。')
+      }
+    }
   }
 
   const handleUpdateSheet = (id: string, name: string) => {
@@ -62,7 +81,30 @@ export function TopPage() {
       setShowEmptyNameAlert(true)
       return
     }
-    updateSheet(id, validatedName)
+    
+    try {
+      updateSheet(id, validatedName)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        setStorageError(error.message)
+      } else {
+        console.error('シートの更新に失敗しました:', error)
+        setStorageError('シートの更新に失敗しました。')
+      }
+    }
+  }
+
+  const handleReorderSheets = (activeId: string, overId: string) => {
+    try {
+      reorderSheets(activeId, overId)
+    } catch (error) {
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        setStorageError(error.message)
+      } else {
+        console.error('シートの並び替えに失敗しました:', error)
+        setStorageError('シートの並び替えに失敗しました。')
+      }
+    }
   }
 
   const handleEmptyNameAlertOk = useCallback(() => {
@@ -117,7 +159,7 @@ export function TopPage() {
           onUpdateSheet={handleUpdateSheet}
           onNewItemConfirm={handleNewItemConfirm}
           onNewItemCancel={handleNewItemCancel}
-          onReorderSheets={reorderSheets}
+          onReorderSheets={handleReorderSheets}
           inputRef={inputRef}
         />
       </div>
@@ -136,6 +178,23 @@ export function TopPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleEmptyNameAlertOk}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ストレージエラーダイアログ */}
+      <AlertDialog open={!!storageError} onOpenChange={() => setStorageError(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ストレージエラー</AlertDialogTitle>
+            <AlertDialogDescription>
+              {storageError}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setStorageError(null)}>
               OK
             </AlertDialogAction>
           </AlertDialogFooter>

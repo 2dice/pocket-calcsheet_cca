@@ -411,3 +411,213 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(page.locator('text=削除実行テストシート')).not.toBeVisible()
   })
 })
+
+test.describe('localStorage永続化E2Eテスト @step2-6', () => {
+  let monitor: ReturnType<typeof setupConsoleMonitoring>
+
+  test.beforeEach(({ page }) => {
+    // 各テストの前にコンソールエラー/警告検知を設定
+    monitor = setupConsoleMonitoring(page)
+  })
+
+  test.afterEach(() => {
+    // 各テスト後に共通でエラーチェック
+    const errors = monitor.getAllErrors()
+    if (errors.length > 0) {
+      throw new Error(
+        `コンソールエラー・警告が検出されました: ${errors.join(', ')}`
+      )
+    }
+  })
+
+  test('シート追加後にページリロードしてもデータが保持される', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('永続化テストシート')
+    await input.press('Enter')
+
+    // シートが追加されたことを確認
+    await expect(page.locator('text=永続化テストシート')).toBeVisible()
+
+    // ページをリロード
+    await page.reload()
+
+    // リロード後もシートが存在することを確認
+    await expect(page.locator('text=永続化テストシート')).toBeVisible()
+  })
+
+  test('複数シートの追加・編集・削除がページリロード後も反映される', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+
+    // 3つのシートを追加
+    for (let i = 1; i <= 3; i++) {
+      await addButton.click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill(`永続化シート${i}`)
+      await input.press('Enter')
+    }
+
+    // 2番目のシート名を編集
+    const secondSheet = page.locator('text=永続化シート2')
+    await secondSheet.click()
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await editInput.fill('編集されたシート2')
+    await editInput.press('Enter')
+
+    // 3番目のシートを削除
+    const deleteButtons = page.locator('[data-testid="delete-button"]')
+    await deleteButtons.nth(2).click() // 3番目のシート
+    const confirmButton = page.locator('button:has-text("削除")')
+    await confirmButton.click()
+
+    // 現在の状態を確認
+    await expect(page.locator('text=永続化シート1')).toBeVisible()
+    await expect(page.locator('text=編集されたシート2')).toBeVisible()
+    await expect(page.locator('text=永続化シート3')).not.toBeVisible()
+
+    // ページをリロード
+    await page.reload()
+
+    // リロード後も変更が保持されていることを確認
+    await expect(page.locator('text=永続化シート1')).toBeVisible()
+    await expect(page.locator('text=編集されたシート2')).toBeVisible()
+    await expect(page.locator('text=永続化シート3')).not.toBeVisible()
+  })
+
+  test('シートの順序変更がページリロード後も保持される', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入って複数シートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+
+    // 3つのシートを順番に追加
+    for (let i = 1; i <= 3; i++) {
+      await addButton.click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill(`順序テストシート${i}`)
+      await input.press('Enter')
+    }
+
+    // 初期順序を確認
+    const sheetItems = page.locator('[data-testid="sheet-item"]')
+    await expect(sheetItems.nth(0)).toContainText('順序テストシート1')
+    await expect(sheetItems.nth(1)).toContainText('順序テストシート2')
+    await expect(sheetItems.nth(2)).toContainText('順序テストシート3')
+
+    // ドラッグ&ドロップで順序を変更（1番目を3番目の位置に移動）
+    const dragHandles = page.locator('[data-testid="drag-handle"]')
+    const firstDragHandle = dragHandles.nth(0)
+    const thirdSheetItem = sheetItems.nth(2)
+
+    // 長押しでドラッグを開始（delay: 300msを考慮）
+    await firstDragHandle.hover()
+    await page.mouse.down()
+    await page.waitForTimeout(350) // delay + α
+
+    // 3番目の位置にドロップ
+    await thirdSheetItem.hover()
+    await page.mouse.up()
+
+    // 順序が変更されたことを確認
+    await expect(sheetItems.nth(0)).toContainText('順序テストシート2')
+    await expect(sheetItems.nth(1)).toContainText('順序テストシート3')
+    await expect(sheetItems.nth(2)).toContainText('順序テストシート1')
+
+    // ページをリロード
+    await page.reload()
+
+    // リロード後も順序変更が保持されていることを確認
+    const reloadedSheetItems = page.locator('[data-testid="sheet-item"]')
+    await expect(reloadedSheetItems.nth(0)).toContainText('順序テストシート2')
+    await expect(reloadedSheetItems.nth(1)).toContainText('順序テストシート3')
+    await expect(reloadedSheetItems.nth(2)).toContainText('順序テストシート1')
+  })
+
+  test('ブラウザの戻る/進むボタンでもデータが保持される', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('ナビゲーションテストシート')
+    await input.press('Enter')
+
+    // シートが追加されたことを確認
+    await expect(page.locator('text=ナビゲーションテストシート')).toBeVisible()
+
+    // 別のページに移動（例：about:blank）
+    await page.goto('about:blank')
+
+    // 戻るボタンでアプリに戻る
+    await page.goBack()
+
+    // データが保持されていることを確認
+    await expect(page.locator('text=ナビゲーションテストシート')).toBeVisible()
+  })
+
+  test('新しいタブで開いても同じデータが読み込まれる', async ({
+    page,
+    context,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('新しいタブテストシート')
+    await input.press('Enter')
+
+    // シートが追加されたことを確認
+    await expect(page.locator('text=新しいタブテストシート')).toBeVisible()
+
+    // 新しいタブを開く
+    const newPage = await context.newPage()
+    const newPageMonitor = setupConsoleMonitoring(newPage)
+
+    await newPage.goto('/')
+
+    // 新しいタブでも同じデータが読み込まれることを確認
+    await expect(newPage.locator('text=新しいタブテストシート')).toBeVisible()
+
+    // 新しいタブでもエラーがないことを確認
+    const newPageErrors = newPageMonitor.getAllErrors()
+    expect(newPageErrors).toHaveLength(0)
+
+    await newPage.close()
+  })
+})
