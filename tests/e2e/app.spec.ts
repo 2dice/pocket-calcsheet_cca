@@ -502,9 +502,7 @@ test.describe('localStorage永続化E2Eテスト @step2-6', () => {
     await expect(page.locator('text=永続化シート3')).not.toBeVisible()
   })
 
-  test('シートの順序変更がページリロード後も保持される', async ({
-    page,
-  }) => {
+  test('シートの順序変更がページリロード後も保持される', async ({ page }) => {
     await page.goto('/')
 
     // 編集モードに入って複数シートを追加
@@ -556,9 +554,7 @@ test.describe('localStorage永続化E2Eテスト @step2-6', () => {
     await expect(reloadedSheetItems.nth(2)).toContainText('順序テストシート1')
   })
 
-  test('ブラウザの戻る/進むボタンでもデータが保持される', async ({
-    page,
-  }) => {
+  test('ブラウザの戻る/進むボタンでもデータが保持される', async ({ page }) => {
     await page.goto('/')
 
     // 編集モードに入ってシートを追加
