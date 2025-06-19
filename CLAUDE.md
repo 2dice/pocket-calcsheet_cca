@@ -184,7 +184,11 @@ npm run dev
 # ビルド
 npm run build
 
-# テスト実行
+# TDD実装時のテストコマンド
+npm run test:unit --include "path/to/test/file" #TDD実行時の個別vitest実行(path/to/test/fileは機能ごとに作成したテストファイル名)
+npm run test:e2e --grep @tag #TDD実行時の個別playwrightテスト実行(tagはステップ毎に定義)
+
+# 最終テスト実行(時間がかかるので全ての実装が完了してから実行すること)
 npm run test          # Vitest + Playwright
 npm run test:unit     # Vitest のみ
 npm run test:e2e      # Playwright のみ
@@ -196,9 +200,6 @@ npm run check         # TypeScript型チェック + lintチェック + formatチ
 
 # プレビュー
 npm run preview       # ビルド後のプレビュー
-
-# PWAアセット生成
-npm run generate-pwa-assets  # PWAアイコンの生成
 ```
 
 ## Architecture Overview
