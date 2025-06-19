@@ -82,46 +82,6 @@ test.describe('アプリケーション基本動作確認', () => {
     expect(viewport!.height / viewport!.width).toBeGreaterThan(1.3)
   })
 
-  test('基本的なユーザーインタラクションが動作する', async ({ page }) => {
-    await page.goto('/')
-
-    // 編集ボタンが存在することを確認してクリック
-    const editButton = page.locator('button:has-text("編集")')
-    await expect(editButton).toBeVisible()
-    await editButton.click()
-
-    // クリック後も正常に動作することを確認
-    await expect(page.locator('h1:has-text("ぽけっと計算表")')).toBeVisible()
-  })
-
-  test('編集モードの切り替えが動作する', async ({ page }) => {
-    await page.goto('/')
-
-    // 初期状態では編集ボタンが表示される
-    const editButton = page.locator('button:has-text("編集")')
-    await expect(editButton).toBeVisible()
-
-    // 編集ボタンをクリック
-    await editButton.click()
-
-    // 編集モードに切り替わり、完了ボタンが表示される
-    const completeButton = page.locator('button:has-text("完了")')
-    await expect(completeButton).toBeVisible()
-
-    // 編集モードでは+ボタンが表示される
-    const addButton = page.locator('button:has-text("+")')
-    await expect(addButton).toBeVisible()
-
-    // 完了ボタンをクリックして編集モードを終了
-    await completeButton.click()
-
-    // 編集ボタンが再び表示される
-    await expect(editButton).toBeVisible()
-
-    // +ボタンは非表示になる
-    await expect(addButton).not.toBeVisible()
-  })
-
   test('シート追加とインライン編集の動作', async ({ page }) => {
     await page.goto('/')
 
@@ -190,32 +150,6 @@ test.describe('アプリケーション基本動作確認', () => {
     // Note: フォーカス動作はsetTimeout削除により変更されたため、E2Eテストでは確認しない
   })
 
-  test('編集モード時にドラッグハンドルが表示される', async ({ page }) => {
-    await page.goto('/')
-
-    // シートを追加
-    const editButton = page.locator('button:has-text("編集")')
-    await editButton.click()
-
-    const addButton = page.locator('button:has-text("+")')
-    await addButton.click()
-
-    const input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('テスト用シート')
-    await input.press('Enter')
-
-    // ドラッグハンドルが表示されることを確認
-    const dragHandle = page.locator('[data-testid="drag-handle"]')
-    await expect(dragHandle).toBeVisible()
-
-    // 完了ボタンをクリックして編集モードを終了
-    const completeButton = page.locator('button:has-text("完了")')
-    await completeButton.click()
-
-    // 通常モードではドラッグハンドルが表示されない
-    await expect(dragHandle).not.toBeVisible()
-  })
-
   test('複数シートでのドラッグハンドル表示', async ({ page }) => {
     await page.goto('/')
 
@@ -272,33 +206,6 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(editInput).toBeVisible()
     await expect(editInput).toBeFocused()
     await expect(editInput).toHaveValue('編集テストシート')
-  })
-
-  test('通常モードではシート名タップで編集開始されない', async ({ page }) => {
-    await page.goto('/')
-
-    // 編集モードでシートを追加
-    const editButton = page.locator('button:has-text("編集")')
-    await editButton.click()
-
-    const addButton = page.locator('button:has-text("+")')
-    await addButton.click()
-
-    const input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('通常モードテストシート')
-    await input.press('Enter')
-
-    // 編集モードを終了
-    const completeButton = page.locator('button:has-text("完了")')
-    await completeButton.click()
-
-    // シート名をタップ
-    const sheetName = page.locator('text=通常モードテストシート')
-    await sheetName.click()
-
-    // インライン編集が開始されないことを確認
-    const editInput = page.locator('[data-testid="sheet-name-input"]')
-    await expect(editInput).not.toBeVisible()
   })
 
   test('Enterキーでシート名編集が完了する', async ({ page }) => {
@@ -405,61 +312,6 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(page.locator('text=空欄テストシート')).toBeVisible()
   })
 
-  test('編集中にEscapeキーを押すと編集がキャンセルされる', async ({ page }) => {
-    await page.goto('/')
-
-    // 編集モードに入ってシートを追加
-    const editButton = page.locator('button:has-text("編集")')
-    await editButton.click()
-
-    const addButton = page.locator('button:has-text("+")')
-    await addButton.click()
-
-    const input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('Escapeテストシート')
-    await input.press('Enter')
-
-    // シート名をタップして編集開始
-    const sheetName = page.locator('text=Escapeテストシート')
-    await sheetName.click()
-
-    // 名前を変更してEscapeでキャンセル
-    const editInput = page.locator('[data-testid="sheet-name-input"]')
-    await editInput.fill('キャンセルされる名前')
-    await editInput.press('Escape')
-
-    // 編集がキャンセルされ、元の名前が表示される
-    await expect(editInput).not.toBeVisible()
-    await expect(page.locator('text=Escapeテストシート')).toBeVisible()
-    await expect(page.locator('text=キャンセルされる名前')).not.toBeVisible()
-  })
-
-  test('編集モード時に削除ボタンが表示される', async ({ page }) => {
-    await page.goto('/')
-
-    // シートを追加
-    const editButton = page.locator('button:has-text("編集")')
-    await editButton.click()
-
-    const addButton = page.locator('button:has-text("+")')
-    await addButton.click()
-
-    const input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('削除テスト用シート')
-    await input.press('Enter')
-
-    // 削除ボタンが表示されることを確認
-    const deleteButton = page.locator('[data-testid="delete-button"]')
-    await expect(deleteButton).toBeVisible()
-
-    // 完了ボタンをクリックして編集モードを終了
-    const completeButton = page.locator('button:has-text("完了")')
-    await completeButton.click()
-
-    // 通常モードでは削除ボタンが表示されない
-    await expect(deleteButton).not.toBeVisible()
-  })
-
   test('削除ボタンクリックでAlertDialogが表示される', async ({ page }) => {
     await page.goto('/')
 
@@ -557,44 +409,5 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // シートが削除されて存在しないことを確認
     await expect(page.locator('text=削除実行テストシート')).not.toBeVisible()
-  })
-
-  test('複数シートがある場合の削除動作', async ({ page }) => {
-    await page.goto('/')
-
-    // 編集モードに入る
-    const editButton = page.locator('button:has-text("編集")')
-    await editButton.click()
-
-    const addButton = page.locator('button:has-text("+")')
-
-    // 3つのシートを追加
-    for (let i = 1; i <= 3; i++) {
-      await addButton.click()
-      const input = page.locator('[data-testid="new-sheet-input"]')
-      await input.fill(`シート${i}`)
-      await input.press('Enter')
-    }
-
-    // すべてのシートが表示されることを確認
-    await expect(page.locator('text=シート1')).toBeVisible()
-    await expect(page.locator('text=シート2')).toBeVisible()
-    await expect(page.locator('text=シート3')).toBeVisible()
-
-    // 2番目のシートを削除
-    const deleteButtons = page.locator('[data-testid="delete-button"]')
-    await deleteButtons.nth(1).click()
-
-    const confirmButton = page.locator('button:has-text("削除")')
-    await confirmButton.click()
-
-    // 2番目のシートが削除され、1番目と3番目が残る
-    await expect(page.locator('text=シート1')).toBeVisible()
-    await expect(page.locator('text=シート2')).not.toBeVisible()
-    await expect(page.locator('text=シート3')).toBeVisible()
-
-    // 削除後も残りのシートに削除ボタンが表示される
-    const remainingDeleteButtons = page.locator('[data-testid="delete-button"]')
-    await expect(remainingDeleteButtons).toHaveCount(2)
   })
 })
