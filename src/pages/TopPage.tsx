@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { SheetList } from '@/components/sheets/SheetList'
 import { useUIStore, useSheetsStore } from '@/store'
+import { validateSheetName } from '@/types/sheet'
 
 export function TopPage() {
   const [editingNewItem, setEditingNewItem] = useState(false)
@@ -18,7 +19,8 @@ export function TopPage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
-  const { sheets, addSheet, removeSheet, reorderSheets } = useSheetsStore()
+  const { sheets, addSheet, removeSheet, reorderSheets, updateSheet } =
+    useSheetsStore()
 
   const handleEditButtonClick = () => {
     toggleEditMode()
@@ -52,6 +54,15 @@ export function TopPage() {
 
   const handleDeleteSheet = (id: string) => {
     removeSheet(id)
+  }
+
+  const handleUpdateSheet = (id: string, name: string) => {
+    const validatedName = validateSheetName(name)
+    if (!validatedName) {
+      setShowEmptyNameAlert(true)
+      return
+    }
+    updateSheet(id, validatedName)
   }
 
   const handleEmptyNameAlertOk = useCallback(() => {
@@ -103,6 +114,7 @@ export function TopPage() {
           editingNewItem={editingNewItem}
           onSheetClick={handleSheetClick}
           onDeleteSheet={handleDeleteSheet}
+          onUpdateSheet={handleUpdateSheet}
           onNewItemConfirm={handleNewItemConfirm}
           onNewItemCancel={handleNewItemCancel}
           onReorderSheets={reorderSheets}

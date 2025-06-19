@@ -106,6 +106,8 @@ pocket-calcsheet_cca/
 │   │   │   ├── mathEngine.test.ts    # 計算エンジンユニットテスト
 │   │   │   ├── latexConverter.test.ts # LaTeX変換テスト
 │   │   │   └── validation.test.ts    # バリデーションテスト
+│   │   ├── hooks/
+│   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # ストアテスト
 │   │       └── storageManager.test.ts # ストレージテスト

@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import { arrayMove } from '@dnd-kit/sortable'
-import type { SheetMeta } from '@/types/sheet'
+import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
 
 interface SheetsStore {
   sheets: SheetMeta[]
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
+  updateSheet: (id: string, name: ValidatedSheetName) => void
   reset: () => void
 }
 
@@ -63,6 +64,19 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
     })
 
     set({ sheets: updatedSheets })
+  },
+  updateSheet: (id: string, name: ValidatedSheetName) => {
+    set(state => ({
+      sheets: state.sheets.map(sheet =>
+        sheet.id === id
+          ? {
+              ...sheet,
+              name,
+              updatedAt: new Date().toISOString(),
+            }
+          : sheet
+      ),
+    }))
   },
   reset: () => set({ sheets: [] }),
 }))

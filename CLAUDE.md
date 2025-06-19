@@ -52,12 +52,13 @@ pocket-calcsheet_cca/
 │   │       ├── input.tsx             # 基本入力フィールド
 │   │       └── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
 │   ├── hooks/                        # カスタムフック
-│   │   └── useDragAndDrop.ts         # dnd-kit操作フック
+│   │   ├── useDragAndDrop.ts         # dnd-kit操作フック
+│   │   └── useScrollToInput.ts       # 入力時のスクロール制御フック
 │   ├── pages/                        # ページコンポーネント
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── store/                        # Zustandストア
 │   │   ├── index.ts                  # Zustandストア統合エクスポート
-│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(reorderSheets実装済み)
+│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(updateSheet実装済み)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
@@ -74,6 +75,8 @@ pocket-calcsheet_cca/
 │   │   ├── components/
 │   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト
 │   │   │   └── SheetList.test.tsx    # シート一覧コンポーネントテスト
+│   │   ├── hooks/
+│   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/
 │   │       └── sheetsStore.test.ts   # シートストアテスト
 │   └── e2e/

@@ -1,9 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Trash2 } from 'lucide-react'
 import type { SheetMeta } from '@/types/sheet'
 import { DragHandle } from './DragHandle'
+import { Input } from '@/components/ui/input'
+import { useScrollToInput } from '@/hooks/useScrollToInput'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +22,7 @@ interface SheetListItemProps {
   isEditMode: boolean
   onSheetClick: (id: string) => void
   onDeleteSheet?: (id: string) => void
+  onUpdateSheet?: (id: string, name: string) => void
 }
 
 export function SheetListItem({
@@ -27,8 +30,16 @@ export function SheetListItem({
   isEditMode,
   onSheetClick,
   onDeleteSheet,
+  onUpdateSheet,
 }: SheetListItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(sheet.name)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // スクロール制御フック
+  useScrollToInput(inputRef)
+
   const {
     attributes,
     listeners,
@@ -38,7 +49,7 @@ export function SheetListItem({
     isDragging,
   } = useSortable({
     id: sheet.id,
-    disabled: !isEditMode,
+    disabled: !isEditMode || isEditing, // 編集中はドラッグを無効化
   })
 
   const style = {
@@ -49,10 +60,51 @@ export function SheetListItem({
     userSelect: 'none' as const,
   }
 
+  // 編集開始時にeditValueをリセット
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      setEditValue(sheet.name)
+      inputRef.current.focus()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing])
+
   const handleClick = () => {
     if (!isEditMode) {
       onSheetClick(sheet.id)
     }
+  }
+
+  const handleNameClick = () => {
+    if (isEditMode && !isEditing) {
+      setIsEditing(true)
+    }
+  }
+
+  const handleEditConfirm = () => {
+    if (onUpdateSheet) {
+      onUpdateSheet(sheet.id, editValue.trim())
+    }
+    setIsEditing(false)
+  }
+
+  const handleEditCancel = () => {
+    setEditValue(sheet.name)
+    setIsEditing(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleEditConfirm()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleEditCancel()
+    }
+  }
+
+  const handleBlur = () => {
+    handleEditConfirm()
   }
 
   const handleDeleteClick = () => {
@@ -90,8 +142,8 @@ export function SheetListItem({
           : undefined
       }
     >
-      {/* 削除ボタンを左側に配置（編集モード時のみ） */}
-      {isEditMode && (
+      {/* 削除ボタンを左側に配置（編集モード時・編集中でない場合のみ） */}
+      {isEditMode && !isEditing && (
         <button
           data-testid="delete-button"
           onClick={handleDeleteClick}
@@ -104,11 +156,28 @@ export function SheetListItem({
 
       {/* シート名を中央に配置 */}
       <div className="flex-1 select-none">
-        <span className="text-base text-gray-900">{sheet.name}</span>
+        {isEditing ? (
+          <Input
+            ref={inputRef}
+            data-testid="sheet-name-input"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            className="text-base border-0 shadow-none p-0 h-auto focus-visible:ring-2 focus-visible:ring-blue-500"
+          />
+        ) : (
+          <span
+            className="text-base text-gray-900 cursor-pointer"
+            onClick={handleNameClick}
+          >
+            {sheet.name}
+          </span>
+        )}
       </div>
 
-      {/* ドラッグハンドルを右側に配置（編集モード時のみ） */}
-      {isEditMode && (
+      {/* ドラッグハンドルを右側に配置（編集モード時・編集中でない場合のみ） */}
+      {isEditMode && !isEditing && (
         <div {...attributes} {...listeners}>
           <DragHandle isDragging={isDragging} />
         </div>
