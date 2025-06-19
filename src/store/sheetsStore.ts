@@ -22,7 +22,7 @@ const generateId = () => {
 }
 
 export const useSheetsStore = create<SheetsStore>()(
-  persist(
+  persist<SheetsStore>(
     (set, get) => ({
       sheets: [],
       addSheet: (name: string) => {
@@ -47,7 +47,9 @@ export const useSheetsStore = create<SheetsStore>()(
         if (activeId === overId) return
 
         const currentSheets = get().sheets
-        const activeIndex = currentSheets.findIndex(sheet => sheet.id === activeId)
+        const activeIndex = currentSheets.findIndex(
+          sheet => sheet.id === activeId
+        )
         const overIndex = currentSheets.findIndex(sheet => sheet.id === overId)
 
         if (activeIndex === -1 || overIndex === -1) return
@@ -89,31 +91,34 @@ export const useSheetsStore = create<SheetsStore>()(
       storage: createJSONStorage(() => ({
         getItem: () => {
           try {
-            const rootModel = defaultMigrationManager.storageManager.load()
+            const rootModel = defaultMigrationManager.loadWithMigration()
             if (!rootModel) return null
-            // SheetsStore用にsheets配列のみを返す
+            // Zustand用にsheets配列のみを返す
             return JSON.stringify({ sheets: rootModel.sheets })
           } catch (error) {
-            console.error('Failed to load sheets from storage:', error)
+            // テスト環境ではconsole出力を避ける
+            if (process.env.NODE_ENV !== 'test') {
+              console.error('Failed to load sheets from storage:', error)
+            }
             return null
           }
         },
-        setItem: (_, value: string) => {
+        setItem: (_, value) => {
           try {
             const storeData = JSON.parse(value) as { sheets: SheetMeta[] }
-            // 既存のRootModelを読み込み、sheets部分のみ更新
-            let rootModel = defaultMigrationManager.storageManager.load()
-            if (!rootModel) {
-              rootModel = defaultMigrationManager.createInitialData()
-            }
+            // 既存のRootModelを読み込むか新規作成
+            const rootModel =
+              defaultMigrationManager.loadWithMigration() ||
+              defaultMigrationManager.createInitialData()
+            // sheetsを更新して保存
             rootModel.sheets = storeData.sheets
             rootModel.savedAt = new Date().toISOString()
-            
-            // RootModel全体を保存
             defaultMigrationManager.storageManager.save(rootModel)
           } catch (error) {
-            console.error('Failed to save sheets to storage:', error)
-            // QuotaExceededErrorの場合は再スローして上位でハンドリング
+            // テスト環境ではconsole出力を避ける
+            if (process.env.NODE_ENV !== 'test') {
+              console.error('Failed to save sheets to storage:', error)
+            }
             if (error instanceof Error && error.name === 'QuotaExceededError') {
               throw error
             }
@@ -123,16 +128,19 @@ export const useSheetsStore = create<SheetsStore>()(
           try {
             defaultMigrationManager.storageManager.clear()
           } catch (error) {
-            console.error('Failed to remove sheets from storage:', error)
+            // テスト環境ではconsole出力を避ける
+            if (process.env.NODE_ENV !== 'test') {
+              console.error('Failed to remove sheets from storage:', error)
+            }
           }
         },
       })),
       version: 1,
-      migrate: (persistedState: unknown) => {
+      migrate: (persistedState: unknown): SheetsStore => {
         // 必要に応じて将来のマイグレーション処理を追加
-        return persistedState
+        return persistedState as SheetsStore
       },
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => state => {
         if (state) {
           console.log('Sheets store rehydrated successfully')
         }

@@ -31,7 +31,18 @@ export class MigrationManager {
     // 現在のバージョンのデータを試行
     const currentData = this.storageManager.load()
     if (currentData) {
-      return this.validateAndMigrate(currentData)
+      try {
+        return this.validateAndMigrate(currentData)
+      } catch (error) {
+        // バリデーションに失敗した場合は旧バージョンの読み込みを試行
+        // テスト環境ではconsole出力を避ける
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(
+            'Failed to validate current data, trying legacy versions:',
+            error
+          )
+        }
+      }
     }
 
     // 旧バージョンからのマイグレーションを試行
@@ -44,8 +55,9 @@ export class MigrationManager {
    */
   private loadFromLegacyVersions(): RootModel | null {
     // 現在のバージョンから逆順で旧バージョンをチェック
-    const currentVersion = 1 // TODO: configから取得するように変更
-    
+    // TODO: config化する際は src/utils/constants/storage.ts 等に定義
+    const currentVersion = 1
+
     for (let version = currentVersion - 1; version >= 1; version--) {
       const legacyData = this.storageManager.loadLegacyData(version)
       if (legacyData) {
@@ -65,7 +77,8 @@ export class MigrationManager {
    */
   private migrateFromVersion(data: unknown, fromVersion: number): RootModel {
     let currentData: unknown = data
-    const currentVersion = 1 // TODO: configから取得するように変更
+    // TODO: config化する際は src/utils/constants/storage.ts 等に定義
+    const currentVersion = 1
 
     // 段階的にマイグレーションを実行
     for (let version = fromVersion + 1; version <= currentVersion; version++) {
@@ -95,8 +108,9 @@ export class MigrationManager {
       throw new Error('Invalid root model structure')
     }
 
-    const currentVersion = 1 // TODO: configから取得するように変更
-    
+    // TODO: config化する際は src/utils/constants/storage.ts 等に定義
+    const currentVersion = 1
+
     // 現在のバージョンと一致している場合はそのまま返す
     if (data.schemaVersion === currentVersion) {
       return data
@@ -127,9 +141,10 @@ export class MigrationManager {
     const obj = data as Record<string, unknown>
     return Boolean(
       typeof obj.schemaVersion === 'number' &&
-      typeof obj.savedAt === 'string' &&
-      Array.isArray(obj.sheets) &&
-      obj.entities && typeof obj.entities === 'object'
+        typeof obj.savedAt === 'string' &&
+        Array.isArray(obj.sheets) &&
+        obj.entities &&
+        typeof obj.entities === 'object'
     )
   }
 

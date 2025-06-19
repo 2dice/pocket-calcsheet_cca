@@ -1,4 +1,5 @@
-import type { RootModel, StorageConfig, QuotaExceededError } from '@/types/storage'
+import type { RootModel, StorageConfig } from '@/types/storage'
+import { QuotaExceededError } from '@/types/storage'
 
 /**
  * ストレージ管理クラス
@@ -78,12 +79,13 @@ export class StorageManager {
       const json = JSON.stringify(data)
       localStorage.setItem(key, json)
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-        const quotaError = new Error(
+      if (
+        error instanceof DOMException &&
+        error.name === 'QuotaExceededError'
+      ) {
+        throw new QuotaExceededError(
           'localStorage容量を超過しました。不要なデータを削除してください。'
-        ) as QuotaExceededError
-        quotaError.name = 'QuotaExceededError'
-        throw quotaError
+        )
       }
       throw error
     }
@@ -137,7 +139,10 @@ export class StorageManager {
       }
       return JSON.parse(json)
     } catch (error) {
-      console.error(`Failed to load legacy data (version ${schemaVersion}):`, error)
+      console.error(
+        `Failed to load legacy data (version ${schemaVersion}):`,
+        error
+      )
       return null
     }
   }
