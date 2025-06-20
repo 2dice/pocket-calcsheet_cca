@@ -46,7 +46,21 @@ export class MigrationManager {
     }
 
     // 旧バージョンからのマイグレーションを試行
-    return this.loadFromLegacyVersions()
+    const migratedData = this.loadFromLegacyVersions()
+    if (migratedData) {
+      return migratedData
+    }
+
+    // データが存在しない場合は初期データを作成
+    console.log('No existing data found, creating initial data')
+    const initialData = this.createInitialData()
+    // 初期データを保存
+    try {
+      this.storageManager.save(initialData)
+    } catch (error) {
+      console.error('Failed to save initial data:', error)
+    }
+    return initialData
   }
 
   /**

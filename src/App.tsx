@@ -1,18 +1,12 @@
 import { useEffect } from 'react'
 import { TopPage } from '@/pages/TopPage'
 import { defaultStorageManager } from '@/utils/storage/storageManager'
-import { defaultMigrationManager } from '@/utils/storage/migrationManager'
 
 function App() {
   useEffect(() => {
     // アプリ起動時に永続化ストレージの許可を要求
     const initializeStorage = async () => {
       try {
-        // 初回起動時にRootModelを初期化
-        if (!defaultStorageManager.exists()) {
-          const initialData = defaultMigrationManager.createInitialData()
-          defaultStorageManager.save(initialData)
-        }
         const persistent =
           await defaultStorageManager.requestPersistentStorage()
         if (persistent) {

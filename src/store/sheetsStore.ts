@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
+import type { RootModel } from '@/types/storage'
+import { defaultStorageManager } from '@/utils/storage/storageManager'
+import { defaultMigrationManager } from '@/utils/storage/migrationManager'
 
 interface SheetsStore {
   sheets: SheetMeta[]
@@ -18,6 +21,46 @@ const generateId = () => {
   }
   // フォールバック: timestamp + random
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
+}
+
+// カスタムストレージアダプター
+const storageAdapter = {
+  getItem: (/* name: string */): string | null => {
+    try {
+      // MigrationManagerを使って読み込み（マイグレーション対応）
+      const rootModel = defaultMigrationManager.loadWithMigration()
+      if (!rootModel) {
+        return null
+      }
+      // 現段階ではsheetsのみを返す
+      return JSON.stringify(rootModel.sheets)
+    } catch (error) {
+      console.error('Failed to load sheets:', error)
+      return null
+    }
+  },
+  setItem: (/* name: string */ _: string, value: string): void => {
+    try {
+      const sheets = JSON.parse(value) as SheetMeta[]
+      // RootModel全体を構築して保存
+      const rootModel: RootModel = {
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets,
+        entities: {}, // 現段階では空、将来的に実装
+      }
+      defaultStorageManager.save(rootModel)
+    } catch (error) {
+      // QuotaExceededErrorは上位に伝播させる
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        throw error
+      }
+      console.error('Failed to save sheets:', error)
+    }
+  },
+  removeItem: (/* name: string */): void => {
+    defaultStorageManager.clear()
+  },
 }
 
 export const useSheetsStore = create<SheetsStore>()(
@@ -86,12 +129,13 @@ export const useSheetsStore = create<SheetsStore>()(
       reset: () => set({ sheets: [] }),
     }),
     {
-      name: 'pocket-calcsheet/1', // StorageManagerと同じキーを使用
-      storage: createJSONStorage(() => localStorage),
-      // カスタムストレージ実装を削除し、標準のpersist機能を使用
+      name: 'pocket-calcsheet-zustand', // Zustand用の内部キー（実際の保存はStorageManagerが管理）
+      storage: createJSONStorage(() => storageAdapter),
       version: 1,
-      onRehydrateStorage: () => state => {
-        if (state) {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Failed to rehydrate sheets store:', error)
+        } else if (state) {
           console.log('Sheets store rehydrated successfully')
         }
       },

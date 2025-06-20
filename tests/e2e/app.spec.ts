@@ -532,6 +532,9 @@ test.describe('localStorage永続化E2Eテスト @step2-6', () => {
       const input = page.locator('[data-testid="new-sheet-input"]')
       await input.fill(`順序テストシート${i}`)
       await input.press('Enter')
+
+      // 各シートが追加されたことを確認
+      await expect(page.locator(`text=順序テストシート${i}`)).toBeVisible()
     }
 
     // 初期順序を確認
@@ -558,6 +561,9 @@ test.describe('localStorage永続化E2Eテスト @step2-6', () => {
     await expect(sheetItems.nth(0)).toContainText('順序テストシート2')
     await expect(sheetItems.nth(1)).toContainText('順序テストシート3')
     await expect(sheetItems.nth(2)).toContainText('順序テストシート1')
+
+    // persistの非同期処理が完了するまで待機
+    await page.waitForTimeout(200)
 
     // ページをリロード
     await page.reload()
