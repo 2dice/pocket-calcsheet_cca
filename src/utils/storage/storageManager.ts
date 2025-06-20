@@ -77,7 +77,9 @@ export class StorageManager {
     try {
       const key = this.getStorageKey()
       const json = JSON.stringify(data)
+      console.log(`[StorageManager] Saving to key: ${key}`) // デバッグ用
       localStorage.setItem(key, json)
+      console.log(`[StorageManager] Saved successfully`) // デバッグ用
     } catch (error) {
       if (
         error instanceof DOMException &&
@@ -98,10 +100,13 @@ export class StorageManager {
   load(): RootModel | null {
     try {
       const key = this.getStorageKey()
+      console.log(`[StorageManager] Loading from key: ${key}`) // デバッグ用
       const json = localStorage.getItem(key)
       if (!json) {
+        console.log(`[StorageManager] No data found for key: ${key}`) // デバッグ用
         return null
       }
+      console.log(`[StorageManager] Data loaded successfully`) // デバッグ用
       return JSON.parse(json) as RootModel
     } catch (error) {
       console.error('Failed to load from localStorage:', error)

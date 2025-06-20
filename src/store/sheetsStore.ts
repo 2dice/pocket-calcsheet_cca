@@ -22,23 +22,26 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
-// カスタムストレージアダプター
+// カスタムストレージアダプター（StorageManager委譲）
 const storageAdapter = {
   getItem: (/* name: string */): string | null => {
+    // nameパラメータは無視（Zustand内部キー管理を回避）
     try {
       // MigrationManagerを使って読み込み（マイグレーション対応）
       const rootModel = defaultMigrationManager.loadWithMigration()
       if (!rootModel) {
         return null
       }
-      // 現段階ではsheetsのみを返す
+      // createJSONStorageはsheetsStoreの状態を期待するため、sheetsのみを返す
       return JSON.stringify(rootModel.sheets)
     } catch (error) {
       console.error('Failed to load sheets:', error)
       return null
     }
   },
-  setItem: (/* name: string */ _: string, value: string): void => {
+
+  setItem: (_name: string, value: string): void => {
+    // nameパラメータは無視（Zustand内部キー管理を回避）
     try {
       const sheets = JSON.parse(value) as SheetMeta[]
 
@@ -62,6 +65,7 @@ const storageAdapter = {
     }
   },
   removeItem: (/* name: string */): void => {
+    // nameパラメータは無視（Zustand内部キー管理を回避）
     defaultStorageManager.clear()
   },
 }
@@ -132,7 +136,7 @@ export const useSheetsStore = create<SheetsStore>()(
       reset: () => set({ sheets: [] }),
     }),
     {
-      name: 'pocket-calcsheet-zustand', // Zustand用の内部キー（実際の保存はStorageManagerが管理）
+      name: 'sheets-store', // この名前は使われない（カスタムストレージが完全に制御）
       storage: createJSONStorage(() => storageAdapter),
       version: 1,
       onRehydrateStorage: () => (state, error) => {
