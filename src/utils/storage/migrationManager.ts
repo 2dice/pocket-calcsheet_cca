@@ -35,8 +35,9 @@ export class MigrationManager {
         return this.validateAndMigrate(currentData)
       } catch (error) {
         // バリデーションに失敗した場合は旧バージョンの読み込みを試行
-        // テスト環境ではconsole出力を避ける
-        if (process.env.NODE_ENV !== 'test') {
+        // ただし、Zustand形式のデータ（配列）の場合は警告不要
+        const isZustandFormat = Array.isArray(currentData)
+        if (!isZustandFormat && process.env.NODE_ENV !== 'test') {
           console.warn(
             'Failed to validate current data, trying legacy versions:',
             error

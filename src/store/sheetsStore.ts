@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
-import type { RootModel } from '@/types/storage'
 import { defaultStorageManager } from '@/utils/storage/storageManager'
 import { defaultMigrationManager } from '@/utils/storage/migrationManager'
 
@@ -42,13 +41,17 @@ const storageAdapter = {
   setItem: (/* name: string */ _: string, value: string): void => {
     try {
       const sheets = JSON.parse(value) as SheetMeta[]
-      // RootModel全体を構築して保存
-      const rootModel: RootModel = {
-        schemaVersion: 1,
-        savedAt: new Date().toISOString(),
-        sheets,
-        entities: {}, // 現段階では空、将来的に実装
+
+      // 既存のRootModelを読み込む（なければ新規作成）
+      let rootModel = defaultStorageManager.load()
+      if (!rootModel) {
+        rootModel = defaultMigrationManager.createInitialData()
       }
+
+      // sheetsとsavedAtのみ更新（entitiesは将来実装）
+      rootModel.sheets = sheets
+      rootModel.savedAt = new Date().toISOString()
+
       defaultStorageManager.save(rootModel)
     } catch (error) {
       // QuotaExceededErrorは上位に伝播させる

@@ -430,7 +430,13 @@ test.describe('アプリケーション基本動作確認', () => {
 test.describe('localStorage永続化E2Eテスト @step2-6', () => {
   let monitor: ReturnType<typeof setupConsoleMonitoring>
 
-  test.beforeEach(({ page }) => {
+  test.beforeEach(async ({ page }) => {
+    // localStorageをクリア
+    await page.goto('/')
+    await page.evaluate(() => {
+      localStorage.clear()
+    })
+
     // 各テストの前にコンソールエラー/警告検知を設定
     monitor = setupConsoleMonitoring(page)
   })
