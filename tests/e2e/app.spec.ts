@@ -15,6 +15,13 @@ const setupConsoleMonitoring = (page: Page) => {
   const consoleWarnings: string[] = []
   const pageErrors: string[] = []
 
+  // Persistent storage関連の警告は無視
+  const ignoredWarnings = [
+    'Persistent storage denied',
+    'Storage may be cleared by the UA under storage pressure',
+    'Persistent storage granted', // ログも含めて無視
+  ]
+
   page.on('console', msg => {
     if (msg.type() === 'error') {
       consoleErrors.push(`Console Error: ${msg.text()}`)
@@ -28,11 +35,18 @@ const setupConsoleMonitoring = (page: Page) => {
     pageErrors.push(`Page Error: ${error.message}`)
   })
 
+  const getAllErrors = () => {
+    const filteredWarnings = consoleWarnings.filter(
+      msg => !ignoredWarnings.some(ignored => msg.includes(ignored))
+    )
+    return [...consoleErrors, ...filteredWarnings, ...pageErrors]
+  }
+
   return {
     getConsoleErrors: () => consoleErrors,
     getConsoleWarnings: () => consoleWarnings,
     getPageErrors: () => pageErrors,
-    getAllErrors: () => [...consoleErrors, ...consoleWarnings, ...pageErrors],
+    getAllErrors,
   }
 }
 

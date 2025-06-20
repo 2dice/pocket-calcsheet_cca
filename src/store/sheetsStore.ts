@@ -87,7 +87,7 @@ export const useSheetsStore = create<SheetsStore>()(
       reset: () => set({ sheets: [] }),
     }),
     {
-      name: 'pocket-calcsheet/1',
+      name: 'pocket-calcsheet-store',
       storage: createJSONStorage(() => ({
         getItem: () => {
           try {
@@ -103,7 +103,7 @@ export const useSheetsStore = create<SheetsStore>()(
             return null
           }
         },
-        setItem: (_, value) => {
+        setItem: (_, value: string) => {
           try {
             const storeData = JSON.parse(value) as { sheets: SheetMeta[] }
             // 既存のRootModelを読み込むか新規作成

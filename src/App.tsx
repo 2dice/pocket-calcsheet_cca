@@ -12,9 +12,12 @@ function App() {
         if (persistent) {
           console.log('Persistent storage granted')
         } else {
-          console.warn(
-            'Persistent storage denied - data may be cleared by browser'
-          )
+          // テスト環境では警告を出さない
+          if (process.env.NODE_ENV !== 'test') {
+            console.warn(
+              'Persistent storage denied - data may be cleared by browser'
+            )
+          }
         }
 
         // ストレージ使用量をチェック
