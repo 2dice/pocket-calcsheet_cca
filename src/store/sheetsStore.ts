@@ -1,6 +1,9 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
+import { defaultStorageManager } from '@/utils/storage/storageManager'
+import { defaultMigrationManager } from '@/utils/storage/migrationManager'
 
 interface SheetsStore {
   sheets: SheetMeta[]
@@ -19,64 +22,130 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
-export const useSheetsStore = create<SheetsStore>((set, get) => ({
-  sheets: [],
-  addSheet: (name: string) => {
-    const currentSheets = get().sheets
-    const newSheet: SheetMeta = {
-      id: generateId(),
-      name,
-      order: currentSheets.length,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+// カスタムストレージアダプター（StorageManager委譲）
+const storageAdapter = {
+  getItem: (/* name: string */): string | null => {
+    // nameパラメータは無視（Zustand内部キー管理を回避）
+    try {
+      // MigrationManagerを使って読み込み（マイグレーション対応）
+      const rootModel = defaultMigrationManager.loadWithMigration()
+      if (!rootModel) {
+        return null
+      }
+      // createJSONStorageはsheetsStoreの状態を期待するため、sheetsのみを返す
+      return JSON.stringify(rootModel.sheets)
+    } catch (error) {
+      console.error('Failed to load sheets:', error)
+      return null
     }
-    set(state => ({
-      sheets: [...state.sheets, newSheet],
-    }))
   },
-  removeSheet: (id: string) => {
-    set(state => ({
-      sheets: state.sheets.filter(sheet => sheet.id !== id),
-    }))
+
+  setItem: (_name: string, value: string): void => {
+    // nameパラメータは無視（Zustand内部キー管理を回避）
+    try {
+      const sheets = JSON.parse(value) as SheetMeta[]
+
+      // 既存のRootModelを読み込む（なければ新規作成）
+      let rootModel = defaultStorageManager.load()
+      if (!rootModel) {
+        rootModel = defaultMigrationManager.createInitialData()
+      }
+
+      // sheetsとsavedAtのみ更新（entitiesは将来実装）
+      rootModel.sheets = sheets
+      rootModel.savedAt = new Date().toISOString()
+
+      defaultStorageManager.save(rootModel)
+    } catch (error) {
+      // QuotaExceededErrorは上位に伝播させる
+      if (error instanceof Error && error.name === 'QuotaExceededError') {
+        throw error
+      }
+      console.error('Failed to save sheets:', error)
+    }
   },
-  reorderSheets: (activeId: string, overId: string) => {
-    if (activeId === overId) return
+  removeItem: (/* name: string */): void => {
+    // nameパラメータは無視（Zustand内部キー管理を回避）
+    defaultStorageManager.clear()
+  },
+}
 
-    const currentSheets = get().sheets
-    const activeIndex = currentSheets.findIndex(sheet => sheet.id === activeId)
-    const overIndex = currentSheets.findIndex(sheet => sheet.id === overId)
-
-    if (activeIndex === -1 || overIndex === -1) return
-
-    // arrayMoveを使用してsheets配列を更新
-    const newSheets = arrayMove(currentSheets, activeIndex, overIndex)
-
-    // order プロパティを再計算（変更があったシートのみupdatedAt更新）
-    const updatedSheets = newSheets.map((sheet, index) => {
-      if (sheet.order !== index || sheet.id === activeId) {
-        return {
-          ...sheet,
-          order: index,
+export const useSheetsStore = create<SheetsStore>()(
+  persist<SheetsStore>(
+    (set, get) => ({
+      sheets: [],
+      addSheet: (name: string) => {
+        const currentSheets = get().sheets
+        const newSheet: SheetMeta = {
+          id: generateId(),
+          name,
+          order: currentSheets.length,
+          createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
-      }
-      return { ...sheet, order: index }
-    })
+        set(state => ({
+          sheets: [...state.sheets, newSheet],
+        }))
+      },
+      removeSheet: (id: string) => {
+        set(state => ({
+          sheets: state.sheets.filter(sheet => sheet.id !== id),
+        }))
+      },
+      reorderSheets: (activeId: string, overId: string) => {
+        if (activeId === overId) return
 
-    set({ sheets: updatedSheets })
-  },
-  updateSheet: (id: string, name: ValidatedSheetName) => {
-    set(state => ({
-      sheets: state.sheets.map(sheet =>
-        sheet.id === id
-          ? {
+        const currentSheets = get().sheets
+        const activeIndex = currentSheets.findIndex(
+          sheet => sheet.id === activeId
+        )
+        const overIndex = currentSheets.findIndex(sheet => sheet.id === overId)
+
+        if (activeIndex === -1 || overIndex === -1) return
+
+        // arrayMoveを使用してsheets配列を更新
+        const newSheets = arrayMove(currentSheets, activeIndex, overIndex)
+
+        // order プロパティを再計算（変更があったシートのみupdatedAt更新）
+        const updatedSheets = newSheets.map((sheet, index) => {
+          if (sheet.order !== index || sheet.id === activeId) {
+            return {
               ...sheet,
-              name,
+              order: index,
               updatedAt: new Date().toISOString(),
             }
-          : sheet
-      ),
-    }))
-  },
-  reset: () => set({ sheets: [] }),
-}))
+          }
+          return { ...sheet, order: index }
+        })
+
+        set({ sheets: updatedSheets })
+      },
+      updateSheet: (id: string, name: ValidatedSheetName) => {
+        set(state => ({
+          sheets: state.sheets.map(sheet =>
+            sheet.id === id
+              ? {
+                  ...sheet,
+                  name,
+                  updatedAt: new Date().toISOString(),
+                }
+              : sheet
+          ),
+        }))
+      },
+      reset: () => set({ sheets: [] }),
+    }),
+    {
+      name: 'sheets-store', // この名前は使われない（カスタムストレージが完全に制御）
+      storage: createJSONStorage(() => storageAdapter),
+      version: 1,
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Failed to rehydrate sheets store:', error)
+        } else if (state) {
+          console.log('Sheets store rehydrated successfully')
+        }
+      },
+    }
+  )
+)

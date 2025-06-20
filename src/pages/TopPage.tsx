@@ -16,11 +16,29 @@ import { validateSheetName } from '@/types/sheet'
 export function TopPage() {
   const [editingNewItem, setEditingNewItem] = useState(false)
   const [showEmptyNameAlert, setShowEmptyNameAlert] = useState(false)
+  const [storageError, setStorageError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
   const { sheets, addSheet, removeSheet, reorderSheets, updateSheet } =
     useSheetsStore()
+
+  // 共通エラーハンドラー
+  const handleStoreAction = useCallback(
+    async (action: () => void | Promise<void>) => {
+      try {
+        await action()
+      } catch (error) {
+        if (error instanceof Error && error.name === 'QuotaExceededError') {
+          setStorageError(error.message)
+        } else {
+          console.error('操作に失敗しました:', error)
+          setStorageError('操作に失敗しました。')
+        }
+      }
+    },
+    []
+  )
 
   const handleEditButtonClick = () => {
     toggleEditMode()
@@ -34,13 +52,15 @@ export function TopPage() {
   }
 
   const handleNewItemConfirm = (value: string) => {
-    if (value.trim() === '') {
+    const validatedName = validateSheetName(value)
+    if (!validatedName) {
       setShowEmptyNameAlert(true)
       return
     }
-
-    addSheet(value.trim())
-    setEditingNewItem(false)
+    void handleStoreAction(() => {
+      addSheet(value.trim())
+      setEditingNewItem(false)
+    })
   }
 
   const handleNewItemCancel = () => {
@@ -53,7 +73,9 @@ export function TopPage() {
   }
 
   const handleDeleteSheet = (id: string) => {
-    removeSheet(id)
+    void handleStoreAction(() => {
+      removeSheet(id)
+    })
   }
 
   const handleUpdateSheet = (id: string, name: string) => {
@@ -62,7 +84,15 @@ export function TopPage() {
       setShowEmptyNameAlert(true)
       return
     }
-    updateSheet(id, validatedName)
+    void handleStoreAction(() => {
+      updateSheet(id, validatedName)
+    })
+  }
+
+  const handleReorderSheets = (activeId: string, overId: string) => {
+    void handleStoreAction(() => {
+      reorderSheets(activeId, overId)
+    })
   }
 
   const handleEmptyNameAlertOk = useCallback(() => {
@@ -117,7 +147,7 @@ export function TopPage() {
           onUpdateSheet={handleUpdateSheet}
           onNewItemConfirm={handleNewItemConfirm}
           onNewItemCancel={handleNewItemCancel}
-          onReorderSheets={reorderSheets}
+          onReorderSheets={handleReorderSheets}
           inputRef={inputRef}
         />
       </div>
@@ -136,6 +166,24 @@ export function TopPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleEmptyNameAlertOk}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ストレージエラーダイアログ */}
+      <AlertDialog
+        open={!!storageError}
+        onOpenChange={() => setStorageError(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ストレージエラー</AlertDialogTitle>
+            <AlertDialogDescription>{storageError}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setStorageError(null)}>
               OK
             </AlertDialogAction>
           </AlertDialogFooter>

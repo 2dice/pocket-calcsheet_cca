@@ -109,8 +109,7 @@ pocket-calcsheet_cca/
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/
-│   │       ├── sheetsStore.test.ts   # ストアテスト
-│   │       └── storageManager.test.ts # ストレージテスト
+│   │       └── sheetsStore.test.ts   # ストアテスト
 │   ├── e2e/
 │   │   ├── app.spec.ts               # 基本動作E2Eテスト
 │   │   ├── pwa.spec.ts               # PWA機能テスト
