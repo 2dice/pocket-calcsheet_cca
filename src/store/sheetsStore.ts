@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
-import { defaultMigrationManager } from '@/utils/storage/migrationManager'
 
 interface SheetsStore {
   sheets: SheetMeta[]
@@ -87,59 +86,10 @@ export const useSheetsStore = create<SheetsStore>()(
       reset: () => set({ sheets: [] }),
     }),
     {
-      name: 'pocket-calcsheet-store',
-      storage: createJSONStorage(() => ({
-        getItem: () => {
-          try {
-            const rootModel = defaultMigrationManager.loadWithMigration()
-            if (!rootModel) return null
-            // Zustand用にsheets配列のみを返す
-            return JSON.stringify({ sheets: rootModel.sheets })
-          } catch (error) {
-            // テスト環境ではconsole出力を避ける
-            if (process.env.NODE_ENV !== 'test') {
-              console.error('Failed to load sheets from storage:', error)
-            }
-            return null
-          }
-        },
-        setItem: (_, value: string) => {
-          try {
-            const storeData = JSON.parse(value) as { sheets: SheetMeta[] }
-            // 既存のRootModelを読み込むか新規作成
-            const rootModel =
-              defaultMigrationManager.loadWithMigration() ||
-              defaultMigrationManager.createInitialData()
-            // sheetsを更新して保存
-            rootModel.sheets = storeData.sheets
-            rootModel.savedAt = new Date().toISOString()
-            defaultMigrationManager.storageManager.save(rootModel)
-          } catch (error) {
-            // テスト環境ではconsole出力を避ける
-            if (process.env.NODE_ENV !== 'test') {
-              console.error('Failed to save sheets to storage:', error)
-            }
-            if (error instanceof Error && error.name === 'QuotaExceededError') {
-              throw error
-            }
-          }
-        },
-        removeItem: () => {
-          try {
-            defaultMigrationManager.storageManager.clear()
-          } catch (error) {
-            // テスト環境ではconsole出力を避ける
-            if (process.env.NODE_ENV !== 'test') {
-              console.error('Failed to remove sheets from storage:', error)
-            }
-          }
-        },
-      })),
+      name: 'pocket-calcsheet/1', // StorageManagerと同じキーを使用
+      storage: createJSONStorage(() => localStorage),
+      // カスタムストレージ実装を削除し、標準のpersist機能を使用
       version: 1,
-      migrate: (persistedState: unknown): SheetsStore => {
-        // 必要に応じて将来のマイグレーション処理を追加
-        return persistedState as SheetsStore
-      },
       onRehydrateStorage: () => state => {
         if (state) {
           console.log('Sheets store rehydrated successfully')

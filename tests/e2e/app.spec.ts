@@ -19,7 +19,8 @@ const setupConsoleMonitoring = (page: Page) => {
   const ignoredWarnings = [
     'Persistent storage denied',
     'Storage may be cleared by the UA under storage pressure',
-    'Persistent storage granted', // ログも含めて無視
+    'Persistent storage granted',
+    'Persistent storage API not supported', // CI環境用
   ]
 
   page.on('console', msg => {
