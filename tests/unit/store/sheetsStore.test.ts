@@ -606,4 +606,181 @@ describe('SheetsStore', () => {
       })
     })
   })
+
+  describe('localStorage永続化', () => {
+    beforeEach(() => {
+      // localStorageをクリア
+      localStorage.clear()
+    })
+
+    it('ストアの変更がlocalStorageに保存される', async () => {
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('永続化テスト')
+
+      // persistミドルウェアの非同期処理を待つ
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      const key = 'pocket-calcsheet/1'
+      const saved = localStorage.getItem(key)
+      expect(saved).toBeTruthy()
+
+      if (saved) {
+        const parsedData = JSON.parse(saved) as {
+          state: {
+            schemaVersion: number
+            sheets: Array<{ name: string }>
+          }
+        }
+        expect(parsedData.state.schemaVersion).toBe(1)
+        expect(parsedData.state.sheets).toHaveLength(1)
+        expect(parsedData.state.sheets[0].name).toBe('永続化テスト')
+      }
+    })
+
+    it('アプリ起動時にlocalStorageからデータが復元される', async () => {
+      // 事前にlocalStorageにテストデータを保存
+      const testData = {
+        state: {
+          schemaVersion: 1,
+          savedAt: new Date().toISOString(),
+          sheets: [
+            {
+              id: 'test-restore-id',
+              name: '復元テストシート',
+              order: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ],
+          entities: {
+            'test-restore-id': {
+              id: 'test-restore-id',
+              name: '復元テストシート',
+              order: 0,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          },
+        },
+        version: 0,
+      }
+
+      // localStorageに直接データを保存
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(testData))
+
+      // persist.rehydrateを使用してハイドレーション実行
+      await useSheetsStore.persist.rehydrate()
+
+      const { sheets, entities } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(1)
+      expect(sheets[0].name).toBe('復元テストシート')
+      expect(entities['test-restore-id']).toBeDefined()
+      expect(entities['test-restore-id'].name).toBe('復元テストシート')
+    })
+
+    it('複数の操作後にデータが正しく永続化される', async () => {
+      const { addSheet, updateSheet, reorderSheets } = useSheetsStore.getState()
+
+      // 複数のシートを追加
+      addSheet('シート1')
+      addSheet('シート2')
+      addSheet('シート3')
+
+      const { sheets: initialSheets } = useSheetsStore.getState()
+
+      // 名前を更新
+      const validatedName = validateSheetName('更新されたシート1')
+      if (validatedName) {
+        updateSheet(initialSheets[0].id, validatedName)
+      }
+
+      // 順序を変更
+      reorderSheets(initialSheets[0].id, initialSheets[2].id)
+
+      // persistミドルウェアの処理を待つ
+      await new Promise(resolve => setTimeout(resolve, 150))
+
+      const key = 'pocket-calcsheet/1'
+      const saved = localStorage.getItem(key)
+      expect(saved).toBeTruthy()
+
+      if (saved) {
+        const parsedData = JSON.parse(saved) as {
+          state: {
+            sheets: Array<{ name: string }>
+            entities: Record<string, unknown>
+          }
+        }
+        const savedState = parsedData.state
+
+        expect(savedState.sheets).toHaveLength(3)
+        expect(savedState.sheets[2].name).toBe('更新されたシート1')
+        expect(Object.keys(savedState.entities)).toHaveLength(3)
+      }
+    })
+
+    it('削除操作が永続化される', async () => {
+      const { addSheet, removeSheet } = useSheetsStore.getState()
+
+      // シートを追加
+      addSheet('削除対象シート')
+      addSheet('残すシート')
+
+      const { sheets: beforeSheets } = useSheetsStore.getState()
+      const deleteTargetId = beforeSheets[0].id
+
+      // シートを削除
+      removeSheet(deleteTargetId)
+
+      // persistミドルウェアの処理を待つ
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      const key = 'pocket-calcsheet/1'
+      const saved = localStorage.getItem(key)
+      expect(saved).toBeTruthy()
+
+      if (saved) {
+        const parsedData = JSON.parse(saved) as {
+          state: {
+            sheets: Array<{ name: string }>
+            entities: Record<string, unknown>
+          }
+        }
+        const savedState = parsedData.state
+
+        expect(savedState.sheets).toHaveLength(1)
+        expect(savedState.sheets[0].name).toBe('残すシート')
+        expect(savedState.entities[deleteTargetId]).toBeUndefined()
+        expect(Object.keys(savedState.entities)).toHaveLength(1)
+      }
+    })
+
+    it('savedAtフィールドが操作時に更新される', async () => {
+      const { addSheet } = useSheetsStore.getState()
+
+      const beforeSavedAt = useSheetsStore.getState().savedAt
+
+      // 少し待ってから操作
+      await new Promise(resolve => setTimeout(resolve, 10))
+
+      addSheet('savedAtテスト')
+
+      const afterSavedAt = useSheetsStore.getState().savedAt
+      expect(afterSavedAt).not.toBe(beforeSavedAt)
+
+      // persistミドルウェアの処理を待つ
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      const key = 'pocket-calcsheet/1'
+      const saved = localStorage.getItem(key)
+      expect(saved).toBeTruthy()
+
+      if (saved) {
+        const parsedData = JSON.parse(saved) as {
+          state: { savedAt: string }
+        }
+        expect(parsedData.state.savedAt).toBe(afterSavedAt)
+      }
+    })
+  })
 })
