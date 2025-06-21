@@ -23,4 +23,13 @@ export class StorageManager {
       return null
     }
   }
+
+  static remove(key: string): void {
+    try {
+      localStorage.removeItem(key)
+    } catch (error) {
+      console.error('Failed to remove from localStorage:', error)
+      throw error
+    }
+  }
 }

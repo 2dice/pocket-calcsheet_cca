@@ -455,24 +455,13 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 複数のシートを追加
     const addButton = page.locator('button:has-text("+")')
-
-    // 1つ目のシート
-    await addButton.click()
-    let input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('永続化シート1')
-    await input.press('Enter')
-
-    // 2つ目のシート
-    await addButton.click()
-    input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('永続化シート2')
-    await input.press('Enter')
-
-    // 3つ目のシート
-    await addButton.click()
-    input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('永続化シート3')
-    await input.press('Enter')
+    const sheetNames = ['永続化シート1', '永続化シート2', '永続化シート3']
+    for (const name of sheetNames) {
+      await addButton.click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill(name)
+      await input.press('Enter')
+    }
 
     // 2つ目のシートの名前を変更
     const sheet2Name = page.locator('text=永続化シート2')

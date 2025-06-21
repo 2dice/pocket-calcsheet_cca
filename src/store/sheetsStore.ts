@@ -144,13 +144,29 @@ export const useSheetsStore = create<SheetsStore>()(
       name: StorageManager.getKey(1),
       storage: createJSONStorage(() => ({
         getItem: name => {
-          const data = StorageManager.load(name)
-          return data ? JSON.stringify(data) : null
+          try {
+            return localStorage.getItem(name)
+          } catch (error) {
+            console.error('Failed to get item from localStorage:', error)
+            return null
+          }
         },
         setItem: (name, value) => {
-          StorageManager.save(name, JSON.parse(value))
+          try {
+            localStorage.setItem(name, value)
+          } catch (error) {
+            console.error('Failed to save to localStorage:', error)
+            throw error
+          }
         },
-        removeItem: name => localStorage.removeItem(name),
+        removeItem: name => {
+          try {
+            localStorage.removeItem(name)
+          } catch (error) {
+            console.error('Failed to remove from localStorage:', error)
+            throw error
+          }
+        },
       })),
       partialize: state => ({
         schemaVersion: state.schemaVersion,

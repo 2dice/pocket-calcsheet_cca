@@ -613,12 +613,13 @@ describe('SheetsStore', () => {
       localStorage.clear()
     })
 
-    it('ストアの変更がlocalStorageに保存される', async () => {
+    it('ストアの変更がlocalStorageに保存される', () => {
+      vi.useFakeTimers()
       const { addSheet } = useSheetsStore.getState()
       addSheet('永続化テスト')
 
-      // persistミドルウェアの非同期処理を待つ
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // persistミドルウェアの非同期処理を即座に実行
+      vi.runAllTimers()
 
       const key = 'pocket-calcsheet/1'
       const saved = localStorage.getItem(key)
@@ -635,6 +636,8 @@ describe('SheetsStore', () => {
         expect(parsedData.state.sheets).toHaveLength(1)
         expect(parsedData.state.sheets[0].name).toBe('永続化テスト')
       }
+
+      vi.useRealTimers()
     })
 
     it('アプリ起動時にlocalStorageからデータが復元される', async () => {
@@ -678,7 +681,8 @@ describe('SheetsStore', () => {
       expect(entities['test-restore-id'].name).toBe('復元テストシート')
     })
 
-    it('複数の操作後にデータが正しく永続化される', async () => {
+    it('複数の操作後にデータが正しく永続化される', () => {
+      vi.useFakeTimers()
       const { addSheet, updateSheet, reorderSheets } = useSheetsStore.getState()
 
       // 複数のシートを追加
@@ -697,8 +701,8 @@ describe('SheetsStore', () => {
       // 順序を変更
       reorderSheets(initialSheets[0].id, initialSheets[2].id)
 
-      // persistミドルウェアの処理を待つ
-      await new Promise(resolve => setTimeout(resolve, 150))
+      // persistミドルウェアの非同期処理を即座に実行
+      vi.runAllTimers()
 
       const key = 'pocket-calcsheet/1'
       const saved = localStorage.getItem(key)
@@ -717,9 +721,12 @@ describe('SheetsStore', () => {
         expect(savedState.sheets[2].name).toBe('更新されたシート1')
         expect(Object.keys(savedState.entities)).toHaveLength(3)
       }
+
+      vi.useRealTimers()
     })
 
-    it('削除操作が永続化される', async () => {
+    it('削除操作が永続化される', () => {
+      vi.useFakeTimers()
       const { addSheet, removeSheet } = useSheetsStore.getState()
 
       // シートを追加
@@ -732,8 +739,8 @@ describe('SheetsStore', () => {
       // シートを削除
       removeSheet(deleteTargetId)
 
-      // persistミドルウェアの処理を待つ
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // persistミドルウェアの非同期処理を即座に実行
+      vi.runAllTimers()
 
       const key = 'pocket-calcsheet/1'
       const saved = localStorage.getItem(key)
@@ -753,23 +760,26 @@ describe('SheetsStore', () => {
         expect(savedState.entities[deleteTargetId]).toBeUndefined()
         expect(Object.keys(savedState.entities)).toHaveLength(1)
       }
+
+      vi.useRealTimers()
     })
 
-    it('savedAtフィールドが操作時に更新される', async () => {
+    it('savedAtフィールドが操作時に更新される', () => {
+      vi.useFakeTimers()
       const { addSheet } = useSheetsStore.getState()
 
       const beforeSavedAt = useSheetsStore.getState().savedAt
 
-      // 少し待ってから操作
-      await new Promise(resolve => setTimeout(resolve, 10))
+      // 時間を進める
+      vi.advanceTimersByTime(10)
 
       addSheet('savedAtテスト')
 
       const afterSavedAt = useSheetsStore.getState().savedAt
       expect(afterSavedAt).not.toBe(beforeSavedAt)
 
-      // persistミドルウェアの処理を待つ
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // persistミドルウェアの非同期処理を即座に実行
+      vi.runAllTimers()
 
       const key = 'pocket-calcsheet/1'
       const saved = localStorage.getItem(key)
@@ -781,6 +791,8 @@ describe('SheetsStore', () => {
         }
         expect(parsedData.state.savedAt).toBe(afterSavedAt)
       }
+
+      vi.useRealTimers()
     })
   })
 })
