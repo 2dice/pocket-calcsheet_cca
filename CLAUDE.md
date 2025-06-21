@@ -185,8 +185,8 @@ npm run dev
 npm run build
 
 # TDD実装時のテストコマンド
-npm run test:unit --include "path/to/test/file" #TDD実行時の個別vitest実行(path/to/test/fileは機能ごとに作成したテストファイル名)
-npm run test:e2e --grep @tag #TDD実行時の個別playwrightテスト実行(tagはステップ毎に定義)
+npm run test:unit path/to/test/file #TDD実行時の個別vitest実行(path/to/test/fileは機能ごとに作成したテストファイル名)
+npx playwright test --grep @tag     #TDD実行時の個別playwrightテスト実行(tagはステップ毎に定義)
 
 # 最終テスト実行(時間がかかるので全ての実装が完了してから実行すること)
 npm run test          # Vitest + Playwright
