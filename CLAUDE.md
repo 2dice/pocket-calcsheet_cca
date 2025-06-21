@@ -58,12 +58,13 @@ pocket-calcsheet_cca/
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── store/                        # Zustandストア
 │   │   ├── index.ts                  # Zustandストア統合エクスポート
-│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(updateSheet実装済み)
+│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(ルートモデル対応済み)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
-│   │   └── sheet.ts                  # シートモデル型定義
+│   │   ├── sheet.ts                  # シートモデル型定義
+│   │   └── storage.ts                # ストレージ関連型定義（ルートモデル）
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート + SafeArea対応

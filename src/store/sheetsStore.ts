@@ -1,9 +1,13 @@
 import { create } from 'zustand'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
+import type { RootModel, Sheet } from '@/types/storage'
 
-interface SheetsStore {
+interface SheetsStore extends RootModel {
+  schemaVersion: number
+  savedAt: string
   sheets: SheetMeta[]
+  entities: Record<string, Sheet>
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
@@ -19,8 +23,18 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
-export const useSheetsStore = create<SheetsStore>((set, get) => ({
+const getInitialState = (): Omit<
+  SheetsStore,
+  'addSheet' | 'removeSheet' | 'reorderSheets' | 'updateSheet' | 'reset'
+> => ({
+  schemaVersion: 1,
+  savedAt: new Date().toISOString(),
   sheets: [],
+  entities: {},
+})
+
+export const useSheetsStore = create<SheetsStore>((set, get) => ({
+  ...getInitialState(),
   addSheet: (name: string) => {
     const currentSheets = get().sheets
     const newSheet: SheetMeta = {
@@ -30,14 +44,29 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    set(state => ({
-      sheets: [...state.sheets, newSheet],
-    }))
+
+    set(state => {
+      const sheetEntity: Sheet = { ...newSheet }
+      return {
+        sheets: [...state.sheets, newSheet],
+        entities: {
+          ...state.entities,
+          [newSheet.id]: sheetEntity,
+        },
+        savedAt: new Date().toISOString(),
+      }
+    })
   },
   removeSheet: (id: string) => {
-    set(state => ({
-      sheets: state.sheets.filter(sheet => sheet.id !== id),
-    }))
+    set(state => {
+      const remainingEntities = { ...state.entities }
+      delete remainingEntities[id]
+      return {
+        sheets: state.sheets.filter(sheet => sheet.id !== id),
+        entities: remainingEntities,
+        savedAt: new Date().toISOString(),
+      }
+    })
   },
   reorderSheets: (activeId: string, overId: string) => {
     if (activeId === overId) return
@@ -63,20 +92,45 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
       return { ...sheet, order: index }
     })
 
-    set({ sheets: updatedSheets })
-  },
-  updateSheet: (id: string, name: ValidatedSheetName) => {
     set(state => ({
-      sheets: state.sheets.map(sheet =>
-        sheet.id === id
-          ? {
-              ...sheet,
-              name,
-              updatedAt: new Date().toISOString(),
-            }
-          : sheet
-      ),
+      sheets: updatedSheets,
+      entities: {
+        ...state.entities,
+        ...updatedSheets.reduce(
+          (acc, sheet) => ({
+            ...acc,
+            [sheet.id]: state.entities[sheet.id]
+              ? { ...state.entities[sheet.id], order: sheet.order }
+              : state.entities[sheet.id],
+          }),
+          {} as Record<string, Sheet>
+        ),
+      },
+      savedAt: new Date().toISOString(),
     }))
   },
-  reset: () => set({ sheets: [] }),
+  updateSheet: (id: string, name: ValidatedSheetName) => {
+    set(state => {
+      const updatedAt = new Date().toISOString()
+      const updatedSheet = state.sheets.find(s => s.id === id)
+
+      return {
+        sheets: state.sheets.map(sheet =>
+          sheet.id === id ? { ...sheet, name, updatedAt } : sheet
+        ),
+        entities: updatedSheet
+          ? {
+              ...state.entities,
+              [id]: {
+                ...(state.entities[id] || updatedSheet),
+                name,
+                updatedAt,
+              } as Sheet,
+            }
+          : state.entities,
+        savedAt: new Date().toISOString(),
+      }
+    })
+  },
+  reset: () => set(getInitialState()),
 }))
