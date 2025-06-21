@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
+import type { RootModel, Sheet } from '@/types/storage'
 
-interface SheetsStore {
-  sheets: SheetMeta[]
+interface SheetsStore extends RootModel {
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
@@ -19,8 +19,18 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
-export const useSheetsStore = create<SheetsStore>((set, get) => ({
+const getInitialState = (): Omit<
+  SheetsStore,
+  'addSheet' | 'removeSheet' | 'reorderSheets' | 'updateSheet' | 'reset'
+> => ({
+  schemaVersion: 1,
+  savedAt: new Date().toISOString(),
   sheets: [],
+  entities: {},
+})
+
+export const useSheetsStore = create<SheetsStore>((set, get) => ({
+  ...getInitialState(),
   addSheet: (name: string) => {
     const currentSheets = get().sheets
     const newSheet: SheetMeta = {
@@ -30,14 +40,27 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
+    const sheetEntity: Sheet = { ...newSheet }
+
     set(state => ({
       sheets: [...state.sheets, newSheet],
+      entities: {
+        ...state.entities,
+        [newSheet.id]: sheetEntity,
+      },
+      savedAt: new Date().toISOString(),
     }))
   },
   removeSheet: (id: string) => {
-    set(state => ({
-      sheets: state.sheets.filter(sheet => sheet.id !== id),
-    }))
+    set(state => {
+      const remainingEntities = { ...state.entities }
+      delete remainingEntities[id]
+      return {
+        sheets: state.sheets.filter(sheet => sheet.id !== id),
+        entities: remainingEntities,
+        savedAt: new Date().toISOString(),
+      }
+    })
   },
   reorderSheets: (activeId: string, overId: string) => {
     if (activeId === overId) return
@@ -63,20 +86,37 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
       return { ...sheet, order: index }
     })
 
-    set({ sheets: updatedSheets })
+    set({
+      sheets: updatedSheets,
+      savedAt: new Date().toISOString(),
+    })
   },
   updateSheet: (id: string, name: ValidatedSheetName) => {
-    set(state => ({
-      sheets: state.sheets.map(sheet =>
-        sheet.id === id
-          ? {
-              ...sheet,
-              name,
-              updatedAt: new Date().toISOString(),
-            }
-          : sheet
-      ),
-    }))
+    set(state => {
+      const updatedAt = new Date().toISOString()
+      return {
+        sheets: state.sheets.map(sheet =>
+          sheet.id === id
+            ? {
+                ...sheet,
+                name,
+                updatedAt,
+              }
+            : sheet
+        ),
+        entities: {
+          ...state.entities,
+          [id]: state.entities[id]
+            ? {
+                ...state.entities[id],
+                name,
+                updatedAt,
+              }
+            : state.entities[id],
+        },
+        savedAt: new Date().toISOString(),
+      }
+    })
   },
-  reset: () => set({ sheets: [] }),
+  reset: () => set(getInitialState()),
 }))

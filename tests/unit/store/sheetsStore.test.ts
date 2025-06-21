@@ -8,6 +8,80 @@ describe('SheetsStore', () => {
     useSheetsStore.getState().reset?.()
   })
 
+  describe('ルートモデル構造', () => {
+    it('初期状態が正しく設定される', () => {
+      const { schemaVersion, savedAt, sheets, entities } =
+        useSheetsStore.getState()
+      expect(schemaVersion).toBe(1)
+      expect(typeof savedAt).toBe('string')
+      expect(savedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
+      expect(sheets).toEqual([])
+      expect(entities).toEqual({})
+    })
+
+    it('addSheetでsheetsとentitiesが同期される', () => {
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('新しいシート')
+
+      const { sheets, entities } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(1)
+      expect(entities[sheets[0].id]).toBeDefined()
+      expect(entities[sheets[0].id].name).toBe('新しいシート')
+    })
+
+    it('removeSheetでsheetsとentitiesが同期される', () => {
+      const { addSheet, removeSheet } = useSheetsStore.getState()
+      addSheet('テストシート')
+
+      const { sheets: beforeSheets } = useSheetsStore.getState()
+      const sheetId = beforeSheets[0].id
+
+      removeSheet(sheetId)
+
+      const { sheets, entities } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(0)
+      expect(entities[sheetId]).toBeUndefined()
+    })
+
+    it('updateSheetでsheetsとentitiesが同期される', () => {
+      const { addSheet, updateSheet } = useSheetsStore.getState()
+      addSheet('元の名前')
+
+      const { sheets: beforeSheets } = useSheetsStore.getState()
+      const sheetId = beforeSheets[0].id
+
+      const validatedName = validateSheetName('新しい名前')
+      if (validatedName) {
+        updateSheet(sheetId, validatedName)
+      }
+
+      const { sheets, entities } = useSheetsStore.getState()
+      expect(sheets[0].name).toBe('新しい名前')
+      expect(entities[sheetId].name).toBe('新しい名前')
+    })
+
+    it('savedAtがアクション実行時に更新される', () => {
+      vi.useFakeTimers()
+
+      const initialState = useSheetsStore.getState()
+      const initialSavedAt = initialState.savedAt
+
+      // 少し時間を置いてからアクションを実行
+      vi.advanceTimersByTime(10)
+
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('テストシート')
+
+      const updatedState = useSheetsStore.getState()
+      expect(updatedState.savedAt).not.toBe(initialSavedAt)
+      expect(updatedState.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      vi.useRealTimers()
+    })
+  })
+
   describe('初期状態', () => {
     it('初期状態では空の配列を持つ', () => {
       const state = useSheetsStore.getState()
