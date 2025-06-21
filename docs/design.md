@@ -66,10 +66,17 @@ https://2dice.tech/category/ios-app/calcsheet/
     - 要素名をタップすると名前の変更(インライン編集)が可能になる(step2-5)
       - 編集エリアがキーボードの上までスクロール
       - Enterまたは別のエリアタップで完了
-  - 要素名, id, 順番の保存/読み出し(localStorage)(step2-6)
-    - 起動時に読み出し、編集完了時に保存
-    - navigator.storage.persist()設定
-    - 状態管理ライブラリのストア内でlocalStorageへの保存・読み込み処理をカプセル化
+  - 要素名, id, 順番の保存/読み出し(localStorage)
+    - ルートモデル構造の実装（schemaVersion, savedAt, sheets, entities）(step2-6-1)
+      - sheetsStoreをルートモデル対応に更新
+      - entitiesは空オブジェクトで初期化（将来の拡張性を考慮）
+    - 起動時に読み出し、編集完了時に保存(step2-6-2)
+      - StorageManagerの実装（localStorage抽象化レイヤー）
+      - Zustand persistミドルウェアの設定
+    - 高度な永続化機能(step2-6-3)
+      - navigator.storage.persist()設定
+      - MigrationManagerの実装（スキーマバージョン管理）
+      - localStorage容量超過時のエラーハンドリング
 - リストから一つの要素を選択すると下部に3つのタブがある画面に遷移(iphoneのタブバーのイメージ)(step3-1)
   - overviewタブ(左)
   - variablesタブ(中央)
