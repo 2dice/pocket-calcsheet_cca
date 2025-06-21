@@ -4,6 +4,10 @@ import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
 import type { RootModel, Sheet } from '@/types/storage'
 
 interface SheetsStore extends RootModel {
+  schemaVersion: number
+  savedAt: string
+  sheets: SheetMeta[]
+  entities: Record<string, Sheet>
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
@@ -40,16 +44,18 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    const sheetEntity: Sheet = { ...newSheet }
 
-    set(state => ({
-      sheets: [...state.sheets, newSheet],
-      entities: {
-        ...state.entities,
-        [newSheet.id]: sheetEntity,
-      },
-      savedAt: new Date().toISOString(),
-    }))
+    set(state => {
+      const sheetEntity: Sheet = { ...newSheet }
+      return {
+        sheets: [...state.sheets, newSheet],
+        entities: {
+          ...state.entities,
+          [newSheet.id]: sheetEntity,
+        },
+        savedAt: new Date().toISOString(),
+      }
+    })
   },
   removeSheet: (id: string) => {
     set(state => {
@@ -86,34 +92,42 @@ export const useSheetsStore = create<SheetsStore>((set, get) => ({
       return { ...sheet, order: index }
     })
 
-    set({
+    set(state => ({
       sheets: updatedSheets,
+      entities: {
+        ...state.entities,
+        ...updatedSheets.reduce(
+          (acc, sheet) => ({
+            ...acc,
+            [sheet.id]: state.entities[sheet.id]
+              ? { ...state.entities[sheet.id], order: sheet.order }
+              : state.entities[sheet.id],
+          }),
+          {} as Record<string, Sheet>
+        ),
+      },
       savedAt: new Date().toISOString(),
-    })
+    }))
   },
   updateSheet: (id: string, name: ValidatedSheetName) => {
     set(state => {
       const updatedAt = new Date().toISOString()
+      const updatedSheet = state.sheets.find(s => s.id === id)
+
       return {
         sheets: state.sheets.map(sheet =>
-          sheet.id === id
-            ? {
-                ...sheet,
-                name,
-                updatedAt,
-              }
-            : sheet
+          sheet.id === id ? { ...sheet, name, updatedAt } : sheet
         ),
-        entities: {
-          ...state.entities,
-          [id]: state.entities[id]
-            ? {
-                ...state.entities[id],
+        entities: updatedSheet
+          ? {
+              ...state.entities,
+              [id]: {
+                ...(state.entities[id] || updatedSheet),
                 name,
                 updatedAt,
-              }
-            : state.entities[id],
-        },
+              } as Sheet,
+            }
+          : state.entities,
         savedAt: new Date().toISOString(),
       }
     })
