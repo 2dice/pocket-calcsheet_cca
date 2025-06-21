@@ -410,4 +410,90 @@ test.describe('アプリケーション基本動作確認', () => {
     // シートが削除されて存在しないことを確認
     await expect(page.locator('text=削除実行テストシート')).not.toBeVisible()
   })
+
+  test('シート追加後のリロードでデータが維持される @step2-6-2', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入ってシートを追加
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('永続化テストシート')
+    await input.press('Enter')
+
+    // 編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // シートが表示されることを確認
+    await expect(page.locator('text=永続化テストシート')).toBeVisible()
+
+    // ページをリロード
+    await page.reload()
+
+    // リロード後もシートが表示されることを確認
+    await expect(page.locator('text=永続化テストシート')).toBeVisible()
+
+    // 編集ボタンが表示されることを確認（ページが正常にロードされている）
+    await expect(page.locator('button:has-text("編集")')).toBeVisible()
+  })
+
+  test('複数シートの追加・編集・削除後のリロードでデータが維持される @step2-6-2', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    // 複数のシートを追加
+    const addButton = page.locator('button:has-text("+")')
+    const sheetNames = ['永続化シート1', '永続化シート2', '永続化シート3']
+    for (const name of sheetNames) {
+      await addButton.click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill(name)
+      await input.press('Enter')
+    }
+
+    // 2つ目のシートの名前を変更
+    const sheet2Name = page.locator('text=永続化シート2')
+    await sheet2Name.click()
+    const editInput = page.locator('[data-testid="sheet-name-input"]')
+    await editInput.fill('編集後シート2')
+    await editInput.press('Enter')
+
+    // 1つ目のシートを削除
+    const deleteButtons = page.locator('[data-testid="delete-button"]')
+    await deleteButtons.first().click()
+    const confirmButton = page.locator('button:has-text("削除")')
+    await confirmButton.click()
+
+    // 編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // 残ったシートが表示されることを確認
+    await expect(page.locator('text=編集後シート2')).toBeVisible()
+    await expect(page.locator('text=永続化シート3')).toBeVisible()
+    await expect(page.locator('text=永続化シート1')).not.toBeVisible()
+
+    // ページをリロード
+    await page.reload()
+
+    // リロード後も正しいシートが表示されることを確認
+    await expect(page.locator('text=編集後シート2')).toBeVisible()
+    await expect(page.locator('text=永続化シート3')).toBeVisible()
+    await expect(page.locator('text=永続化シート1')).not.toBeVisible()
+
+    // ページが正常にロードされていることを確認
+    await expect(page.locator('button:has-text("編集")')).toBeVisible()
+  })
 })
