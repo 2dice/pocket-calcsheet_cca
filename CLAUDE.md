@@ -58,8 +58,11 @@ pocket-calcsheet_cca/
 │   │   └── TopPage.tsx               # トップページ（シート一覧）
 │   ├── store/                        # Zustandストア
 │   │   ├── index.ts                  # Zustandストア統合エクスポート
-│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(ルートモデル対応済み)
+│   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(persistミドルウェア対応済み)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
+│   ├── utils/                        # ユーティリティ関数
+│   │   └── storage/                  # ストレージ関連ユーティリティ
+│   │       └── storageManager.ts     # localStorage抽象化レイヤー
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
@@ -79,7 +82,8 @@ pocket-calcsheet_cca/
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/
-│   │       └── sheetsStore.test.ts   # シートストアテスト
+│   │       ├── sheetsStore.test.ts   # シートストアテスト
+│   │       └── storageManager.test.ts # StorageManagerテスト
 │   └── e2e/
 │       ├── app.spec.ts               # 基本動作E2Eテスト
 │       └── pwa.spec.ts               # PWA機能テスト
@@ -188,6 +192,8 @@ npm run build
 # TDD実装時のテストコマンド
 npm run test:unit path/to/test/file #TDD実行時の個別vitest実行(path/to/test/fileは機能ごとに作成したテストファイル名)
 npx playwright test --grep @tag     #TDD実行時の個別playwrightテスト実行(tagはステップ毎に定義)
+## playwrightブラウザインストールが必要な場合
+npx playwright install webkit chromium --with-deps
 
 # 最終テスト実行(時間がかかるので全ての実装が完了してから実行すること)
 npm run test          # Vitest + Playwright

@@ -34,6 +34,7 @@ jobs:
           claude_access_token: ${{ secrets.CLAUDE_ACCESS_TOKEN }}
           claude_refresh_token: ${{ secrets.CLAUDE_REFRESH_TOKEN }}
           claude_expires_at: ${{ secrets.CLAUDE_EXPIRES_AT }}
+          github_token: ${{ secrets.CLAUDE_BOT_PAT }}
           timeout_minutes: '5'
           model: 'claude-sonnet-4-20250514'
           allowed_tools: 'Bash(echo*)'
