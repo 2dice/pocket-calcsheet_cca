@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { StorageManager } from '@/utils/storage/storageManager'
+import { MigrationManager } from '@/utils/storage/migrationManager'
 
 describe('StorageManager', () => {
   beforeEach(() => {
@@ -220,6 +221,194 @@ describe('StorageManager', () => {
       StorageManager.save(key, secondData)
       loaded = StorageManager.load(key)
       expect(loaded).toEqual(secondData)
+    })
+  })
+})
+
+describe('MigrationManager', () => {
+  describe('needsMigration', () => {
+    it('schemaVersionが未定義の場合、マイグレーションが必要と判定する', () => {
+      const data = {
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      expect(MigrationManager.needsMigration(data)).toBe(true)
+    })
+
+    it('schemaVersionが0の場合、マイグレーションが必要と判定する', () => {
+      const data = {
+        schemaVersion: 0,
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      expect(MigrationManager.needsMigration(data)).toBe(true)
+    })
+
+    it('schemaVersionが1の場合、マイグレーションが不要と判定する', () => {
+      const data = {
+        schemaVersion: 1,
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      expect(MigrationManager.needsMigration(data)).toBe(false)
+    })
+
+    it('schemaVersionが1より大きい場合、マイグレーションが不要と判定する', () => {
+      const data = {
+        schemaVersion: 2,
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      expect(MigrationManager.needsMigration(data)).toBe(false)
+    })
+
+    it('dataがnullの場合、マイグレーションが必要と判定する', () => {
+      expect(MigrationManager.needsMigration(null)).toBe(true)
+    })
+
+    it('dataがundefinedの場合、マイグレーションが必要と判定する', () => {
+      expect(MigrationManager.needsMigration(undefined)).toBe(true)
+    })
+  })
+
+  describe('migrate', () => {
+    it('バージョン0から1へのマイグレーションを実行する', () => {
+      const v0Data = {
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      const result = MigrationManager.migrate(v0Data, 0, 1)
+
+      expect(result.schemaVersion).toBe(1)
+      expect(result.savedAt).toBe(v0Data.savedAt)
+      expect(result.sheets).toEqual(v0Data.sheets)
+      expect(result.entities).toEqual(v0Data.entities)
+    })
+
+    it('同一バージョンの場合はそのまま返す', () => {
+      const v1Data = {
+        schemaVersion: 1,
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      const result = MigrationManager.migrate(v1Data, 1, 1)
+
+      expect(result).toEqual(v1Data)
+    })
+
+    it('複数バージョンをまたぐマイグレーションを実行する', () => {
+      const v0Data = {
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      const result = MigrationManager.migrate(v0Data, 0, 2)
+
+      expect(result.schemaVersion).toBe(2)
+      expect(result.savedAt).toBe(v0Data.savedAt)
+      expect(result.sheets).toEqual(v0Data.sheets)
+      expect(result.entities).toEqual(v0Data.entities)
+    })
+
+    it('不正なデータ（null）でエラーを投げる', () => {
+      expect(() => {
+        MigrationManager.migrate(null, 0, 1)
+      }).toThrow('Invalid data provided for migration')
+    })
+
+    it('不正なデータ（undefined）でエラーを投げる', () => {
+      expect(() => {
+        MigrationManager.migrate(undefined, 0, 1)
+      }).toThrow('Invalid data provided for migration')
+    })
+
+    it('後方バージョンへのマイグレーションでエラーを投げる', () => {
+      const v1Data = {
+        schemaVersion: 1,
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      expect(() => {
+        MigrationManager.migrate(v1Data, 1, 0)
+      }).toThrow('Cannot migrate backwards')
+    })
+  })
+
+  describe('migrateV0ToV1', () => {
+    it('バージョン0のデータをバージョン1に変換する', () => {
+      const v0Data = {
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [
+          {
+            id: 'test-id',
+            name: 'テストシート',
+            order: 0,
+            createdAt: '2023-01-01T00:00:00.000Z',
+            updatedAt: '2023-01-01T00:00:00.000Z',
+          },
+        ],
+        entities: {},
+      }
+
+      const result = MigrationManager.migrateV0ToV1(v0Data)
+
+      expect(result.schemaVersion).toBe(1)
+      expect(result.savedAt).toBe(v0Data.savedAt)
+      expect(result.sheets).toEqual(v0Data.sheets)
+      expect(result.entities).toEqual(v0Data.entities)
+    })
+
+    it('部分的なデータでもデフォルト値を設定して変換する', () => {
+      const partialData = {
+        savedAt: '2023-01-01T00:00:00.000Z',
+      }
+
+      const result = MigrationManager.migrateV0ToV1(partialData)
+
+      expect(result.schemaVersion).toBe(1)
+      expect(result.savedAt).toBe(partialData.savedAt)
+      expect(result.sheets).toEqual([])
+      expect(result.entities).toEqual({})
+    })
+
+    it('savedAtが存在しない場合、現在時刻を設定する', () => {
+      const dataWithoutSavedAt = {
+        sheets: [],
+        entities: {},
+      }
+
+      const beforeTime = new Date().toISOString()
+      const result = MigrationManager.migrateV0ToV1(dataWithoutSavedAt)
+      const afterTime = new Date().toISOString()
+
+      expect(result.schemaVersion).toBe(1)
+      expect(result.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+      expect(result.savedAt >= beforeTime).toBe(true)
+      expect(result.savedAt <= afterTime).toBe(true)
+      expect(result.sheets).toEqual([])
+      expect(result.entities).toEqual({})
+    })
+
+    it('空のオブジェクトでもデフォルト値を設定して変換する', () => {
+      const emptyData = {}
+
+      const result = MigrationManager.migrateV0ToV1(emptyData)
+
+      expect(result.schemaVersion).toBe(1)
+      expect(result.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+      expect(result.sheets).toEqual([])
+      expect(result.entities).toEqual({})
     })
   })
 })

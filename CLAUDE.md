@@ -62,7 +62,8 @@ pocket-calcsheet_cca/
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── utils/                        # ユーティリティ関数
 │   │   └── storage/                  # ストレージ関連ユーティリティ
-│   │       └── storageManager.ts     # localStorage抽象化レイヤー
+│   │       ├── storageManager.ts     # localStorage抽象化レイヤー
+│   │       └── migrationManager.ts   # スキーママイグレーション
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
@@ -83,7 +84,7 @@ pocket-calcsheet_cca/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
-│   │       └── storageManager.test.ts # StorageManagerテスト
+│   │       └── storageManager.test.ts # StorageManager + MigrationManagerテスト
 │   └── e2e/
 │       ├── app.spec.ts               # 基本動作E2Eテスト
 │       └── pwa.spec.ts               # PWA機能テスト
