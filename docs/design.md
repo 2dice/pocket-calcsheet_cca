@@ -73,10 +73,18 @@ https://2dice.tech/category/ios-app/calcsheet/
     - 起動時に読み出し、編集完了時に保存(step2-6-2)
       - StorageManagerの実装（localStorage抽象化レイヤー）
       - Zustand persistミドルウェアの設定
-    - 高度な永続化機能(step2-6-3)
+    - MigrationManager基盤実装(step2-6-3)
+      - MigrationManagerクラスの実装（マイグレーション関数管理）
+        (まだZustandとは統合しない)
+    - Zustandマイグレーション統合(step2-6-4)
+      - sheetsStoreのpersistミドルウェアにmigrate設定追加
+      - 旧バージョンデータの自動マイグレーション
+    - localStorage容量管理機能(step2-6-5)
+      - StorageManager.checkStorageQuota()実装
+      - 容量超過時のエラーハンドリング（エラーダイアログ含む）
+    - 永続化ストレージ保護(step2-6-6)
       - navigator.storage.persist()設定
-      - MigrationManagerの実装（スキーマバージョン管理）
-      - localStorage容量超過時のエラーハンドリング
+        (CI環境特有のエラー対応)
 - リストから一つの要素を選択すると下部に3つのタブがある画面に遷移(iphoneのタブバーのイメージ)(step3-1)
   - overviewタブ(左)
   - variablesタブ(中央)
