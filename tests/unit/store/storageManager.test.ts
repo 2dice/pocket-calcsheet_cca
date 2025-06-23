@@ -222,4 +222,184 @@ describe('StorageManager', () => {
       expect(loaded).toEqual(secondData)
     })
   })
+
+  describe('checkStorageQuota', () => {
+    it('navigator.storage.estimateが利用可能な場合、容量情報を返す', async () => {
+      // navigator.storage.estimateをモック
+      const mockEstimate = vi.fn().mockResolvedValue({
+        usage: 1024000, // 1MB
+        quota: 10240000, // 10MB
+      })
+
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          storage: {
+            estimate: mockEstimate,
+          },
+        },
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 1024000,
+        quota: 10240000,
+        percentage: 10,
+      })
+      expect(mockEstimate).toHaveBeenCalledOnce()
+    })
+
+    it('navigator.storage.estimateが利用不可能な場合、デフォルト値を返す', async () => {
+      // navigatorをundefinedに設定
+      Object.defineProperty(global, 'navigator', {
+        value: undefined,
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 0,
+        quota: 0,
+        percentage: 0,
+      })
+    })
+
+    it('navigator.storageが存在しない場合、デフォルト値を返す', async () => {
+      Object.defineProperty(global, 'navigator', {
+        value: {},
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 0,
+        quota: 0,
+        percentage: 0,
+      })
+    })
+
+    it('estimateメソッドが存在しない場合、デフォルト値を返す', async () => {
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          storage: {},
+        },
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 0,
+        quota: 0,
+        percentage: 0,
+      })
+    })
+
+    it('usage値が未定義の場合、0として扱う', async () => {
+      const mockEstimate = vi.fn().mockResolvedValue({
+        quota: 10240000,
+      })
+
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          storage: {
+            estimate: mockEstimate,
+          },
+        },
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 0,
+        quota: 10240000,
+        percentage: 0,
+      })
+    })
+
+    it('quota値が未定義の場合、0として扱う', async () => {
+      const mockEstimate = vi.fn().mockResolvedValue({
+        usage: 1024000,
+      })
+
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          storage: {
+            estimate: mockEstimate,
+          },
+        },
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 1024000,
+        quota: 0,
+        percentage: 0,
+      })
+    })
+
+    it('パーセンテージを正しく計算する', async () => {
+      const mockEstimate = vi.fn().mockResolvedValue({
+        usage: 2560000, // 2.5MB
+        quota: 10240000, // 10MB
+      })
+
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          storage: {
+            estimate: mockEstimate,
+          },
+        },
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 2560000,
+        quota: 10240000,
+        percentage: 25,
+      })
+    })
+
+    it('estimate呼び出しでエラーが発生した場合、デフォルト値を返す', async () => {
+      const mockEstimate = vi.fn().mockRejectedValue(
+        new Error('Storage estimate failed')
+      )
+
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
+      Object.defineProperty(global, 'navigator', {
+        value: {
+          storage: {
+            estimate: mockEstimate,
+          },
+        },
+        writable: true,
+      })
+
+      const result = await StorageManager.checkStorageQuota()
+
+      expect(result).toEqual({
+        usage: 0,
+        quota: 0,
+        percentage: 0,
+      })
+
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Failed to check storage quota:',
+        expect.any(Error)
+      )
+
+      consoleErrorSpy.mockRestore()
+    })
+  })
 })

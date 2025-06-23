@@ -496,4 +496,174 @@ test.describe('アプリケーション基本動作確認', () => {
     // ページが正常にロードされていることを確認
     await expect(page.locator('button:has-text("編集")')).toBeVisible()
   })
+
+  test('ストレージ容量超過エラーダイアログの表示確認 @step2-6-3', async ({
+    page,
+  }) => {
+    await page.goto('/')
+
+    // localStorageの容量制限をシミュレーション
+    await page.addInitScript(() => {
+      const originalSetItem = localStorage.setItem
+      let callCount = 0
+      localStorage.setItem = function(key: string, value: string) {
+        callCount++
+        // 3回目の保存でQuotaExceededErrorを投げる
+        if (callCount >= 3) {
+          const error = new Error('QuotaExceededError')
+          error.name = 'QuotaExceededError'
+          throw error
+        }
+        return originalSetItem.call(this, key, value)
+      }
+    })
+
+    // 編集モードに入る
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    // 複数のシートを追加してストレージ容量超過をトリガー
+    const addButton = page.locator('button:has-text("+")')
+    
+    // 1つ目のシート（成功）
+    await addButton.click()
+    const input1 = page.locator('[data-testid="new-sheet-input"]')
+    await input1.fill('シート1')
+    await input1.press('Enter')
+
+    // 2つ目のシート（成功）
+    await addButton.click()
+    const input2 = page.locator('[data-testid="new-sheet-input"]')
+    await input2.fill('シート2')
+    await input2.press('Enter')
+
+    // 3つ目のシート（容量超過エラー）
+    await addButton.click()
+    const input3 = page.locator('[data-testid="new-sheet-input"]')
+    await input3.fill('シート3')
+    await input3.press('Enter')
+
+    // ストレージエラーダイアログが表示される
+    const errorDialog = page.locator('[role="alertdialog"]')
+    await expect(errorDialog).toBeVisible()
+
+    // エラーダイアログのタイトルを確認
+    await expect(
+      page.getByRole('heading', { name: 'ストレージエラー' })
+    ).toBeVisible()
+
+    // エラーメッセージを確認
+    await expect(
+      page.getByText('ストレージ容量が不足しています。不要なシートを削除してください。')
+    ).toBeVisible()
+
+    // OKボタンをクリックしてダイアログを閉じる
+    const okButton = page.locator('button:has-text("OK")')
+    await okButton.click()
+
+    // ダイアログが非表示になる
+    await expect(errorDialog).not.toBeVisible()
+
+    // 成功したシートは表示され、失敗したシートは表示されない
+    await expect(page.locator('text=シート1')).toBeVisible()
+    await expect(page.locator('text=シート2')).toBeVisible()
+    await expect(page.locator('text=シート3')).not.toBeVisible()
+  })
+
+  test('マイグレーション実行後の動作確認 @step2-6-3', async ({ page }) => {
+    // 旧バージョン（schemaVersionなし）のデータをlocalStorageに設定
+    await page.addInitScript(() => {
+      const v0Data = {
+        state: {
+          savedAt: '2023-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 'migration-test-id-1',
+              name: 'マイグレーションテストシート1',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+            {
+              id: 'migration-test-id-2',
+              name: 'マイグレーションテストシート2',
+              order: 1,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            'migration-test-id-1': {
+              id: 'migration-test-id-1',
+              name: 'マイグレーションテストシート1',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+            'migration-test-id-2': {
+              id: 'migration-test-id-2',
+              name: 'マイグレーションテストシート2',
+              order: 1,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(v0Data))
+    })
+
+    await page.goto('/')
+
+    // マイグレーション後、旧データが正しく表示される
+    await expect(page.locator('text=マイグレーションテストシート1')).toBeVisible()
+    await expect(page.locator('text=マイグレーションテストシート2')).toBeVisible()
+
+    // 編集モードに入ってシートを追加（マイグレーション後も正常動作）
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('マイグレーション後追加シート')
+    await input.press('Enter')
+
+    // 新しいシートが追加される
+    await expect(page.locator('text=マイグレーション後追加シート')).toBeVisible()
+
+    // 編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // ページをリロードして永続化確認
+    await page.reload()
+
+    // リロード後もすべてのシートが表示される
+    await expect(page.locator('text=マイグレーションテストシート1')).toBeVisible()
+    await expect(page.locator('text=マイグレーションテストシート2')).toBeVisible()
+    await expect(page.locator('text=マイグレーション後追加シート')).toBeVisible()
+  })
+
+  test('navigator.storage.persist()の実行確認 @step2-6-3', async ({ page }) => {
+    // navigator.storage.persist()の呼び出しを監視
+    let persistCalled = false
+    await page.addInitScript(() => {
+      const originalPersist = navigator.storage?.persist
+      if (originalPersist) {
+        navigator.storage.persist = async () => {
+          window.persistCalled = true
+          return true
+        }
+      }
+    })
+
+    await page.goto('/')
+
+    // navigator.storage.persist()が呼び出されたことを確認
+    const wasCalled = await page.evaluate(() => window.persistCalled)
+    expect(wasCalled).toBe(true)
+  })
 })

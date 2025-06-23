@@ -4,6 +4,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
 import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
+import { MigrationManager } from '@/utils/storage/migrationManager'
 
 interface SheetsStore extends RootModel {
   schemaVersion: number
@@ -158,6 +159,17 @@ export const useSheetsStore = create<SheetsStore>()(
         sheets: state.sheets,
         entities: state.entities,
       }),
+      migrate: (persistedState: unknown, version: number) => {
+        try {
+          if (MigrationManager.needsMigration(persistedState)) {
+            return MigrationManager.migrate(persistedState, version, 1)
+          }
+          return persistedState as RootModel
+        } catch (error) {
+          console.error('Migration failed, using initial state:', error)
+          return getInitialState()
+        }
+      },
     }
   )
 )

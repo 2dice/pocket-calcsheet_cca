@@ -16,6 +16,7 @@ import { validateSheetName } from '@/types/sheet'
 export function TopPage() {
   const [editingNewItem, setEditingNewItem] = useState(false)
   const [showEmptyNameAlert, setShowEmptyNameAlert] = useState(false)
+  const [storageError, setStorageError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
@@ -39,8 +40,16 @@ export function TopPage() {
       return
     }
 
-    addSheet(value.trim())
-    setEditingNewItem(false)
+    try {
+      addSheet(value.trim())
+      setEditingNewItem(false)
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('QuotaExceededError')) {
+        setStorageError('ストレージ容量が不足しています。不要なシートを削除してください。')
+      } else {
+        setStorageError('シートの保存中にエラーが発生しました。')
+      }
+    }
   }
 
   const handleNewItemCancel = () => {
@@ -62,12 +71,25 @@ export function TopPage() {
       setShowEmptyNameAlert(true)
       return
     }
-    updateSheet(id, validatedName)
+
+    try {
+      updateSheet(id, validatedName)
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('QuotaExceededError')) {
+        setStorageError('ストレージ容量が不足しています。不要なシートを削除してください。')
+      } else {
+        setStorageError('シートの更新中にエラーが発生しました。')
+      }
+    }
   }
 
   const handleEmptyNameAlertOk = useCallback(() => {
     setShowEmptyNameAlert(false)
     inputRef.current?.focus()
+  }, [])
+
+  const handleStorageErrorOk = useCallback(() => {
+    setStorageError(null)
   }, [])
 
   return (
@@ -136,6 +158,26 @@ export function TopPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleEmptyNameAlertOk}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ストレージエラーダイアログ */}
+      <AlertDialog
+        open={storageError !== null}
+        onOpenChange={(open) => !open && setStorageError(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ストレージエラー</AlertDialogTitle>
+            <AlertDialogDescription>
+              {storageError}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={handleStorageErrorOk}>
               OK
             </AlertDialogAction>
           </AlertDialogFooter>
