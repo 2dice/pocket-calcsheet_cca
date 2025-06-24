@@ -19,8 +19,15 @@ export function TopPage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const { isEditMode, toggleEditMode } = useUIStore()
-  const { sheets, addSheet, removeSheet, reorderSheets, updateSheet } =
-    useSheetsStore()
+  const {
+    sheets,
+    addSheet,
+    removeSheet,
+    reorderSheets,
+    updateSheet,
+    storageError,
+    setStorageError,
+  } = useSheetsStore()
 
   const handleEditButtonClick = () => {
     toggleEditMode()
@@ -136,6 +143,24 @@ export function TopPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={handleEmptyNameAlertOk}>
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ストレージエラーダイアログ */}
+      <AlertDialog open={storageError} onOpenChange={setStorageError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ストレージ容量が不足しています</AlertDialogTitle>
+            <AlertDialogDescription>
+              ブラウザのストレージ容量が上限に達しました。
+              不要なシートを削除してから再度お試しください。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setStorageError(false)}>
               OK
             </AlertDialogAction>
           </AlertDialogFooter>

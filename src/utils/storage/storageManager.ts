@@ -1,6 +1,12 @@
 const STORAGE_KEY_PREFIX = 'pocket-calcsheet'
 
 export class StorageManager {
+  // localStorage容量制限（5MB - 保守的な値）
+  private static readonly STORAGE_QUOTA = 5 * 1024 * 1024
+
+  // 安全マージン（10%）
+  private static readonly SAFETY_MARGIN = 0.1
+
   static getKey(schemaVersion: number): string {
     return `${STORAGE_KEY_PREFIX}/${schemaVersion}`
   }
@@ -31,5 +37,62 @@ export class StorageManager {
       console.error('Failed to remove from localStorage:', error)
       throw error
     }
+  }
+
+  static getUsedSpace(): number {
+    let totalSize = 0
+    for (const key in localStorage) {
+      if (Object.prototype.hasOwnProperty.call(localStorage, key)) {
+        const value = localStorage.getItem(key)
+        if (value !== null) {
+          // キーと値の両方のサイズを計算
+          totalSize += key.length + value.length
+        }
+      }
+    }
+    // UTF-16を考慮（1文字2バイト）
+    return totalSize * 2
+  }
+
+  static getRemainingSpace(): number {
+    const maxSpace = this.STORAGE_QUOTA * (1 - this.SAFETY_MARGIN)
+    return Math.max(0, maxSpace - this.getUsedSpace())
+  }
+
+  static checkStorageQuota(key: string, data: unknown): boolean {
+    try {
+      const serialized = JSON.stringify(data)
+      // 新しいデータのサイズ（UTF-16）
+      const newDataSize = (key.length + serialized.length) * 2
+
+      return newDataSize <= this.getRemainingSpace()
+    } catch {
+      return false
+    }
+  }
+
+  static saveWithQuotaCheck(key: string, data: unknown): void {
+    if (!this.checkStorageQuota(key, data)) {
+      const error = new Error('Storage quota exceeded')
+      error.name = 'QuotaExceededError'
+      throw error
+    }
+
+    this.save(key, data)
+  }
+
+  static isQuotaExceededError(error: unknown): boolean {
+    if (!(error instanceof Error || error instanceof DOMException)) {
+      return false
+    }
+
+    return (
+      // Chrome/Safari
+      error.name === 'QuotaExceededError' ||
+      (error instanceof DOMException && error.code === 22) ||
+      // Firefox
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      (error instanceof DOMException && error.code === 1014)
+    )
   }
 }

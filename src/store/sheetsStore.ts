@@ -11,6 +11,8 @@ interface SheetsStore extends RootModel {
   savedAt: string
   sheets: SheetMeta[]
   entities: Record<string, Sheet>
+  storageError: boolean
+  setStorageError: (error: boolean) => void
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
@@ -28,18 +30,25 @@ const generateId = () => {
 
 const getInitialState = (): Omit<
   SheetsStore,
-  'addSheet' | 'removeSheet' | 'reorderSheets' | 'updateSheet' | 'reset'
+  | 'addSheet'
+  | 'removeSheet'
+  | 'reorderSheets'
+  | 'updateSheet'
+  | 'reset'
+  | 'setStorageError'
 > => ({
   schemaVersion: MigrationManager.LATEST_SCHEMA_VERSION,
   savedAt: new Date().toISOString(),
   sheets: [],
   entities: {},
+  storageError: false,
 })
 
 export const useSheetsStore = create<SheetsStore>()(
   persist(
     (set, get) => ({
       ...getInitialState(),
+      setStorageError: (error: boolean) => set({ storageError: error }),
       addSheet: (name: string) => {
         const currentSheets = get().sheets
         const newSheet: SheetMeta = {
@@ -48,6 +57,24 @@ export const useSheetsStore = create<SheetsStore>()(
           order: currentSheets.length,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+        }
+
+        const newState = {
+          ...get(),
+          sheets: [...currentSheets, newSheet],
+          entities: {
+            ...get().entities,
+            [newSheet.id]: { ...newSheet },
+          },
+          savedAt: new Date().toISOString(),
+        }
+
+        // 容量チェック付きで保存可能かテスト
+        if (
+          !StorageManager.checkStorageQuota(StorageManager.getKey(1), newState)
+        ) {
+          set({ storageError: true })
+          return
         }
 
         set(state => {
@@ -158,7 +185,14 @@ export const useSheetsStore = create<SheetsStore>()(
         savedAt: state.savedAt,
         sheets: state.sheets,
         entities: state.entities,
+        // storageErrorは永続化しない
       }),
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Failed to rehydrate storage:', error)
+          state?.setStorageError(true)
+        }
+      },
       migrate: (persistedState: unknown): RootModel => {
         // マイグレーションが必要かチェック
         if (MigrationManager.needsMigration(persistedState)) {
