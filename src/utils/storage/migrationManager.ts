@@ -3,6 +3,8 @@ import type { RootModel } from '@/types/storage'
 type MigrationFunction = (data: unknown) => RootModel
 
 export class MigrationManager {
+  public static readonly LATEST_SCHEMA_VERSION = 1
+
   private static migrations: Record<number, MigrationFunction> = {
     0: data => MigrationManager.migrateV0ToV1(data),
   }
@@ -12,8 +14,10 @@ export class MigrationManager {
     fromVersion: number,
     toVersion: number
   ): RootModel {
-    if (data === null || data === undefined) {
-      throw new Error('Invalid data provided for migration')
+    if (data === null || data === undefined || typeof data !== 'object') {
+      throw new Error(
+        'Invalid data provided for migration: data must be an object'
+      )
     }
 
     if (fromVersion > toVersion) {
@@ -25,16 +29,12 @@ export class MigrationManager {
 
     while (currentVersion < toVersion) {
       const migration = this.migrations[currentVersion]
-      if (migration) {
-        currentData = migration(currentData)
-      } else {
-        // マイグレーション関数が存在しない場合、schemaVersionのみ更新
-        const dataObj = currentData as Partial<RootModel>
-        currentData = {
-          ...dataObj,
-          schemaVersion: currentVersion + 1,
-        }
+      if (!migration) {
+        throw new Error(
+          `Migration function not found for version ${currentVersion} to ${currentVersion + 1}`
+        )
       }
+      currentData = migration(currentData)
       currentVersion++
     }
 
@@ -47,7 +47,10 @@ export class MigrationManager {
     }
 
     const rootModel = data as Partial<RootModel>
-    return !rootModel.schemaVersion || rootModel.schemaVersion < 1
+    return (
+      !rootModel.schemaVersion ||
+      rootModel.schemaVersion < MigrationManager.LATEST_SCHEMA_VERSION
+    )
   }
 
   static migrateV0ToV1(data: unknown): RootModel {

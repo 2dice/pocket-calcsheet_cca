@@ -302,30 +302,27 @@ describe('MigrationManager', () => {
       expect(result).toEqual(v1Data)
     })
 
-    it('複数バージョンをまたぐマイグレーションを実行する', () => {
+    it('複数バージョンをまたぐマイグレーションで未実装関数があればエラーを投げる', () => {
       const v0Data = {
         savedAt: '2023-01-01T00:00:00.000Z',
         sheets: [],
         entities: {},
       }
-      const result = MigrationManager.migrate(v0Data, 0, 2)
-
-      expect(result.schemaVersion).toBe(2)
-      expect(result.savedAt).toBe(v0Data.savedAt)
-      expect(result.sheets).toEqual(v0Data.sheets)
-      expect(result.entities).toEqual(v0Data.entities)
+      expect(() => {
+        MigrationManager.migrate(v0Data, 0, 2) // v1->v2のマイグレーション関数が存在しない
+      }).toThrow('Migration function not found for version 1 to 2')
     })
 
     it('不正なデータ（null）でエラーを投げる', () => {
       expect(() => {
         MigrationManager.migrate(null, 0, 1)
-      }).toThrow('Invalid data provided for migration')
+      }).toThrow('Invalid data provided for migration: data must be an object')
     })
 
     it('不正なデータ（undefined）でエラーを投げる', () => {
       expect(() => {
         MigrationManager.migrate(undefined, 0, 1)
-      }).toThrow('Invalid data provided for migration')
+      }).toThrow('Invalid data provided for migration: data must be an object')
     })
 
     it('後方バージョンへのマイグレーションでエラーを投げる', () => {
@@ -338,6 +335,28 @@ describe('MigrationManager', () => {
       expect(() => {
         MigrationManager.migrate(v1Data, 1, 0)
       }).toThrow('Cannot migrate backwards')
+    })
+
+    it('マイグレーション関数が存在しない場合、エラーを投げる', () => {
+      const v0Data = {
+        schemaVersion: 0,
+        savedAt: '2023-01-01T00:00:00.000Z',
+        sheets: [],
+        entities: {},
+      }
+      expect(() => {
+        MigrationManager.migrate(v0Data, 0, 3) // v2のマイグレーション関数が存在しない
+      }).toThrow('Migration function not found for version 1 to 2')
+    })
+
+    it('オブジェクト以外のデータでエラーを投げる', () => {
+      expect(() => {
+        MigrationManager.migrate('string data', 0, 1)
+      }).toThrow('Invalid data provided for migration: data must be an object')
+
+      expect(() => {
+        MigrationManager.migrate(123, 0, 1)
+      }).toThrow('Invalid data provided for migration: data must be an object')
     })
   })
 
