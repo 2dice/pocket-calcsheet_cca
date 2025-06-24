@@ -30,7 +30,7 @@ const getInitialState = (): Omit<
   SheetsStore,
   'addSheet' | 'removeSheet' | 'reorderSheets' | 'updateSheet' | 'reset'
 > => ({
-  schemaVersion: 1,
+  schemaVersion: MigrationManager.LATEST_SCHEMA_VERSION,
   savedAt: new Date().toISOString(),
   sheets: [],
   entities: {},
@@ -159,12 +159,12 @@ export const useSheetsStore = create<SheetsStore>()(
         sheets: state.sheets,
         entities: state.entities,
       }),
-      migrate: (persistedState: unknown) => {
+      migrate: (persistedState: unknown): RootModel => {
         // マイグレーションが必要かチェック
         if (MigrationManager.needsMigration(persistedState)) {
           try {
             // 現在のバージョンは1
-            const currentVersion = 1
+            const currentVersion = MigrationManager.LATEST_SCHEMA_VERSION
             const rootModel = persistedState as Partial<RootModel>
             const fromVersion = rootModel.schemaVersion ?? 0
 
@@ -177,19 +177,14 @@ export const useSheetsStore = create<SheetsStore>()(
           } catch (error) {
             console.error('Migration failed:', error)
             // エラー時は初期状態を返す
-            return {
-              schemaVersion: 1,
-              savedAt: new Date().toISOString(),
-              sheets: [],
-              entities: {},
-            }
+            return getInitialState()
           }
         }
 
         // マイグレーション不要な場合はそのまま返す
         return persistedState as SheetsStore
       },
-      version: 1, // persistミドルウェアのバージョン
+      version: 1, // persistミドルウェアのバージョン（schemaVersionとは別管理）
     }
   )
 )
