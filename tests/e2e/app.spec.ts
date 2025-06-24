@@ -496,4 +496,69 @@ test.describe('アプリケーション基本動作確認', () => {
     // ページが正常にロードされていることを確認
     await expect(page.locator('button:has-text("編集")')).toBeVisible()
   })
+
+  test('旧データからのマイグレーション動作 @step2-6-4', async ({ page }) => {
+    // 旧形式データをlocalStorageに設定（schemaVersionなし）
+    await page.addInitScript(() => {
+      const oldData = {
+        state: {
+          savedAt: '2023-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 'migration-e2e-id',
+              name: 'E2Eマイグレーションテスト',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            'migration-e2e-id': {
+              id: 'migration-e2e-id',
+              name: 'E2Eマイグレーションテスト',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(oldData))
+    })
+
+    // ページをロード（マイグレーション実行）
+    await page.goto('/')
+
+    // データが最新形式になっていることを確認
+    // マイグレーションされたシートが表示される
+    await expect(page.locator('text=E2Eマイグレーションテスト')).toBeVisible()
+
+    // 編集機能が正常動作することを確認
+    const editButton = page.locator('button:has-text("編集")')
+    await editButton.click()
+
+    // 編集モードで削除ボタンが表示される
+    const deleteButton = page.locator('[data-testid="delete-button"]')
+    await expect(deleteButton).toBeVisible()
+
+    // 新しいシートを追加できる
+    const addButton = page.locator('button:has-text("+")')
+    await addButton.click()
+
+    const input = page.locator('[data-testid="new-sheet-input"]')
+    await input.fill('新しいシート')
+    await input.press('Enter')
+
+    // 新しいシートが追加される
+    await expect(page.locator('text=新しいシート')).toBeVisible()
+
+    // 編集モードを終了
+    const completeButton = page.locator('button:has-text("完了")')
+    await completeButton.click()
+
+    // 両方のシートが表示される
+    await expect(page.locator('text=E2Eマイグレーションテスト')).toBeVisible()
+    await expect(page.locator('text=新しいシート')).toBeVisible()
+  })
 })

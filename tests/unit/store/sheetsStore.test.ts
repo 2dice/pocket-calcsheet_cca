@@ -795,4 +795,218 @@ describe('SheetsStore', () => {
       vi.useRealTimers()
     })
   })
+
+  describe('Zustandマイグレーション統合', () => {
+    beforeEach(() => {
+      // localStorageをクリア
+      localStorage.clear()
+    })
+
+    it('旧データが自動的にマイグレーションされる', async () => {
+      // 旧形式データをlocalStorageに設定（schemaVersionなし）
+      const oldData = {
+        state: {
+          savedAt: '2023-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 'test-migration-id',
+              name: 'マイグレーションテスト',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            'test-migration-id': {
+              id: 'test-migration-id',
+              name: 'マイグレーションテスト',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(oldData))
+
+      // ストアをリハイドレート（importを再実行相当）
+      await useSheetsStore.persist.rehydrate()
+
+      // マイグレーション後のデータを確認
+      const state = useSheetsStore.getState()
+      expect(state.schemaVersion).toBe(1)
+      expect(state.sheets).toHaveLength(1)
+      expect(state.sheets[0].name).toBe('マイグレーションテスト')
+      expect(state.entities['test-migration-id']).toBeDefined()
+    })
+
+    it('最新データはマイグレーションされない', async () => {
+      // 最新形式データを設定（schemaVersion: 1）
+      const latestData = {
+        state: {
+          schemaVersion: 1,
+          savedAt: '2023-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 'test-latest-id',
+              name: '最新データテスト',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            'test-latest-id': {
+              id: 'test-latest-id',
+              name: '最新データテスト',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(latestData))
+
+      // ストア初期化とデータ確認
+      await useSheetsStore.persist.rehydrate()
+
+      const state = useSheetsStore.getState()
+      expect(state.schemaVersion).toBe(1)
+      expect(state.sheets).toHaveLength(1)
+      expect(state.sheets[0].name).toBe('最新データテスト')
+      expect(state.entities['test-latest-id']).toBeDefined()
+    })
+
+    it('マイグレーションエラー時は初期状態にフォールバックする', async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
+
+      // 不正なデータをlocalStorageに設定
+      const invalidData = {
+        state: 'invalid-data-structure', // オブジェクトではない
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(invalidData))
+
+      // ストアをリハイドレート
+      await useSheetsStore.persist.rehydrate()
+
+      // フォールバック後のデータを確認
+      const state = useSheetsStore.getState()
+      expect(state.schemaVersion).toBe(1)
+      expect(state.sheets).toEqual([])
+      expect(state.entities).toEqual({})
+      expect(state.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      // エラーがコンソールに出力されることを確認
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Migration failed:',
+        expect.any(Error)
+      )
+
+      consoleErrorSpy.mockRestore()
+    })
+
+    it('空のlocalStorageからの起動は正常動作する', async () => {
+      // localStorageは既にbeforeEachでクリア済み
+
+      // ストアをリハイドレート
+      await useSheetsStore.persist.rehydrate()
+
+      // 初期状態が設定されることを確認
+      const state = useSheetsStore.getState()
+      expect(state.schemaVersion).toBe(1)
+      expect(state.sheets).toEqual([])
+      expect(state.entities).toEqual({})
+      expect(state.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+    })
+
+    it('部分的なデータでもマイグレーションされる', async () => {
+      // 部分的な旧形式データをlocalStorageに設定
+      const partialData = {
+        state: {
+          savedAt: '2023-01-01T00:00:00.000Z',
+          // sheetsとentitiesが存在しない
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(partialData))
+
+      // ストアをリハイドレート
+      await useSheetsStore.persist.rehydrate()
+
+      // デフォルト値が設定されることを確認
+      const state = useSheetsStore.getState()
+      expect(state.schemaVersion).toBe(1)
+      expect(state.savedAt).toBe('2023-01-01T00:00:00.000Z')
+      expect(state.sheets).toEqual([])
+      expect(state.entities).toEqual({})
+    })
+
+    it('複数のシートを含む旧データのマイグレーション', async () => {
+      // 複数シートを含む旧形式データ
+      const oldDataWithMultipleSheets = {
+        state: {
+          savedAt: '2023-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 'sheet-1',
+              name: 'シート1',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+            {
+              id: 'sheet-2',
+              name: 'シート2',
+              order: 1,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            'sheet-1': {
+              id: 'sheet-1',
+              name: 'シート1',
+              order: 0,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+            'sheet-2': {
+              id: 'sheet-2',
+              name: 'シート2',
+              order: 1,
+              createdAt: '2023-01-01T00:00:00.000Z',
+              updatedAt: '2023-01-01T00:00:00.000Z',
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem(
+        'pocket-calcsheet/1',
+        JSON.stringify(oldDataWithMultipleSheets)
+      )
+
+      // ストアをリハイドレート
+      await useSheetsStore.persist.rehydrate()
+
+      // 全てのシートがマイグレーションされることを確認
+      const state = useSheetsStore.getState()
+      expect(state.schemaVersion).toBe(1)
+      expect(state.sheets).toHaveLength(2)
+      expect(state.sheets[0].name).toBe('シート1')
+      expect(state.sheets[1].name).toBe('シート2')
+      expect(state.entities['sheet-1']).toBeDefined()
+      expect(state.entities['sheet-2']).toBeDefined()
+    })
+  })
 })

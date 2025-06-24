@@ -4,6 +4,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
 import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
+import { MigrationManager } from '@/utils/storage/migrationManager'
 
 interface SheetsStore extends RootModel {
   schemaVersion: number
@@ -158,6 +159,37 @@ export const useSheetsStore = create<SheetsStore>()(
         sheets: state.sheets,
         entities: state.entities,
       }),
+      migrate: (persistedState: unknown) => {
+        // マイグレーションが必要かチェック
+        if (MigrationManager.needsMigration(persistedState)) {
+          try {
+            // 現在のバージョンは1
+            const currentVersion = 1
+            const rootModel = persistedState as Partial<RootModel>
+            const fromVersion = rootModel.schemaVersion ?? 0
+
+            // マイグレーション実行
+            return MigrationManager.migrate(
+              persistedState,
+              fromVersion,
+              currentVersion
+            )
+          } catch (error) {
+            console.error('Migration failed:', error)
+            // エラー時は初期状態を返す
+            return {
+              schemaVersion: 1,
+              savedAt: new Date().toISOString(),
+              sheets: [],
+              entities: {},
+            }
+          }
+        }
+
+        // マイグレーション不要な場合はそのまま返す
+        return persistedState as SheetsStore
+      },
+      version: 1, // persistミドルウェアのバージョン
     }
   )
 )
