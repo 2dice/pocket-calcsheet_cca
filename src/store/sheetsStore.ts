@@ -144,6 +144,37 @@ export const useSheetsStore = create<SheetsStore>()(
         }))
       },
       updateSheet: (id: string, name: ValidatedSheetName) => {
+        // 更新後の状態を仮作成
+        const updatedState = {
+          ...get(),
+          sheets: get().sheets.map(s =>
+            s.id === id
+              ? { ...s, name, updatedAt: new Date().toISOString() }
+              : s
+          ),
+          entities: {
+            ...get().entities,
+            [id]: {
+              ...get().entities[id],
+              name,
+              updatedAt: new Date().toISOString(),
+            },
+          },
+          savedAt: new Date().toISOString(),
+        }
+
+        // 容量チェック
+        if (
+          !StorageManager.checkStorageQuota(
+            StorageManager.getKey(1),
+            updatedState
+          )
+        ) {
+          set({ storageError: true })
+          return
+        }
+
+        // 実際の更新処理
         set(state => {
           const updatedAt = new Date().toISOString()
           const updatedSheet = state.sheets.find(s => s.id === id)
@@ -176,7 +207,17 @@ export const useSheetsStore = create<SheetsStore>()(
           return data ? JSON.stringify(data) : null
         },
         setItem: (name, value) => {
-          StorageManager.save(name, JSON.parse(value))
+          try {
+            StorageManager.save(name, JSON.parse(value))
+          } catch (error) {
+            if (StorageManager.isQuotaExceededError(error)) {
+              // タイムアウトを使用して次のイベントループでエラー状態を設定
+              setTimeout(() => {
+                useSheetsStore.getState().setStorageError(true)
+              }, 0)
+            }
+            throw error
+          }
         },
         removeItem: name => StorageManager.remove(name),
       })),
@@ -187,10 +228,10 @@ export const useSheetsStore = create<SheetsStore>()(
         entities: state.entities,
         // storageErrorは永続化しない
       }),
-      onRehydrateStorage: () => (state, error) => {
+      onRehydrateStorage: () => (_state, error) => {
         if (error) {
           console.error('Failed to rehydrate storage:', error)
-          state?.setStorageError(true)
+          useSheetsStore.getState().setStorageError(true)
         }
       },
       migrate: (persistedState: unknown): RootModel => {
