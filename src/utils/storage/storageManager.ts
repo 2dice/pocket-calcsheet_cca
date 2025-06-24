@@ -62,10 +62,17 @@ export class StorageManager {
   static checkStorageQuota(key: string, data: unknown): boolean {
     try {
       const serialized = JSON.stringify(data)
-      // 新しいデータのサイズ（UTF-16）
       const newDataSize = (key.length + serialized.length) * 2
 
-      return newDataSize <= this.getRemainingSpace()
+      // 既存データがある場合は差分を計算
+      const existingItem = localStorage.getItem(key)
+      const existingSize = existingItem
+        ? (key.length + existingItem.length) * 2
+        : 0
+      const deltaSize = newDataSize - existingSize
+
+      // 差分が残容量以下かチェック
+      return deltaSize <= this.getRemainingSpace()
     } catch {
       return false
     }
