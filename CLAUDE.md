@@ -47,6 +47,10 @@ pocket-calcsheet_cca/
 │       └── Formula.png                # formulaタブ用アイコン
 ├── src/
 │   ├── components/
+│   │   ├── layout/                   # レイアウトコンポーネント
+│   │   │   ├── AppLayout.tsx         # アプリ全体レイアウト(SafeArea対応)
+│   │   │   ├── Header.tsx            # 上部ヘッダー(戻るボタン等)
+│   │   │   └── TabBar.tsx            # 下部タブバー(3タブナビゲーション)
 │   │   ├── sheets/                   # シート関連コンポーネント
 │   │   │   ├── SheetList.tsx         # トップページのシート一覧表示(DndContext)
 │   │   │   ├── SheetListItem.tsx     # シート一覧の個別アイテム(SortableItem)
@@ -59,7 +63,10 @@ pocket-calcsheet_cca/
 │   │   ├── useDragAndDrop.ts         # dnd-kit操作フック
 │   │   └── useScrollToInput.ts       # 入力時のスクロール制御フック
 │   ├── pages/                        # ページコンポーネント
-│   │   └── TopPage.tsx               # トップページ（シート一覧）
+│   │   ├── TopPage.tsx               # トップページ（シート一覧）
+│   │   ├── OverviewTab.tsx           # 概要タブページ
+│   │   ├── VariablesTab.tsx          # 変数タブページ
+│   │   └── FormulaTab.tsx            # 数式タブページ
 │   ├── store/                        # Zustandストア
 │   │   ├── index.ts                  # Zustandストア統合エクスポート
 │   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(persistミドルウェア対応済み)
@@ -82,8 +89,9 @@ pocket-calcsheet_cca/
 │   │   └── vitest.setup.ts           # Vitestセットアップ
 │   ├── unit/
 │   │   ├── components/
-│   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト
-│   │   │   └── SheetList.test.tsx    # シート一覧コンポーネントテスト
+│   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト + 画面切り替えテスト
+│   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
+│   │   │   └── TabNavigation.test.tsx # タブナビゲーション関連テスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/

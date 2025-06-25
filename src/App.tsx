@@ -1,10 +1,20 @@
 import { useEffect } from 'react'
 import { TopPage } from '@/pages/TopPage'
+import { OverviewTab } from '@/pages/OverviewTab'
+import { VariablesTab } from '@/pages/VariablesTab'
+import { FormulaTab } from '@/pages/FormulaTab'
+import { AppLayout } from '@/components/layout/AppLayout'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { useSheetsStore } from '@/store/sheetsStore'
+import { useUIStore } from '@/store/uiStore'
 
 function App() {
-  const { setPersistenceError } = useSheetsStore()
+  const { setPersistenceError, sheets } = useSheetsStore()
+  const { currentSheetId, currentTab, setCurrentSheetId, setCurrentTab } =
+    useUIStore()
+
+  // 指定されたシートが存在しない場合はトップページに戻る
+  const currentSheet = sheets.find(sheet => sheet.id === currentSheetId)
 
   useEffect(() => {
     const requestPersistentStorage = async () => {
@@ -34,7 +44,38 @@ function App() {
     void requestPersistentStorage()
   }, [setPersistenceError])
 
-  return <TopPage />
+  useEffect(() => {
+    if (currentSheetId && !currentSheet) {
+      setCurrentSheetId(null)
+    }
+  }, [currentSheetId, currentSheet, setCurrentSheetId])
+
+  // トップページ表示の場合
+  if (!currentSheetId || !currentSheet) {
+    return <TopPage />
+  }
+
+  const handleBack = () => {
+    setCurrentSheetId(null)
+    setCurrentTab('overview') // タブをリセット
+  }
+
+  const handleTabChange = (tab: typeof currentTab) => {
+    setCurrentTab(tab)
+  }
+
+  return (
+    <AppLayout
+      sheet={currentSheet}
+      currentTab={currentTab}
+      onBack={handleBack}
+      onTabChange={handleTabChange}
+    >
+      {currentTab === 'overview' && <OverviewTab />}
+      {currentTab === 'variables' && <VariablesTab />}
+      {currentTab === 'formula' && <FormulaTab />}
+    </AppLayout>
+  )
 }
 
 export default App
