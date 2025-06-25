@@ -40,7 +40,11 @@ pocket-calcsheet_cca/
 │   ├── apple-*.png                   # 生成されたApple用アイコン
 │   ├── favicon.ico                   # 生成されたファビコン
 │   ├── maskable-icon-512x512.png     # 生成されたマスカブルアイコン
-│   └── logo.png                      # アイコン元データ
+│   ├── logo.png                      # アイコン元データ
+│   └── icons
+│       ├── Overview.png               # overviewタブ用アイコン
+│       ├── Variables.png              # variablesタブ用アイコン
+│       └── Formula.png                # formulaタブ用アイコン
 ├── src/
 │   ├── components/
 │   │   ├── sheets/                   # シート関連コンポーネント
