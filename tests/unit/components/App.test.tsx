@@ -120,6 +120,9 @@ describe('App - 永続化ストレージ保護', () => {
     mockRequestPersistentStorage = vi
       .spyOn(StorageManager, 'requestPersistentStorage')
       .mockResolvedValue(true)
+
+    // sessionStorageをクリアしてテスト間の干渉を防ぐ
+    sessionStorage.clear()
   })
 
   afterEach(() => {
@@ -151,19 +154,18 @@ describe('App - 永続化ストレージ保護', () => {
   test('永続化リクエストエラー時の処理', async () => {
     mockRequestPersistentStorage.mockRejectedValue(new Error('Network error'))
 
-    const consoleErrorSpy = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => {})
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     render(<App />)
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Failed to request persistent storage:',
+        expect.any(Error)
+      )
     })
 
-    // エラーが適切にハンドリングされることを確認
-    // 実装後にコンソールエラーが出力されることを確認する予定
-
-    consoleErrorSpy.mockRestore()
+    consoleLogSpy.mockRestore()
   })
 })
