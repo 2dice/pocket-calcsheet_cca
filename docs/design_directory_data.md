@@ -15,7 +15,11 @@ pocket-calcsheet_cca/
 │   ├── apple-*.png                    # 生成されたApple用アイコン
 │   ├── favicon.ico                    # 生成されたファビコン
 │   ├── logo.png                       # アイコン元データ
-│   └── robots.txt                     # 検索エンジン向けクロール設定
+│   ├── robots.txt                     # 検索エンジン向けクロール設定
+│   └── icons
+│       ├── Overview.png               # overviewタブ用アイコン
+│       ├── Variables.png              # variablesタブ用アイコン
+│       └── Formula.png                # formulaタブ用アイコン
 ├── src/
 │   ├── components/
 │   │   ├── ui/                        # shadcn/ui コンポーネント
