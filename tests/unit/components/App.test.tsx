@@ -180,19 +180,38 @@ describe('App - 画面切り替え (Step3-1)', () => {
       .spyOn(StorageManager, 'requestPersistentStorage')
       .mockResolvedValue(true)
 
-    // ストアをリセット
+    // ストアを初期状態にリセット
     act(() => {
-      useUIStore.getState().setCurrentSheetId(null)
-      useUIStore.getState().setCurrentTab('overview')
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+      useUIStore.setState({
+        isEditMode: false,
+        currentSheetId: null,
+        currentTab: 'overview',
+      })
+      // その後でテストデータを追加
       useSheetsStore.getState().addSheet('テストシート')
     })
   })
 
   afterEach(() => {
     mockRequestPersistentStorage.mockRestore()
-    // ストアをクリア
+    // ストアを完全にクリア
     act(() => {
-      useSheetsStore.setState({ sheets: [] })
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
     })
   })
 
@@ -222,11 +241,9 @@ describe('App - 画面切り替え (Step3-1)', () => {
     expect(screen.getByText('テストシート')).toBeInTheDocument()
 
     // タブが表示される
-    expect(screen.getByRole('button', { name: 'Overview' })).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Variables' })
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Formula' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Variables' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Formula' })).toBeInTheDocument()
 
     // 戻るボタンが表示される
     expect(screen.getByRole('button', { name: '戻る' })).toBeInTheDocument()
@@ -290,7 +307,7 @@ describe('App - 画面切り替え (Step3-1)', () => {
 
     // Variablesタブをクリック
     act(() => {
-      const variablesTab = screen.getByRole('button', { name: 'Variables' })
+      const variablesTab = screen.getByRole('tab', { name: 'Variables' })
       fireEvent.click(variablesTab)
     })
 
@@ -303,7 +320,7 @@ describe('App - 画面切り替え (Step3-1)', () => {
 
     // Formulaタブをクリック
     act(() => {
-      const formulaTab = screen.getByRole('button', { name: 'Formula' })
+      const formulaTab = screen.getByRole('tab', { name: 'Formula' })
       fireEvent.click(formulaTab)
     })
 

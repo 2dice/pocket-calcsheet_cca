@@ -12,20 +12,34 @@ interface TabBarProps {
 }
 
 const tabs: TabConfig[] = [
-  { id: 'overview', label: 'Overview', icon: '/icons/Overview.png' },
-  { id: 'variables', label: 'Variables', icon: '/icons/Variables.png' },
-  { id: 'formula', label: 'Formula', icon: '/icons/Formula.png' },
+  {
+    id: 'overview',
+    label: 'Overview',
+    icon: `${import.meta.env.BASE_URL}icons/Overview.png`,
+  },
+  {
+    id: 'variables',
+    label: 'Variables',
+    icon: `${import.meta.env.BASE_URL}icons/Variables.png`,
+  },
+  {
+    id: 'formula',
+    label: 'Formula',
+    icon: `${import.meta.env.BASE_URL}icons/Formula.png`,
+  },
 ]
 
 export function TabBar({ currentTab, onTabChange }: TabBarProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom">
+    <div className="fixed left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom-fixed">
       <div className="flex h-16">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             data-selected={currentTab === tab.id}
+            aria-selected={currentTab === tab.id}
+            role="tab"
             className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors data-[selected=true]:text-blue-500 data-[selected=false]:text-gray-500 hover:bg-gray-50"
             aria-label={tab.label}
           >

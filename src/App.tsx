@@ -42,13 +42,30 @@ function App() {
     }
 
     void requestPersistentStorage()
+    // クリーンアップ関数は不要（副作用がないため）
   }, [setPersistenceError])
 
   useEffect(() => {
-    if (currentSheetId && !currentSheet) {
+    // マウント状態を追跡
+    let isMounted = true
+
+    if (currentSheetId && !currentSheet && isMounted) {
       setCurrentSheetId(null)
     }
+
+    return () => {
+      isMounted = false
+    }
   }, [currentSheetId, currentSheet, setCurrentSheetId])
+
+  // エラーハンドリングの明示化
+  if (currentSheetId && !currentSheet) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <p className="text-gray-600">シートが見つかりません</p>
+      </div>
+    )
+  }
 
   // トップページ表示の場合
   if (!currentSheetId || !currentSheet) {

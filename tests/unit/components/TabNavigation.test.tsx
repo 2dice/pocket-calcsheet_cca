@@ -70,7 +70,7 @@ describe('TabNavigation', () => {
       const mockOnTabChange = vi.fn()
       render(<TabBar currentTab="overview" onTabChange={mockOnTabChange} />)
 
-      const variablesTab = screen.getByRole('button', { name: /variables/i })
+      const variablesTab = screen.getByRole('tab', { name: /variables/i })
       fireEvent.click(variablesTab)
 
       expect(mockOnTabChange).toHaveBeenCalledWith('variables')
@@ -80,7 +80,7 @@ describe('TabNavigation', () => {
       const mockOnTabChange = vi.fn()
       render(<TabBar currentTab="variables" onTabChange={mockOnTabChange} />)
 
-      const variablesTab = screen.getByRole('button', { name: /variables/i })
+      const variablesTab = screen.getByRole('tab', { name: /variables/i })
       expect(variablesTab).toHaveAttribute('data-selected', 'true')
     })
   })
