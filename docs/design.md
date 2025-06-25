@@ -84,15 +84,17 @@ https://2dice.tech/category/ios-app/calcsheet/
       - 容量超過時のエラーハンドリング（エラーダイアログ含む）
     - 永続化ストレージ保護(step2-6-6)
       - navigator.storage.persist()設定(失敗時エラーダイアログでPWAインストール誘導)
-- リストから一つの要素を選択すると下部に3つのタブがある画面に遷移(iphoneのタブバーのイメージ)(step3-1)
-  - overviewタブ(左)
-  - variablesタブ(中央)
-  - formulaタブ(右)
-  - 各タブにはアイコンと名前を記載
-  - URLはReact-Router + HashRouterで管理(HashRouterで"/#/"→Top、"/#/:id/(overview|variables|formula)"→Tab)
+- リストから一つの要素を選択すると下部に3つのタブがある画面に遷移(iphoneのタブバーのイメージ)
+  - 基本画面構成(step3-1)
+    - overviewタブ(左)
+    - variablesタブ(中央)
+    - formulaタブ(右)
+    - 各タブにはアイコンと名前を記載
+    - 左上にリストに戻るボタン(iphoneのback buttonのイメージ)を表示(全てのタブ)
+      - 押下でトップページに戻る
+  - URLはReact-Router + HashRouterで管理(step3-2)
+    - HashRouterで"/#/"→Top、"/#/:id/(overview|variables|formula)"→Tab
     - PWA設定のhash router対応
-  - 左上にリストに戻るボタン(iphoneのback buttonのイメージ)を表示(全てのタブ)
-    - 押下でトップページに戻る
 - variablesタブ
   - 画面構成(step4-1)
     - variable1から8までの各ラベル(固定)の下に変数の名前と値のセットが並んでいる
