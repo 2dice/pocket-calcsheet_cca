@@ -40,7 +40,7 @@ export function TabBar({ currentTab, onTabChange }: TabBarProps) {
             data-selected={currentTab === tab.id}
             aria-selected={currentTab === tab.id}
             role="tab"
-            className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors data-[selected=true]:text-blue-500 data-[selected=false]:text-gray-500 hover:bg-gray-50"
+            className="flex-1 flex flex-col items-center justify-center py-2 px-1 text-xs transition-colors data-[selected=true]:text-blue-500 data-[selected=true]:bg-blue-50 data-[selected=false]:text-gray-500 hover:bg-gray-50"
             aria-label={tab.label}
           >
             <img src={tab.icon} alt={tab.label} className="w-6 h-6 mb-1" />
