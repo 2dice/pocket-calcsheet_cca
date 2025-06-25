@@ -223,6 +223,120 @@ describe('StorageManager', () => {
       expect(loaded).toEqual(secondData)
     })
   })
+
+  describe('容量管理機能', () => {
+    beforeEach(() => {
+      localStorage.clear()
+    })
+
+    it('使用容量を正しく計算する', () => {
+      localStorage.setItem('test1', 'a'.repeat(1000))
+      localStorage.setItem('test2', 'b'.repeat(2000))
+
+      const usedSpace = StorageManager.getUsedSpace()
+      // JSON.stringifyによるオーバーヘッドを考慮（キー + 値の両方のサイズ）
+      // UTF-16考慮で2倍
+      const expectedSize = ('test1'.length + 1000 + ('test2'.length + 2000)) * 2
+      expect(usedSpace).toBe(expectedSize)
+    })
+
+    it('残容量を正しく計算する', () => {
+      localStorage.setItem('test', 'x'.repeat(1000))
+
+      const remainingSpace = StorageManager.getRemainingSpace()
+      const usedSpace = StorageManager.getUsedSpace()
+      const maxSpace = 5 * 1024 * 1024 * 0.9 // 5MB - 10%安全マージン
+
+      expect(remainingSpace).toBe(Math.max(0, maxSpace - usedSpace))
+    })
+
+    it('保存前に容量チェックを行う - 保存可能な場合', () => {
+      const smallData = { test: 'small' }
+      const result = StorageManager.checkStorageQuota('test-key', smallData)
+      expect(result).toBe(true)
+    })
+
+    it('保存前に容量チェックを行う - 容量超過の場合', () => {
+      const largeData = 'x'.repeat(5 * 1024 * 1024) // 5MB
+      const result = StorageManager.checkStorageQuota('test-key', largeData)
+      expect(result).toBe(false)
+    })
+
+    it('容量チェック付き保存 - 正常系', () => {
+      const testData = { test: 'value' }
+      const key = 'quota-test-key'
+
+      expect(() => {
+        StorageManager.saveWithQuotaCheck(key, testData)
+      }).not.toThrow()
+
+      const saved = localStorage.getItem(key)
+      expect(saved).toBe(JSON.stringify(testData))
+    })
+
+    it('容量チェック付き保存 - 容量超過時にエラー', () => {
+      const largeData = { data: 'x'.repeat(5 * 1024 * 1024) } // 5MB
+      const key = 'quota-exceeded-key'
+
+      expect(() => {
+        StorageManager.saveWithQuotaCheck(key, largeData)
+      }).toThrow('Storage quota exceeded')
+    })
+
+    it('QuotaExceededErrorを正しく判定する - Chrome形式', () => {
+      const chromeError = new DOMException(
+        'QuotaExceededError',
+        'QuotaExceededError'
+      )
+      expect(StorageManager.isQuotaExceededError(chromeError)).toBe(true)
+    })
+
+    it('QuotaExceededErrorを正しく判定する - Firefox形式', () => {
+      const firefoxError = new DOMException(
+        'NS_ERROR_DOM_QUOTA_REACHED',
+        'NS_ERROR_DOM_QUOTA_REACHED'
+      )
+      expect(StorageManager.isQuotaExceededError(firefoxError)).toBe(true)
+    })
+
+    it('QuotaExceededErrorを正しく判定する - DOMException code 22', () => {
+      const chromeCodeError = new DOMException('Quota exceeded')
+      Object.defineProperty(chromeCodeError, 'code', {
+        value: 22,
+        configurable: true,
+      })
+      expect(StorageManager.isQuotaExceededError(chromeCodeError)).toBe(true)
+    })
+
+    it('QuotaExceededErrorを正しく判定する - DOMException code 1014', () => {
+      const firefoxCodeError = new DOMException('Quota exceeded')
+      Object.defineProperty(firefoxCodeError, 'code', {
+        value: 1014,
+        configurable: true,
+      })
+      expect(StorageManager.isQuotaExceededError(firefoxCodeError)).toBe(true)
+    })
+
+    it('QuotaExceededErrorを正しく判定する - 通常のError', () => {
+      const normalError = new Error('Some other error')
+      expect(StorageManager.isQuotaExceededError(normalError)).toBe(false)
+    })
+
+    it('QuotaExceededErrorを正しく判定する - null/undefined', () => {
+      expect(StorageManager.isQuotaExceededError(null)).toBe(false)
+      expect(StorageManager.isQuotaExceededError(undefined)).toBe(false)
+      expect(StorageManager.isQuotaExceededError('string')).toBe(false)
+    })
+
+    it('JSON.stringify失敗時のcheckStorageQuotaのハンドリング', () => {
+      // 循環参照オブジェクトを作成
+      const circularData: { a: number; self?: unknown } = { a: 1 }
+      circularData.self = circularData
+
+      const result = StorageManager.checkStorageQuota('test-key', circularData)
+      expect(result).toBe(false)
+    })
+  })
 })
 
 describe('MigrationManager', () => {

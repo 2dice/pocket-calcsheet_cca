@@ -83,8 +83,7 @@ https://2dice.tech/category/ios-app/calcsheet/
       - StorageManager.checkStorageQuota()実装
       - 容量超過時のエラーハンドリング（エラーダイアログ含む）
     - 永続化ストレージ保護(step2-6-6)
-      - navigator.storage.persist()設定
-        (CI環境特有のエラー対応)
+      - navigator.storage.persist()設定(失敗時エラーダイアログでPWAインストール誘導)
 - リストから一つの要素を選択すると下部に3つのタブがある画面に遷移(iphoneのタブバーのイメージ)(step3-1)
   - overviewタブ(左)
   - variablesタブ(中央)

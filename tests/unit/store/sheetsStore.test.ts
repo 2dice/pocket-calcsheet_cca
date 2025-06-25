@@ -1009,4 +1009,49 @@ describe('SheetsStore', () => {
       expect(state.entities['sheet-2']).toBeDefined()
     })
   })
+
+  describe('ストレージエラーハンドリング', () => {
+    beforeEach(() => {
+      useSheetsStore.getState().reset?.()
+      // ストレージエラー状態をリセット
+      useSheetsStore.getState().setStorageError(false)
+    })
+
+    it('初期状態でstorageErrorがfalse', () => {
+      const { storageError } = useSheetsStore.getState()
+      expect(storageError).toBe(false)
+    })
+
+    it('setStorageErrorでエラー状態を変更できる', () => {
+      const { setStorageError } = useSheetsStore.getState()
+
+      setStorageError(true)
+      expect(useSheetsStore.getState().storageError).toBe(true)
+
+      setStorageError(false)
+      expect(useSheetsStore.getState().storageError).toBe(false)
+    })
+
+    it('容量超過時にaddSheetがエラー状態を設定する', async () => {
+      // StorageManagerの容量チェックをスパイして失敗させる
+      const { StorageManager } = await import('@/utils/storage/storageManager')
+      const checkStorageQuotaSpy = vi
+        .spyOn(StorageManager, 'checkStorageQuota')
+        .mockReturnValue(false)
+
+      const { addSheet } = useSheetsStore.getState()
+
+      // addSheetを実行（容量チェックが失敗する）
+      addSheet('容量超過テストシート')
+
+      // ストレージエラー状態がtrueになることを確認
+      expect(useSheetsStore.getState().storageError).toBe(true)
+
+      // シートが追加されていないことを確認
+      expect(useSheetsStore.getState().sheets).toHaveLength(0)
+
+      // スパイを復元
+      checkStorageQuotaSpy.mockRestore()
+    })
+  })
 })
