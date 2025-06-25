@@ -27,6 +27,8 @@ export function TopPage() {
     updateSheet,
     storageError,
     setStorageError,
+    persistenceError,
+    setPersistenceError,
   } = useSheetsStore()
 
   const handleEditButtonClick = () => {
@@ -163,6 +165,21 @@ export function TopPage() {
             <AlertDialogAction onClick={() => setStorageError(false)}>
               OK
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 永続化エラーダイアログ */}
+      <AlertDialog open={persistenceError} onOpenChange={setPersistenceError}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ストレージ保護の設定</AlertDialogTitle>
+            <AlertDialogDescription>
+              データの長期保存リクエストが却下されました。長期保存するにはダウンロードして使用してください
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

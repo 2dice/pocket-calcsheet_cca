@@ -12,7 +12,9 @@ interface SheetsStore extends RootModel {
   sheets: SheetMeta[]
   entities: Record<string, Sheet>
   storageError: boolean
+  persistenceError: boolean
   setStorageError: (error: boolean) => void
+  setPersistenceError: (error: boolean) => void
   addSheet: (name: string) => void
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
@@ -36,12 +38,14 @@ const getInitialState = (): Omit<
   | 'updateSheet'
   | 'reset'
   | 'setStorageError'
+  | 'setPersistenceError'
 > => ({
   schemaVersion: MigrationManager.LATEST_SCHEMA_VERSION,
   savedAt: new Date().toISOString(),
   sheets: [],
   entities: {},
   storageError: false,
+  persistenceError: false,
 })
 
 export const useSheetsStore = create<SheetsStore>()(
@@ -49,6 +53,7 @@ export const useSheetsStore = create<SheetsStore>()(
     (set, get) => ({
       ...getInitialState(),
       setStorageError: (error: boolean) => set({ storageError: error }),
+      setPersistenceError: (error: boolean) => set({ persistenceError: error }),
       addSheet: (name: string) => {
         const currentSheets = get().sheets
         const newSheet: SheetMeta = {
@@ -226,7 +231,7 @@ export const useSheetsStore = create<SheetsStore>()(
         savedAt: state.savedAt,
         sheets: state.sheets,
         entities: state.entities,
-        // storageErrorは永続化しない
+        // storageErrorとpersistenceErrorは永続化しない
       }),
       onRehydrateStorage: () => (_state, error) => {
         if (error) {
