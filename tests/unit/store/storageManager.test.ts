@@ -337,6 +337,152 @@ describe('StorageManager', () => {
       expect(result).toBe(false)
     })
   })
+
+  describe('永続化ストレージ保護', () => {
+    it('永続化ストレージをリクエストする', async () => {
+      const mockPersist = vi.fn().mockResolvedValue(true)
+      Object.defineProperty(navigator, 'storage', {
+        value: { persist: mockPersist },
+        configurable: true,
+      })
+
+      const result = await StorageManager.requestPersistentStorage()
+      expect(mockPersist).toHaveBeenCalled()
+      expect(result).toBe(true)
+    })
+
+    it('永続化ストレージをリクエストする - 失敗時', async () => {
+      const mockPersist = vi.fn().mockResolvedValue(false)
+      Object.defineProperty(navigator, 'storage', {
+        value: { persist: mockPersist },
+        configurable: true,
+      })
+
+      const result = await StorageManager.requestPersistentStorage()
+      expect(mockPersist).toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
+
+    it('永続化ストレージをリクエストする - エラー時', async () => {
+      const mockPersist = vi
+        .fn()
+        .mockRejectedValue(new Error('Permission denied'))
+      Object.defineProperty(navigator, 'storage', {
+        value: { persist: mockPersist },
+        configurable: true,
+      })
+
+      const consoleLogSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {})
+
+      const result = await StorageManager.requestPersistentStorage()
+      expect(mockPersist).toHaveBeenCalled()
+      expect(result).toBe(false)
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Failed to request persistent storage:',
+        expect.any(Error)
+      )
+
+      consoleLogSpy.mockRestore()
+    })
+
+    it('永続化状態を確認する', async () => {
+      const mockPersisted = vi.fn().mockResolvedValue(true)
+      Object.defineProperty(navigator, 'storage', {
+        value: { persisted: mockPersisted },
+        configurable: true,
+      })
+
+      const result = await StorageManager.checkPersistentStorage()
+      expect(mockPersisted).toHaveBeenCalled()
+      expect(result).toBe(true)
+    })
+
+    it('永続化状態を確認する - 失敗時', async () => {
+      const mockPersisted = vi.fn().mockResolvedValue(false)
+      Object.defineProperty(navigator, 'storage', {
+        value: { persisted: mockPersisted },
+        configurable: true,
+      })
+
+      const result = await StorageManager.checkPersistentStorage()
+      expect(mockPersisted).toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
+
+    it('永続化状態を確認する - エラー時', async () => {
+      const mockPersisted = vi
+        .fn()
+        .mockRejectedValue(new Error('Permission denied'))
+      Object.defineProperty(navigator, 'storage', {
+        value: { persisted: mockPersisted },
+        configurable: true,
+      })
+
+      const result = await StorageManager.checkPersistentStorage()
+      expect(mockPersisted).toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
+
+    it('navigator.storageがサポートされていない場合はfalseを返す - persist', async () => {
+      Object.defineProperty(navigator, 'storage', {
+        value: undefined,
+        configurable: true,
+      })
+
+      const consoleLogSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {})
+
+      const result = await StorageManager.requestPersistentStorage()
+      expect(result).toBe(false)
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Persistent storage is not supported'
+      )
+
+      consoleLogSpy.mockRestore()
+    })
+
+    it('navigator.storage.persistがサポートされていない場合はfalseを返す', async () => {
+      Object.defineProperty(navigator, 'storage', {
+        value: {},
+        configurable: true,
+      })
+
+      const consoleLogSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {})
+
+      const result = await StorageManager.requestPersistentStorage()
+      expect(result).toBe(false)
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        'Persistent storage is not supported'
+      )
+
+      consoleLogSpy.mockRestore()
+    })
+
+    it('navigator.storageがサポートされていない場合はfalseを返す - persisted', async () => {
+      Object.defineProperty(navigator, 'storage', {
+        value: undefined,
+        configurable: true,
+      })
+
+      const result = await StorageManager.checkPersistentStorage()
+      expect(result).toBe(false)
+    })
+
+    it('navigator.storage.persistedがサポートされていない場合はfalseを返す', async () => {
+      Object.defineProperty(navigator, 'storage', {
+        value: {},
+        configurable: true,
+      })
+
+      const result = await StorageManager.checkPersistentStorage()
+      expect(result).toBe(false)
+    })
+  })
 })
 
 describe('MigrationManager', () => {

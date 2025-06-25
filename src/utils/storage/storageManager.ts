@@ -102,4 +102,39 @@ export class StorageManager {
       (error instanceof DOMException && error.code === 1014)
     )
   }
+
+  static async requestPersistentStorage(): Promise<boolean> {
+    // navigator.storageがサポートされているかチェック
+    if (!navigator.storage || !navigator.storage.persist) {
+      console.log('Persistent storage is not supported')
+      return false
+    }
+
+    try {
+      const isPersisted = await navigator.storage.persist()
+      if (isPersisted) {
+        console.log(
+          'Storage will not be cleared except by explicit user action'
+        )
+      } else {
+        console.log('Storage may be cleared by the UA under storage pressure')
+      }
+      return isPersisted
+    } catch (error) {
+      console.log('Failed to request persistent storage:', error)
+      return false
+    }
+  }
+
+  static async checkPersistentStorage(): Promise<boolean> {
+    if (!navigator.storage || !navigator.storage.persisted) {
+      return false
+    }
+
+    try {
+      return await navigator.storage.persisted()
+    } catch {
+      return false
+    }
+  }
 }

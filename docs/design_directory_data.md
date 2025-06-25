@@ -15,7 +15,11 @@ pocket-calcsheet_cca/
 │   ├── apple-*.png                    # 生成されたApple用アイコン
 │   ├── favicon.ico                    # 生成されたファビコン
 │   ├── logo.png                       # アイコン元データ
-│   └── robots.txt                     # 検索エンジン向けクロール設定
+│   ├── robots.txt                     # 検索エンジン向けクロール設定
+│   └── icons
+│       ├── Overview.png               # overviewタブ用アイコン
+│       ├── Variables.png              # variablesタブ用アイコン
+│       └── Formula.png                # formulaタブ用アイコン
 ├── src/
 │   ├── components/
 │   │   ├── ui/                        # shadcn/ui コンポーネント
@@ -98,18 +102,19 @@ pocket-calcsheet_cca/
 ├── tests/
 │   ├── unit/
 │   │   ├── components/
-│   │   │   ├── App.test.tsx          # ベーシックテスト
-│   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
+│   │   │   ├── App.test.tsx            # ベーシックテスト
+│   │   │   ├── SheetList.test.tsx      # シート一覧コンポーネントテスト
+│   │   │   ├── TabNavigation.test.tsx  # タブナビゲーション関連テスト
 │   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
-│   │   │   └── VariableSlot.test.tsx  # 変数スロットテスト
+│   │   │   └── VariableSlot.test.tsx   # 変数スロットテスト
 │   │   ├── utils/
-│   │   │   ├── mathEngine.test.ts    # 計算エンジンユニットテスト
+│   │   │   ├── mathEngine.test.ts     # 計算エンジンユニットテスト
 │   │   │   ├── latexConverter.test.ts # LaTeX変換テスト
-│   │   │   └── validation.test.ts    # バリデーションテスト
+│   │   │   └── validation.test.ts     # バリデーションテスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   └── store/
-│   │       ├── sheetsStore.test.ts   # ストアテスト
+│   │       ├── sheetsStore.test.ts    # ストアテスト
 │   │       └── storageManager.test.ts # ストレージテスト
 │   ├── e2e/
 │   │   ├── app.spec.ts               # 基本動作E2Eテスト
