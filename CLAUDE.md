@@ -72,6 +72,8 @@ pocket-calcsheet_cca/
 │   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(persistミドルウェア対応済み)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── utils/                        # ユーティリティ関数
+│   │   ├── constants/                # 定数定義
+│   │   │   └── routes.ts             # ルート定義・タブバリデーション
 │   │   └── storage/                  # ストレージ関連ユーティリティ
 │   │       ├── storageManager.ts     # localStorage抽象化レイヤー
 │   │       └── migrationManager.ts   # スキーママイグレーション

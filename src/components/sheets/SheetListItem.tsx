@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
 import type { SheetMeta } from '@/types/sheet'
 import { DragHandle } from './DragHandle'
@@ -20,7 +21,6 @@ import {
 interface SheetListItemProps {
   sheet: SheetMeta
   isEditMode: boolean
-  onSheetClick: (id: string) => void
   onDeleteSheet?: (id: string) => void
   onUpdateSheet?: (id: string, name: string) => void
 }
@@ -28,7 +28,6 @@ interface SheetListItemProps {
 export function SheetListItem({
   sheet,
   isEditMode,
-  onSheetClick,
   onDeleteSheet,
   onUpdateSheet,
 }: SheetListItemProps) {
@@ -36,6 +35,7 @@ export function SheetListItem({
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(sheet.name)
   const inputRef = useRef<HTMLInputElement>(null)
+  const navigate = useNavigate()
 
   // スクロール制御フック
   useScrollToInput(inputRef)
@@ -71,7 +71,7 @@ export function SheetListItem({
 
   const handleClick = () => {
     if (!isEditMode) {
-      onSheetClick(sheet.id)
+      navigate(`/${sheet.id}/overview`)
     }
   }
 

@@ -18,7 +18,7 @@ export function TopPage() {
   const [showEmptyNameAlert, setShowEmptyNameAlert] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const { isEditMode, toggleEditMode, setCurrentSheetId } = useUIStore()
+  const { isEditMode, toggleEditMode } = useUIStore()
   const {
     sheets,
     addSheet,
@@ -54,10 +54,6 @@ export function TopPage() {
 
   const handleNewItemCancel = () => {
     setEditingNewItem(false)
-  }
-
-  const handleSheetClick = (id: string) => {
-    setCurrentSheetId(id)
   }
 
   const handleDeleteSheet = (id: string) => {
@@ -120,7 +116,6 @@ export function TopPage() {
           sheets={sheets}
           isEditMode={isEditMode}
           editingNewItem={editingNewItem}
-          onSheetClick={handleSheetClick}
           onDeleteSheet={handleDeleteSheet}
           onUpdateSheet={handleUpdateSheet}
           onNewItemConfirm={handleNewItemConfirm}
