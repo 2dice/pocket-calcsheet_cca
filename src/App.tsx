@@ -14,7 +14,7 @@ import { FormulaTab } from '@/pages/FormulaTab'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { useSheetsStore } from '@/store/sheetsStore'
-import { validateTabParam } from '@/utils/constants/routes'
+import { validateTabParam, VALID_TABS } from '@/utils/constants/routes'
 import type { TabType } from '@/utils/constants/routes'
 
 // シート詳細ページコンポーネント
@@ -34,12 +34,12 @@ function SheetDetailPage() {
       return
     }
 
-    if (tab !== validatedTab) {
+    if (!VALID_TABS.includes(tab as TabType)) {
       // 不正なタブ名の場合はoverviewにリダイレクト
       navigate(`/${id}/overview`, { replace: true })
       return
     }
-  }, [sheet, tab, validatedTab, id, navigate])
+  }, [sheet, tab, id, navigate])
 
   if (!sheet) {
     return null
@@ -54,12 +54,7 @@ function SheetDetailPage() {
   }
 
   return (
-    <AppLayout
-      sheet={sheet}
-      currentTab={validatedTab}
-      onBack={handleBack}
-      onTabChange={handleTabChange}
-    >
+    <AppLayout sheet={sheet} onBack={handleBack} onTabChange={handleTabChange}>
       {validatedTab === 'overview' && <OverviewTab />}
       {validatedTab === 'variables' && <VariablesTab />}
       {validatedTab === 'formula' && <FormulaTab />}
@@ -117,7 +112,12 @@ function AppRoutes() {
 
 function App() {
   return (
-    <HashRouter>
+    <HashRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <AppRoutes />
     </HashRouter>
   )

@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { vi, describe, it, expect } from 'vitest'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
 import { TabBar } from '@/components/layout/TabBar'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -49,7 +50,22 @@ describe('TabNavigation', () => {
   describe('TabBar', () => {
     it('3つのタブが表示される', () => {
       const mockOnTabChange = vi.fn()
-      render(<TabBar currentTab="overview" onTabChange={mockOnTabChange} />)
+      render(
+        <MemoryRouter
+          initialEntries={['/test-sheet/overview']}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Routes>
+            <Route
+              path="/:id/:tab"
+              element={<TabBar onTabChange={mockOnTabChange} />}
+            />
+          </Routes>
+        </MemoryRouter>
+      )
 
       expect(screen.getByText('Overview')).toBeInTheDocument()
       expect(screen.getByText('Variables')).toBeInTheDocument()
@@ -58,7 +74,22 @@ describe('TabNavigation', () => {
 
     it('各タブのアイコンとラベルが正しい', () => {
       const mockOnTabChange = vi.fn()
-      render(<TabBar currentTab="overview" onTabChange={mockOnTabChange} />)
+      render(
+        <MemoryRouter
+          initialEntries={['/test-sheet/overview']}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Routes>
+            <Route
+              path="/:id/:tab"
+              element={<TabBar onTabChange={mockOnTabChange} />}
+            />
+          </Routes>
+        </MemoryRouter>
+      )
 
       // アイコンの確認（alt属性で確認）
       expect(screen.getByAltText('Overview')).toBeInTheDocument()
@@ -68,7 +99,22 @@ describe('TabNavigation', () => {
 
     it('タブクリックで選択状態が変わる', () => {
       const mockOnTabChange = vi.fn()
-      render(<TabBar currentTab="overview" onTabChange={mockOnTabChange} />)
+      render(
+        <MemoryRouter
+          initialEntries={['/test-sheet/overview']}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Routes>
+            <Route
+              path="/:id/:tab"
+              element={<TabBar onTabChange={mockOnTabChange} />}
+            />
+          </Routes>
+        </MemoryRouter>
+      )
 
       const variablesTab = screen.getByRole('tab', { name: /variables/i })
       fireEvent.click(variablesTab)
@@ -78,7 +124,22 @@ describe('TabNavigation', () => {
 
     it('現在のタブが視覚的に強調される', () => {
       const mockOnTabChange = vi.fn()
-      render(<TabBar currentTab="variables" onTabChange={mockOnTabChange} />)
+      render(
+        <MemoryRouter
+          initialEntries={['/test-sheet/variables']}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Routes>
+            <Route
+              path="/:id/:tab"
+              element={<TabBar onTabChange={mockOnTabChange} />}
+            />
+          </Routes>
+        </MemoryRouter>
+      )
 
       const variablesTab = screen.getByRole('tab', { name: /variables/i })
       expect(variablesTab).toHaveAttribute('data-selected', 'true')
@@ -108,14 +169,28 @@ describe('TabNavigation', () => {
       const mockOnTabChange = vi.fn()
 
       render(
-        <AppLayout
-          sheet={mockSheet}
-          currentTab="overview"
-          onBack={mockOnBack}
-          onTabChange={mockOnTabChange}
+        <MemoryRouter
+          initialEntries={['/test-sheet/overview']}
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
         >
-          <div data-testid="content">テストコンテンツ</div>
-        </AppLayout>
+          <Routes>
+            <Route
+              path="/:id/:tab"
+              element={
+                <AppLayout
+                  sheet={mockSheet}
+                  onBack={mockOnBack}
+                  onTabChange={mockOnTabChange}
+                >
+                  <div data-testid="content">テストコンテンツ</div>
+                </AppLayout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
       )
 
       // Header要素が存在する

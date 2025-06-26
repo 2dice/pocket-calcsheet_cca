@@ -5,7 +5,6 @@ import type { SheetMeta, TabType } from '@/types/sheet'
 
 interface AppLayoutProps {
   sheet: SheetMeta
-  currentTab: TabType
   onBack: () => void
   onTabChange: (tab: TabType) => void
   children: ReactNode
@@ -13,7 +12,6 @@ interface AppLayoutProps {
 
 export function AppLayout({
   sheet,
-  currentTab,
   onBack,
   onTabChange,
   children,
@@ -24,7 +22,7 @@ export function AppLayout({
 
       <main className="flex-1 overflow-auto pb-16">{children}</main>
 
-      <TabBar currentTab={currentTab} onTabChange={onTabChange} />
+      <TabBar onTabChange={onTabChange} />
     </div>
   )
 }

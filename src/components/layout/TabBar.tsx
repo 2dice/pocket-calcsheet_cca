@@ -1,4 +1,6 @@
+import { useParams } from 'react-router-dom'
 import type { TabType } from '@/types/sheet'
+import { validateTabParam } from '@/utils/constants/routes'
 
 interface TabConfig {
   id: TabType
@@ -7,7 +9,6 @@ interface TabConfig {
 }
 
 interface TabBarProps {
-  currentTab: TabType
   onTabChange: (tab: TabType) => void
 }
 
@@ -29,7 +30,9 @@ const tabs: TabConfig[] = [
   },
 ]
 
-export function TabBar({ currentTab, onTabChange }: TabBarProps) {
+export function TabBar({ onTabChange }: TabBarProps) {
+  const { tab } = useParams<{ id: string; tab: string }>()
+  const currentTab = validateTabParam(tab)
   return (
     <div className="fixed left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom-fixed">
       <div className="flex h-16">
