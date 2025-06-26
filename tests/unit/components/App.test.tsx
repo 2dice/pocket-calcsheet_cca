@@ -1,8 +1,10 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react'
 import App from '../../../src/App'
 import { TopPage } from '../../../src/pages/TopPage'
 import { StorageManager } from '../../../src/utils/storage/storageManager'
+import { useUIStore } from '../../../src/store/uiStore'
+import { useSheetsStore } from '../../../src/store/sheetsStore'
 
 describe('App - Step2-1対応後のテスト', () => {
   let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
@@ -167,5 +169,170 @@ describe('App - 永続化ストレージ保護', () => {
     })
 
     consoleLogSpy.mockRestore()
+  })
+})
+
+describe('App - 画面切り替え (Step3-1)', () => {
+  let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    mockRequestPersistentStorage = vi
+      .spyOn(StorageManager, 'requestPersistentStorage')
+      .mockResolvedValue(true)
+
+    // ストアを初期状態にリセット
+    act(() => {
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+      useUIStore.setState({
+        isEditMode: false,
+        currentSheetId: null,
+        currentTab: 'overview',
+      })
+      // その後でテストデータを追加
+      useSheetsStore.getState().addSheet('テストシート')
+    })
+  })
+
+  afterEach(() => {
+    mockRequestPersistentStorage.mockRestore()
+    // ストアを完全にクリア
+    act(() => {
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+    })
+  })
+
+  test('currentSheetIdがnullの場合はTopPageが表示される', async () => {
+    act(() => {
+      useUIStore.getState().setCurrentSheetId(null)
+    })
+
+    render(<App />)
+
+    expect(screen.getByTestId('top-page')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+
+  test('有効なcurrentSheetIdが設定されている場合は3タブレイアウトが表示される', async () => {
+    const sheet = useSheetsStore.getState().sheets[0]
+    act(() => {
+      useUIStore.getState().setCurrentSheetId(sheet.id)
+    })
+
+    render(<App />)
+
+    // ヘッダーにシート名が表示される
+    expect(screen.getByText('テストシート')).toBeInTheDocument()
+
+    // タブが表示される
+    expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Variables' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Formula' })).toBeInTheDocument()
+
+    // 戻るボタンが表示される
+    expect(screen.getByRole('button', { name: '戻る' })).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+
+  test('無効なcurrentSheetIdが設定されている場合はTopPageに戻る', async () => {
+    act(() => {
+      useUIStore.getState().setCurrentSheetId('invalid-id')
+    })
+
+    render(<App />)
+
+    // TopPageが表示される
+    expect(screen.getByTestId('top-page')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+
+  test('戻るボタンをクリックするとTopPageに戻る', async () => {
+    const sheet = useSheetsStore.getState().sheets[0]
+    act(() => {
+      useUIStore.getState().setCurrentSheetId(sheet.id)
+    })
+
+    render(<App />)
+
+    // 戻るボタンをクリック
+    act(() => {
+      const backButton = screen.getByRole('button', { name: '戻る' })
+      fireEvent.click(backButton)
+    })
+
+    // TopPageが表示される
+    expect(screen.getByTestId('top-page')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+
+  test('タブを切り替えると対応するコンテンツが表示される', async () => {
+    const sheet = useSheetsStore.getState().sheets[0]
+    act(() => {
+      useUIStore.getState().setCurrentSheetId(sheet.id)
+    })
+
+    render(<App />)
+
+    // 初期状態でOverviewタブのコンテンツが表示される
+    expect(
+      screen.getByText(
+        '概要タブのプレースホルダーです。実装は後のステップで行います。'
+      )
+    ).toBeInTheDocument()
+
+    // Variablesタブをクリック
+    act(() => {
+      const variablesTab = screen.getByRole('tab', { name: 'Variables' })
+      fireEvent.click(variablesTab)
+    })
+
+    // Variablesタブのコンテンツが表示される
+    expect(
+      screen.getByText(
+        '変数タブのプレースホルダーです。実装は後のステップで行います。'
+      )
+    ).toBeInTheDocument()
+
+    // Formulaタブをクリック
+    act(() => {
+      const formulaTab = screen.getByRole('tab', { name: 'Formula' })
+      fireEvent.click(formulaTab)
+    })
+
+    // Formulaタブのコンテンツが表示される
+    expect(
+      screen.getByText(
+        '数式タブのプレースホルダーです。実装は後のステップで行います。'
+      )
+    ).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
   })
 })

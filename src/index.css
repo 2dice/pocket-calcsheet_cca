@@ -86,3 +86,18 @@
     padding-left: var(--safe-area-inset-left);
   }
 }
+
+/* SafeArea対応のCSSクラス */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* タブバーの固定位置も考慮 */
+.safe-area-bottom-fixed {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  bottom: env(safe-area-inset-bottom, 0);
+}
