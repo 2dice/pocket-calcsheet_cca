@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import type { TabType } from '@/types/sheet'
+import type { TabType } from '@/utils/constants/routes'
 import { validateTabParam } from '@/utils/constants/routes'
 
 interface TabConfig {

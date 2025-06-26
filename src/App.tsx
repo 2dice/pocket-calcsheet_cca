@@ -24,7 +24,6 @@ function SheetDetailPage() {
   const navigate = useNavigate()
 
   const sheet = sheets.find(s => s.id === id)
-  const validatedTab = validateTabParam(tab)
 
   // バリデーションとリダイレクト
   useEffect(() => {
@@ -39,7 +38,7 @@ function SheetDetailPage() {
       navigate(`/${id}/overview`, { replace: true })
       return
     }
-  }, [sheet, tab, id, navigate])
+  }, [sheet, tab, id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!sheet) {
     return null
@@ -53,11 +52,13 @@ function SheetDetailPage() {
     navigate(`/${id}/${newTab}`)
   }
 
+  const currentTab = validateTabParam(tab)
+
   return (
     <AppLayout sheet={sheet} onBack={handleBack} onTabChange={handleTabChange}>
-      {validatedTab === 'overview' && <OverviewTab />}
-      {validatedTab === 'variables' && <VariablesTab />}
-      {validatedTab === 'formula' && <FormulaTab />}
+      {currentTab === 'overview' && <OverviewTab />}
+      {currentTab === 'variables' && <VariablesTab />}
+      {currentTab === 'formula' && <FormulaTab />}
     </AppLayout>
   )
 }

@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Header } from './Header'
 import { TabBar } from './TabBar'
-import type { SheetMeta, TabType } from '@/types/sheet'
+import type { SheetMeta } from '@/types/sheet'
+import type { TabType } from '@/utils/constants/routes'
 
 interface AppLayoutProps {
   sheet: SheetMeta
