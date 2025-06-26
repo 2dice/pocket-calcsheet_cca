@@ -10,7 +10,6 @@ interface SheetListProps {
   sheets: SheetMeta[]
   isEditMode?: boolean
   editingNewItem?: boolean
-  onSheetClick?: (id: string) => void
   onDeleteSheet?: (id: string) => void
   onUpdateSheet?: (id: string, name: string) => void
   onNewItemConfirm?: (value: string) => void
@@ -23,7 +22,6 @@ export function SheetList({
   sheets,
   isEditMode = false,
   editingNewItem = false,
-  onSheetClick,
   onDeleteSheet,
   onUpdateSheet,
   onNewItemConfirm,
@@ -79,10 +77,6 @@ export function SheetList({
     onNewItemConfirm?.(inputValue)
   }
 
-  const handleSheetClick = (sheetId: string) => {
-    onSheetClick?.(sheetId)
-  }
-
   return (
     <DndContext
       sensors={memoizedSensors}
@@ -117,7 +111,6 @@ export function SheetList({
                   key={sheet.id}
                   sheet={sheet}
                   isEditMode={isEditMode}
-                  onSheetClick={handleSheetClick}
                   onDeleteSheet={onDeleteSheet}
                   onUpdateSheet={onUpdateSheet}
                 />
@@ -150,7 +143,6 @@ export function SheetList({
             <SheetListItem
               sheet={activeSheet}
               isEditMode={isEditMode}
-              onSheetClick={() => {}}
               onDeleteSheet={onDeleteSheet}
               onUpdateSheet={onUpdateSheet}
             />

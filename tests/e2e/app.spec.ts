@@ -10,6 +10,11 @@ import { test, expect, type Page } from '@playwright/test'
  * page.on('console')でerror/warningタイプを検知
  * page.on('pageerror')で実行時例外を検知
  */
+const KNOWN_WARNINGS: string[] = [
+  // 許容する既知の警告を追加予定
+  // React Router v7の警告はfuture flagsで解消されるため追加しない
+]
+
 const setupConsoleMonitoring = (page: Page) => {
   const consoleErrors: string[] = []
   const consoleWarnings: string[] = []
@@ -20,7 +25,13 @@ const setupConsoleMonitoring = (page: Page) => {
       consoleErrors.push(`Console Error: ${msg.text()}`)
     }
     if (msg.type() === 'warning') {
-      consoleWarnings.push(`Console Warning: ${msg.text()}`)
+      const text = msg.text()
+      const isKnownWarning = KNOWN_WARNINGS.some(pattern =>
+        text.includes(pattern)
+      )
+      if (!isKnownWarning) {
+        consoleWarnings.push(`Console Warning: ${text}`)
+      }
     }
   })
 

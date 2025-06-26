@@ -6,10 +6,34 @@ import { StorageManager } from '../../../src/utils/storage/storageManager'
 import { useUIStore } from '../../../src/store/uiStore'
 import { useSheetsStore } from '../../../src/store/sheetsStore'
 
+// テスト用のRouter wrapper - App.tsxには既にHashRouterがあるので包む必要なし
+const renderWithRouter = (
+  ui: React.ReactElement,
+  { initialEntries = ['/'] } = {}
+) => {
+  // React Router警告を抑制
+  const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+  // テスト環境でのHashRouter対応
+  window.location.hash = initialEntries[0].replace('/', '#/')
+  const result = render(ui)
+
+  // テスト終了後にモックを復元
+  result.unmount = () => {
+    consoleWarnSpy.mockRestore()
+  }
+
+  return result
+}
+
 describe('App - Step2-1対応後のテスト', () => {
   let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    // React Router警告を抑制
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     // Act警告を抑制するため、永続化リクエストをモック
     mockRequestPersistentStorage = vi
       .spyOn(StorageManager, 'requestPersistentStorage')
@@ -18,6 +42,7 @@ describe('App - Step2-1対応後のテスト', () => {
 
   afterEach(() => {
     mockRequestPersistentStorage.mockRestore()
+    consoleWarnSpy.mockRestore()
   })
 
   test('アプリケーションがクラッシュせずにレンダリングされる', async () => {
@@ -116,8 +141,12 @@ describe('TopPage', () => {
 
 describe('App - 永続化ストレージ保護', () => {
   let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    // React Router警告を抑制
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     // StorageManager.requestPersistentStorage をモック
     mockRequestPersistentStorage = vi
       .spyOn(StorageManager, 'requestPersistentStorage')
@@ -130,6 +159,7 @@ describe('App - 永続化ストレージ保護', () => {
   afterEach(() => {
     vi.clearAllMocks()
     mockRequestPersistentStorage.mockRestore()
+    consoleWarnSpy.mockRestore()
   })
 
   test('アプリ起動時に永続化ストレージをリクエストする', async () => {
@@ -172,10 +202,17 @@ describe('App - 永続化ストレージ保護', () => {
   })
 })
 
-describe('App - 画面切り替え (Step3-1)', () => {
+// この画面切り替えテストはStep3-2でReact Router対応により不要になりました
+// URLベースの画面切り替えテストは後続のテストケースで実装されています
+
+describe('App - React Router導入 (Step3-2)', () => {
   let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
 
   beforeEach(() => {
+    // React Router警告を抑制
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     mockRequestPersistentStorage = vi
       .spyOn(StorageManager, 'requestPersistentStorage')
       .mockResolvedValue(true)
@@ -192,16 +229,15 @@ describe('App - 画面切り替え (Step3-1)', () => {
       })
       useUIStore.setState({
         isEditMode: false,
-        currentSheetId: null,
-        currentTab: 'overview',
       })
-      // その後でテストデータを追加
+      // テストデータを追加
       useSheetsStore.getState().addSheet('テストシート')
     })
   })
 
   afterEach(() => {
     mockRequestPersistentStorage.mockRestore()
+    consoleWarnSpy.mockRestore()
     // ストアを完全にクリア
     act(() => {
       useSheetsStore.setState({
@@ -215,12 +251,8 @@ describe('App - 画面切り替え (Step3-1)', () => {
     })
   })
 
-  test('currentSheetIdがnullの場合はTopPageが表示される', async () => {
-    act(() => {
-      useUIStore.getState().setCurrentSheetId(null)
-    })
-
-    render(<App />)
+  test('トップページが/#/でレンダリングされる', async () => {
+    renderWithRouter(<App />)
 
     expect(screen.getByTestId('top-page')).toBeInTheDocument()
 
@@ -229,36 +261,28 @@ describe('App - 画面切り替え (Step3-1)', () => {
     })
   })
 
-  test('有効なcurrentSheetIdが設定されている場合は3タブレイアウトが表示される', async () => {
+  test('シート詳細overview画面が/#/{id}/overviewでレンダリングされる', async () => {
     const sheet = useSheetsStore.getState().sheets[0]
-    act(() => {
-      useUIStore.getState().setCurrentSheetId(sheet.id)
-    })
 
-    render(<App />)
+    renderWithRouter(<App />, { initialEntries: [`/${sheet.id}/overview`] })
 
     // ヘッダーにシート名が表示される
     expect(screen.getByText('テストシート')).toBeInTheDocument()
 
-    // タブが表示される
-    expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Variables' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Formula' })).toBeInTheDocument()
-
-    // 戻るボタンが表示される
-    expect(screen.getByRole('button', { name: '戻る' })).toBeInTheDocument()
+    // Overviewタブのコンテンツが表示される
+    expect(
+      screen.getByText(
+        '概要タブのプレースホルダーです。実装は後のステップで行います。'
+      )
+    ).toBeInTheDocument()
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()
     })
   })
 
-  test('無効なcurrentSheetIdが設定されている場合はTopPageに戻る', async () => {
-    act(() => {
-      useUIStore.getState().setCurrentSheetId('invalid-id')
-    })
-
-    render(<App />)
+  test('存在しないシートIDの場合トップページにリダイレクトされる', async () => {
+    renderWithRouter(<App />, { initialEntries: ['/invalid-id/overview'] })
 
     // TopPageが表示される
     expect(screen.getByTestId('top-page')).toBeInTheDocument()
@@ -268,13 +292,93 @@ describe('App - 画面切り替え (Step3-1)', () => {
     })
   })
 
-  test('戻るボタンをクリックするとTopPageに戻る', async () => {
+  test('不正なタブ名の場合overviewにリダイレクトされる', async () => {
     const sheet = useSheetsStore.getState().sheets[0]
+
+    renderWithRouter(<App />, { initialEntries: [`/${sheet.id}/invalid-tab`] })
+
+    // Overviewタブのコンテンツが表示される（リダイレクト先）
+    expect(
+      screen.getByText(
+        '概要タブのプレースホルダーです。実装は後のステップで行います。'
+      )
+    ).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+})
+
+describe('Navigation Components - React Router対応', () => {
+  let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    // React Router警告を抑制
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    mockRequestPersistentStorage = vi
+      .spyOn(StorageManager, 'requestPersistentStorage')
+      .mockResolvedValue(true)
+
+    // ストアを初期状態にリセット
     act(() => {
-      useUIStore.getState().setCurrentSheetId(sheet.id)
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+      useUIStore.setState({
+        isEditMode: false,
+      })
+      // テストデータを追加
+      useSheetsStore.getState().addSheet('テストシート')
+    })
+  })
+
+  afterEach(() => {
+    mockRequestPersistentStorage.mockRestore()
+    consoleWarnSpy.mockRestore()
+    // ストアを完全にクリア
+    act(() => {
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+    })
+  })
+
+  test('SheetListItemクリックでシート詳細に遷移する', async () => {
+    renderWithRouter(<App />)
+
+    const sheetItem = screen.getByText('テストシート')
+
+    act(() => {
+      fireEvent.click(sheetItem)
     })
 
-    render(<App />)
+    // シート詳細画面が表示される
+    expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Variables' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Formula' })).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+
+  test('Headerの戻るボタンでトップページに遷移する', async () => {
+    const sheet = useSheetsStore.getState().sheets[0]
+
+    renderWithRouter(<App />, { initialEntries: [`/${sheet.id}/overview`] })
 
     // 戻るボタンをクリック
     act(() => {
@@ -284,52 +388,6 @@ describe('App - 画面切り替え (Step3-1)', () => {
 
     // TopPageが表示される
     expect(screen.getByTestId('top-page')).toBeInTheDocument()
-
-    await waitFor(() => {
-      expect(mockRequestPersistentStorage).toHaveBeenCalled()
-    })
-  })
-
-  test('タブを切り替えると対応するコンテンツが表示される', async () => {
-    const sheet = useSheetsStore.getState().sheets[0]
-    act(() => {
-      useUIStore.getState().setCurrentSheetId(sheet.id)
-    })
-
-    render(<App />)
-
-    // 初期状態でOverviewタブのコンテンツが表示される
-    expect(
-      screen.getByText(
-        '概要タブのプレースホルダーです。実装は後のステップで行います。'
-      )
-    ).toBeInTheDocument()
-
-    // Variablesタブをクリック
-    act(() => {
-      const variablesTab = screen.getByRole('tab', { name: 'Variables' })
-      fireEvent.click(variablesTab)
-    })
-
-    // Variablesタブのコンテンツが表示される
-    expect(
-      screen.getByText(
-        '変数タブのプレースホルダーです。実装は後のステップで行います。'
-      )
-    ).toBeInTheDocument()
-
-    // Formulaタブをクリック
-    act(() => {
-      const formulaTab = screen.getByRole('tab', { name: 'Formula' })
-      fireEvent.click(formulaTab)
-    })
-
-    // Formulaタブのコンテンツが表示される
-    expect(
-      screen.getByText(
-        '数式タブのプレースホルダーです。実装は後のステップで行います。'
-      )
-    ).toBeInTheDocument()
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()

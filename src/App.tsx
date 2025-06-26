@@ -1,4 +1,12 @@
 import { useEffect } from 'react'
+import {
+  HashRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+  useNavigate,
+} from 'react-router-dom'
 import { TopPage } from '@/pages/TopPage'
 import { OverviewTab } from '@/pages/OverviewTab'
 import { VariablesTab } from '@/pages/VariablesTab'
@@ -6,15 +14,58 @@ import { FormulaTab } from '@/pages/FormulaTab'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { useSheetsStore } from '@/store/sheetsStore'
-import { useUIStore } from '@/store/uiStore'
+import { validateTabParam, VALID_TABS } from '@/utils/constants/routes'
+import type { TabType } from '@/utils/constants/routes'
 
-function App() {
-  const { setPersistenceError, sheets } = useSheetsStore()
-  const { currentSheetId, currentTab, setCurrentSheetId, setCurrentTab } =
-    useUIStore()
+// シート詳細ページコンポーネント
+function SheetDetailPage() {
+  const { id, tab } = useParams<{ id: string; tab: string }>()
+  const { sheets } = useSheetsStore()
+  const navigate = useNavigate()
 
-  // 指定されたシートが存在しない場合はトップページに戻る
-  const currentSheet = sheets.find(sheet => sheet.id === currentSheetId)
+  const sheet = sheets.find(s => s.id === id)
+
+  // バリデーションとリダイレクト
+  useEffect(() => {
+    if (!sheet) {
+      // 存在しないシートIDの場合はトップページにリダイレクト
+      navigate('/', { replace: true })
+      return
+    }
+
+    if (!VALID_TABS.includes(tab as TabType)) {
+      // 不正なタブ名の場合はoverviewにリダイレクト
+      navigate(`/${id}/overview`, { replace: true })
+      return
+    }
+  }, [sheet, tab, id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!sheet) {
+    return null
+  }
+
+  const handleBack = () => {
+    navigate('/')
+  }
+
+  const handleTabChange = (newTab: TabType) => {
+    navigate(`/${id}/${newTab}`)
+  }
+
+  const currentTab = validateTabParam(tab)
+
+  return (
+    <AppLayout sheet={sheet} onBack={handleBack} onTabChange={handleTabChange}>
+      {currentTab === 'overview' && <OverviewTab />}
+      {currentTab === 'variables' && <VariablesTab />}
+      {currentTab === 'formula' && <FormulaTab />}
+    </AppLayout>
+  )
+}
+
+// 永続化ストレージリクエスト用のフック
+function usePersistentStorage() {
+  const { setPersistenceError } = useSheetsStore()
 
   useEffect(() => {
     const requestPersistentStorage = async () => {
@@ -42,56 +93,34 @@ function App() {
     }
 
     void requestPersistentStorage()
-    // クリーンアップ関数は不要（副作用がないため）
   }, [setPersistenceError])
+}
 
-  useEffect(() => {
-    // マウント状態を追跡
-    let isMounted = true
-
-    if (currentSheetId && !currentSheet && isMounted) {
-      setCurrentSheetId(null)
-    }
-
-    return () => {
-      isMounted = false
-    }
-  }, [currentSheetId, currentSheet, setCurrentSheetId])
-
-  // エラーハンドリングの明示化
-  if (currentSheetId && !currentSheet) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <p className="text-gray-600">シートが見つかりません</p>
-      </div>
-    )
-  }
-
-  // トップページ表示の場合
-  if (!currentSheetId || !currentSheet) {
-    return <TopPage />
-  }
-
-  const handleBack = () => {
-    setCurrentSheetId(null)
-    setCurrentTab('overview') // タブをリセット
-  }
-
-  const handleTabChange = (tab: typeof currentTab) => {
-    setCurrentTab(tab)
-  }
+// アプリのルートコンポーネント
+function AppRoutes() {
+  // 永続化ストレージのリクエスト
+  usePersistentStorage()
 
   return (
-    <AppLayout
-      sheet={currentSheet}
-      currentTab={currentTab}
-      onBack={handleBack}
-      onTabChange={handleTabChange}
+    <Routes>
+      <Route path="/" element={<TopPage />} />
+      <Route path="/:id/:tab" element={<SheetDetailPage />} />
+      <Route path="/:id" element={<Navigate to="/:id/overview" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+function App() {
+  return (
+    <HashRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
     >
-      {currentTab === 'overview' && <OverviewTab />}
-      {currentTab === 'variables' && <VariablesTab />}
-      {currentTab === 'formula' && <FormulaTab />}
-    </AppLayout>
+      <AppRoutes />
+    </HashRouter>
   )
 }
 
