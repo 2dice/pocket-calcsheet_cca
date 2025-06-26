@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { arrayMove } from '@dnd-kit/sortable'
-import type { SheetMeta, ValidatedSheetName } from '@/types/sheet'
+import type { SheetMeta, ValidatedSheetName, VariableSlot } from '@/types/sheet'
 import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { MigrationManager } from '@/utils/storage/migrationManager'
@@ -19,6 +19,12 @@ interface SheetsStore extends RootModel {
   removeSheet: (id: string) => void
   reorderSheets: (activeId: string, overId: string) => void
   updateSheet: (id: string, name: ValidatedSheetName) => void
+  updateVariableSlot: (
+    sheetId: string,
+    slotNumber: number,
+    updates: Partial<VariableSlot>
+  ) => void
+  initializeSheet: (sheetId: string) => void
   reset: () => void
 }
 
@@ -30,12 +36,24 @@ const generateId = () => {
   return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
+const createInitialVariableSlots = (): VariableSlot[] => {
+  return Array.from({ length: 8 }, (_, i) => ({
+    slot: i + 1,
+    varName: '',
+    expression: '',
+    value: null,
+    error: null,
+  }))
+}
+
 const getInitialState = (): Omit<
   SheetsStore,
   | 'addSheet'
   | 'removeSheet'
   | 'reorderSheets'
   | 'updateSheet'
+  | 'updateVariableSlot'
+  | 'initializeSheet'
   | 'reset'
   | 'setStorageError'
   | 'setPersistenceError'
@@ -69,7 +87,10 @@ export const useSheetsStore = create<SheetsStore>()(
           sheets: [...currentSheets, newSheet],
           entities: {
             ...get().entities,
-            [newSheet.id]: { ...newSheet },
+            [newSheet.id]: {
+              ...newSheet,
+              variableSlots: createInitialVariableSlots(),
+            },
           },
           savedAt: new Date().toISOString(),
         }
@@ -83,7 +104,10 @@ export const useSheetsStore = create<SheetsStore>()(
         }
 
         set(state => {
-          const sheetEntity: Sheet = { ...newSheet }
+          const sheetEntity: Sheet = {
+            ...newSheet,
+            variableSlots: createInitialVariableSlots(),
+          }
           return {
             sheets: [...state.sheets, newSheet],
             entities: {
@@ -202,6 +226,46 @@ export const useSheetsStore = create<SheetsStore>()(
           }
         })
       },
+      updateVariableSlot: (sheetId, slotNumber, updates) =>
+        set(state => {
+          const sheet = state.entities[sheetId]
+          if (!sheet) return state
+
+          const updatedSlots = sheet.variableSlots.map(slot =>
+            slot.slot === slotNumber ? { ...slot, ...updates } : slot
+          )
+
+          return {
+            ...state,
+            entities: {
+              ...state.entities,
+              [sheetId]: {
+                ...sheet,
+                variableSlots: updatedSlots,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+            savedAt: new Date().toISOString(),
+          }
+        }),
+      initializeSheet: sheetId =>
+        set(state => {
+          const sheet = state.entities[sheetId]
+          if (!sheet || sheet.variableSlots) return state
+
+          return {
+            ...state,
+            entities: {
+              ...state.entities,
+              [sheetId]: {
+                ...sheet,
+                variableSlots: createInitialVariableSlots(),
+                updatedAt: new Date().toISOString(),
+              },
+            },
+            savedAt: new Date().toISOString(),
+          }
+        }),
       reset: () => set(getInitialState()),
     }),
     {

@@ -55,6 +55,8 @@ pocket-calcsheet_cca/
 │   │   │   ├── SheetList.tsx         # トップページのシート一覧表示(DndContext)
 │   │   │   ├── SheetListItem.tsx     # シート一覧の個別アイテム(SortableItem)
 │   │   │   └── DragHandle.tsx        # ドラッグ&ドロップ用ハンドル
+│   │   ├── calculator/               # 計算機能コンポーネント
+│   │   │   └── VariableSlot.tsx      # 変数スロット(名前+式+値)
 │   │   └── ui/                       # shadcn/uiコンポーネント
 │   │       ├── button.tsx            # Buttonコンポーネント
 │   │       ├── input.tsx             # 基本入力フィールド
@@ -74,6 +76,8 @@ pocket-calcsheet_cca/
 │   ├── utils/                        # ユーティリティ関数
 │   │   ├── constants/                # 定数定義
 │   │   │   └── routes.ts             # ルート定義・タブバリデーション
+│   │   ├── validation/               # バリデーション関連ユーティリティ
+│   │   │   └── variableValidation.ts # 変数名バリデーション
 │   │   └── storage/                  # ストレージ関連ユーティリティ
 │   │       ├── storageManager.ts     # localStorage抽象化レイヤー
 │   │       └── migrationManager.ts   # スキーママイグレーション
@@ -93,9 +97,12 @@ pocket-calcsheet_cca/
 │   │   ├── components/
 │   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト + 画面切り替えテスト
 │   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
-│   │   │   └── TabNavigation.test.tsx # タブナビゲーション関連テスト
+│   │   │   ├── TabNavigation.test.tsx # タブナビゲーション関連テスト
+│   │   │   └── VariableSlot.test.tsx # 変数スロットテスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
+│   │   ├── utils/
+│   │   │   └── validation.test.ts    # バリデーションテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
 │   │       └── storageManager.test.ts # StorageManager + MigrationManagerテスト

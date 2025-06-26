@@ -14,3 +14,12 @@ export const validateSheetName = (name: string): ValidatedSheetName | null => {
 }
 
 export type TabType = 'overview' | 'variables' | 'formula'
+
+// 変数スロットの型定義
+export interface VariableSlot {
+  slot: number // 1〜8
+  varName: string // 変数名（空欄可）
+  expression: string // 入力式（数値または式）
+  value: number | null // 計算結果（本ステップでは未使用）
+  error: string | null // エラー内容（本ステップでは未使用）
+}

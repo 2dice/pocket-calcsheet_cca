@@ -153,8 +153,9 @@ describe('TabNavigation', () => {
     })
 
     it('VariablesTabが正常にレンダリングされる', () => {
+      // VariablesTabはシートIDが必要なので、エラーメッセージが表示されることを確認
       render(<VariablesTab />)
-      expect(screen.getByText('Variables')).toBeInTheDocument()
+      expect(screen.getByText('シートが見つかりません。')).toBeInTheDocument()
     })
 
     it('FormulaTabが正常にレンダリングされる', () => {
