@@ -57,13 +57,18 @@ pocket-calcsheet_cca/
 │   │   │   └── DragHandle.tsx        # ドラッグ&ドロップ用ハンドル
 │   │   ├── calculator/               # 計算機能コンポーネント
 │   │   │   └── VariableSlot.tsx      # 変数スロット(名前+式+値)
+│   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
+│   │   │   └── CustomKeyboard.tsx    # カスタムキーボード本体
+│   │   ├── common/                   # 共通コンポーネント
+│   │   │   └── Portal.tsx            # React Portal ラッパー
 │   │   └── ui/                       # shadcn/uiコンポーネント
 │   │       ├── button.tsx            # Buttonコンポーネント
 │   │       ├── input.tsx             # 基本入力フィールド
 │   │       └── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
 │   ├── hooks/                        # カスタムフック
 │   │   ├── useDragAndDrop.ts         # dnd-kit操作フック
-│   │   └── useScrollToInput.ts       # 入力時のスクロール制御フック
+│   │   ├── useScrollToInput.ts       # 入力時のスクロール制御フック
+│   │   └── useCustomKeyboard.ts      # カスタムキーボード制御フック
 │   ├── pages/                        # ページコンポーネント
 │   │   ├── TopPage.tsx               # トップページ（シート一覧）
 │   │   ├── OverviewTab.tsx           # 概要タブページ
@@ -85,7 +90,8 @@ pocket-calcsheet_cca/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
 │   │   ├── sheet.ts                  # シートモデル型定義
-│   │   └── storage.ts                # ストレージ関連型定義（ルートモデル）
+│   │   ├── storage.ts                # ストレージ関連型定義（ルートモデル）
+│   │   └── keyboard.ts               # キーボード関連型定義
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート + SafeArea対応
@@ -98,7 +104,8 @@ pocket-calcsheet_cca/
 │   │   │   ├── App.test.tsx          # ベーシックテスト + Service Worker登録テスト + TopPageテスト + 画面切り替えテスト
 │   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
 │   │   │   ├── TabNavigation.test.tsx # タブナビゲーション関連テスト
-│   │   │   └── VariableSlot.test.tsx # 変数スロットテスト
+│   │   │   ├── VariableSlot.test.tsx # 変数スロットテスト
+│   │   │   └── CustomKeyboard.test.tsx # カスタムキーボードテスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   ├── utils/

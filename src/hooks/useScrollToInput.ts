@@ -33,10 +33,12 @@ export function useScrollToInput(
           }
         } else {
           // フォールバック: 標準のscrollIntoViewを使用
-          element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          })
+          if (typeof element.scrollIntoView === 'function') {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            })
+          }
         }
       })
     }

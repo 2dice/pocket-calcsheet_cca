@@ -308,4 +308,100 @@ test.describe('アプリケーション基本動作確認', () => {
       await page.locator('button:has-text("OK")').click()
     })
   })
+
+  test.describe('カスタムキーボードテスト @step4-2', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/')
+
+      // 共通のセットアップ
+      await page.locator('button:has-text("編集")').click()
+      await page.locator('button:has-text("+")').click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill('キーボードテスト')
+      await input.press('Enter')
+      await page.locator('button:has-text("完了")').click()
+      await page.locator('text=キーボードテスト').click()
+      await page.locator('[data-testid="tab-variables"]').click()
+    })
+
+    test('変数の値入力フィールドフォーカス時にカスタムキーボード表示 @step4-2', async ({
+      page,
+    }) => {
+      // Variable1の値入力フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // カスタムキーボードが表示されることを確認
+      await expect(
+        page.locator('[data-testid="custom-keyboard"]')
+      ).toBeVisible()
+
+      // 主要なキーが表示されることを確認
+      await expect(page.locator('button:has-text("1")')).toBeVisible()
+      await expect(page.locator('button:has-text("+")')).toBeVisible()
+      await expect(page.locator('button:has-text("BS")')).toBeVisible()
+      await expect(page.locator('button:has-text("f(x)")')).toBeVisible()
+      await expect(page.locator('button:has-text("var")')).toBeVisible()
+    })
+
+    test('カスタムキーボードの表示/非表示動作 @step4-2', async ({ page }) => {
+      // Variablesタブで値入力フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // カスタムキーボードが表示される
+      await expect(
+        page.locator('[data-testid="custom-keyboard"]')
+      ).toBeVisible()
+
+      // 別の場所（変数名フィールド）をクリック
+      const nameInput = page.locator('[data-testid="variable-name-1"]')
+      await nameInput.click()
+
+      // カスタムキーボードが非表示になる
+      await expect(
+        page.locator('[data-testid="custom-keyboard"]')
+      ).not.toBeVisible()
+    })
+
+    test('入力エリアがキーボードに隠れない @step4-2', async ({ page }) => {
+      // Variable8の値入力フィールドをクリック（画面下部）
+      const valueInput = page.locator('[data-testid="variable-value-8"]')
+      await valueInput.click()
+
+      // カスタムキーボードが表示されるまで待つ
+      await expect(
+        page.locator('[data-testid="custom-keyboard"]')
+      ).toBeVisible()
+
+      // 入力フィールドがビューポート内に表示されていることを確認
+      // （キーボードで隠れていないことを確認）
+      const inputBoundingBox = await valueInput.boundingBox()
+      const keyboardBoundingBox = await page
+        .locator('[data-testid="custom-keyboard"]')
+        .boundingBox()
+
+      if (inputBoundingBox && keyboardBoundingBox) {
+        // 入力フィールドの下端がキーボードの上端より上にあることを確認
+        expect(inputBoundingBox.y + inputBoundingBox.height).toBeLessThan(
+          keyboardBoundingBox.y
+        )
+      }
+    })
+
+    test('ネイティブキーボードが表示されない @step4-2', async ({ page }) => {
+      // Variable1の値入力フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // カスタムキーボードが表示されることを確認
+      await expect(
+        page.locator('[data-testid="custom-keyboard"]')
+      ).toBeVisible()
+
+      // inputMode="none"が設定されていることを確認（間接的な確認）
+      const inputMode = await valueInput.getAttribute('inputmode')
+      expect(inputMode).toBe('none')
+    })
+  })
 })
