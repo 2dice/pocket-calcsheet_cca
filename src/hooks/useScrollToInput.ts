@@ -17,8 +17,13 @@ export function useScrollToInput(
       // requestAnimationFrameで次のフレームまで待機
       // これによりキーボードの表示が完了してからスクロール処理を実行
       requestAnimationFrame(() => {
-        // visualViewportがサポートされている場合はそれを使用
-        if (typeof window !== 'undefined' && window.visualViewport) {
+        if (typeof window === 'undefined') return
+
+        if (
+          window.visualViewport &&
+          window.visualViewport.height < window.innerHeight
+        ) {
+          // 既存のvisualViewport処理
           const rect = element.getBoundingClientRect()
           const viewportHeight = window.visualViewport.height
           const elementBottom = rect.bottom
@@ -33,7 +38,7 @@ export function useScrollToInput(
           }
         } else {
           // フォールバック: 標準のscrollIntoViewを使用
-          if (typeof element.scrollIntoView === 'function') {
+          if (element.scrollIntoView) {
             element.scrollIntoView({
               behavior: 'smooth',
               block: 'center',

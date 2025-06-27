@@ -1,8 +1,25 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { VariableSlot } from '@/components/calculator/VariableSlot'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
+
+// useParamsをモック
+vi.mock('react-router-dom', () => ({
+  useParams: () => ({ id: 'test-sheet-id' }),
+}))
+
+// useCustomKeyboardをモック
+vi.mock('@/hooks/useCustomKeyboard', () => ({
+  useCustomKeyboard: () => ({
+    show: vi.fn(),
+  }),
+}))
+
+// useScrollToInputをモック
+vi.mock('@/hooks/useScrollToInput', () => ({
+  useScrollToInput: vi.fn(),
+}))
 
 describe('VariableSlot', () => {
   const VARIABLE_SLOT_COUNT = 8
@@ -29,8 +46,14 @@ describe('VariableSlot', () => {
   const mockOnChange = vi.fn()
   const mockOnValidationError = vi.fn()
 
+  beforeEach(() => {
+    // console.warnをモック（handleValueFocusで警告が出るため）
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
   afterEach(() => {
     vi.clearAllMocks()
+    vi.restoreAllMocks()
   })
 
   it.each([1, 2, 3, 4, 5, 6, 7, 8])('Variable%iのラベルが表示される', i => {
@@ -77,8 +100,7 @@ describe('VariableSlot', () => {
     expect(mockOnChange).toHaveBeenCalled()
   })
 
-  it('値入力時にonChangeが呼ばれる', async () => {
-    const user = userEvent.setup()
+  it('値入力フィールドがreadOnlyであることを確認', () => {
     render(
       <VariableSlot
         slot={mockSlot}
@@ -89,9 +111,24 @@ describe('VariableSlot', () => {
     )
 
     const valueInput = screen.getByTestId('variable-value-1')
-    await user.type(valueInput, '123')
+    expect(valueInput).toHaveAttribute('readonly')
+    expect(valueInput).toHaveAttribute('inputMode', 'none')
+  })
 
-    expect(mockOnChange).toHaveBeenCalled()
+  it('値入力フィールドに直接onChangeイベントを発火すると呼ばれる', () => {
+    render(
+      <VariableSlot
+        slot={mockSlot}
+        slots={mockSlots}
+        onChange={mockOnChange}
+        onValidationError={mockOnValidationError}
+      />
+    )
+
+    const valueInput = screen.getByTestId('variable-value-1')
+    fireEvent.change(valueInput, { target: { value: '123' } })
+
+    expect(mockOnChange).toHaveBeenCalledWith({ expression: '123' })
   })
 
   it('無効な変数名でonValidationErrorが呼ばれる', () => {

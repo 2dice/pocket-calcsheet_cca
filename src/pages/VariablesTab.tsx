@@ -47,6 +47,13 @@ export function VariablesTab() {
     setValidationError('')
   }, [])
 
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (target && target.tagName !== 'INPUT') {
+      hideKeyboard()
+    }
+  }
+
   if (!sheet) {
     return (
       <div className="p-4">
@@ -67,12 +74,7 @@ export function VariablesTab() {
     <>
       <div
         className="p-4 pb-20 h-full overflow-y-auto"
-        onClick={e => {
-          // input以外をクリックしたらキーボードを隠す
-          if ((e.target as HTMLElement).tagName !== 'INPUT') {
-            hideKeyboard()
-          }
-        }}
+        onClick={handleOutsideClick}
       >
         <div className="space-y-1">
           {sheet.variableSlots.map(slot => (

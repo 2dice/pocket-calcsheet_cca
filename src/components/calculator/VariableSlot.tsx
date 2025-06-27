@@ -38,13 +38,19 @@ export function VariableSlot({
   }
 
   const handleValueFocus = () => {
-    if (id) {
+    if (!id) {
+      console.warn('Sheet ID is not available for keyboard display')
+      return
+    }
+
+    // 即座にキーボードを表示（setTimeoutで次のイベントループで実行）
+    setTimeout(() => {
       showKeyboard({
         type: 'variable',
         sheetId: id,
         slot: slot.slot,
       })
-    }
+    }, 0)
   }
 
   const handleNameBlur = () => {
@@ -95,7 +101,12 @@ export function VariableSlot({
           onChange={e => handleValueChange(e.target.value)}
           onFocus={handleValueFocus}
           inputMode="none"
-          className="flex-1"
+          readOnly // 古いブラウザ対策として追加
+          onClick={e => {
+            e.preventDefault()
+            handleValueFocus()
+          }}
+          className="flex-1 cursor-pointer"
           aria-label={`Variable${slot.slot} の値`}
         />
       </div>
