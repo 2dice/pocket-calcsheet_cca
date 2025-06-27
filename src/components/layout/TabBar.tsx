@@ -40,6 +40,7 @@ export function TabBar({ onTabChange }: TabBarProps) {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
+            data-testid={`tab-${tab.id}`}
             data-selected={currentTab === tab.id}
             aria-selected={currentTab === tab.id}
             role="tab"
