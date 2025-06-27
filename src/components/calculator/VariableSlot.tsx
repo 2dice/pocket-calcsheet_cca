@@ -43,14 +43,14 @@ export function VariableSlot({
       return
     }
 
-    // 即座にキーボードを表示（setTimeoutで次のイベントループで実行）
-    setTimeout(() => {
-      showKeyboard({
-        type: 'variable',
-        sheetId: id,
-        slot: slot.slot,
-      })
-    }, 0)
+    console.log('handleValueFocus called with id:', id, 'slot:', slot.slot) // デバッグログ
+
+    // 即座にキーボードを表示
+    showKeyboard({
+      type: 'variable',
+      sheetId: id,
+      slot: slot.slot,
+    })
   }
 
   const handleNameBlur = () => {
@@ -89,7 +89,9 @@ export function VariableSlot({
           value={slot.varName}
           onChange={e => handleNameChange(e.target.value)}
           onBlur={handleNameBlur}
-          className="flex-1"
+          inputMode="none" // ネイティブキーボード無効化
+          readOnly // 編集は後のステップで実装
+          className="w-24"
           aria-label={`Variable${slot.slot} の名前`}
           aria-invalid={!!slot.error}
         />

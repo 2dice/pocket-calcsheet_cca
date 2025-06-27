@@ -327,9 +327,19 @@ test.describe('アプリケーション基本動作確認', () => {
     test('変数の値入力フィールドフォーカス時にカスタムキーボード表示 @step4-2', async ({
       page,
     }) => {
+      // デバッグ: コンソールログを表示
+      page.on('console', msg => console.log('Browser console:', msg.text()))
+
       // Variable1の値入力フィールドをクリック
       const valueInput = page.locator('[data-testid="variable-value-1"]')
       await valueInput.click()
+
+      // デバッグ: 少し待機してから確認
+      await page.waitForTimeout(1000)
+
+      // デバッグ: キーボードポータルの存在確認
+      const portalExists = await page.locator('#keyboard-portal').count()
+      console.log('Portal element exists:', portalExists > 0)
 
       // カスタムキーボードが表示されることを確認
       await expect(

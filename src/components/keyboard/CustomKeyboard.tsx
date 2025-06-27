@@ -11,6 +11,8 @@ export const CustomKeyboard = React.memo(function CustomKeyboard({
   visible,
   onClose,
 }: Props) {
+  console.log('CustomKeyboard render, visible:', visible) // デバッグログ
+
   // ESCキー対応を追加
   useEffect(() => {
     if (!visible) return

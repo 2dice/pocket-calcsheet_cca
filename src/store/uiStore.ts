@@ -16,13 +16,15 @@ export const useUIStore = create<UIStore>(set => ({
     visible: false,
     target: null,
   },
-  showKeyboard: target =>
+  showKeyboard: target => {
+    console.log('showKeyboard called with target:', target) // デバッグログ
     set({
       keyboardState: {
         visible: true,
         target,
       },
-    }),
+    })
+  },
   hideKeyboard: () =>
     set({
       keyboardState: {

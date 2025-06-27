@@ -48,8 +48,8 @@ export function VariablesTab() {
   }, [])
 
   const handleOutsideClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement
-    if (target && target.tagName !== 'INPUT') {
+    const target = e.target
+    if (target instanceof HTMLElement && target.tagName !== 'INPUT') {
       hideKeyboard()
     }
   }
