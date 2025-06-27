@@ -231,91 +231,81 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(page.locator('text=新しいシート')).toBeVisible()
   })
 
-  test('Variables タブで8つの変数スロットが表示される @step4-1', async ({
-    page,
-  }) => {
-    await page.goto('/')
+  test.describe('Variables タブテスト @step4-1', () => {
+    const VARIABLE_SLOT_COUNT = 8
 
-    // テスト用のシートを追加
-    await page.locator('button:has-text("編集")').click()
-    await page.locator('button:has-text("+")').click()
-    const input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('変数テストシート')
-    await input.press('Enter')
-    await page.locator('button:has-text("完了")').click()
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/')
 
-    // シートをクリックして詳細画面に遷移
-    await page.locator('text=変数テストシート').click()
+      // 共通のセットアップ
+      await page.locator('button:has-text("編集")').click()
+      await page.locator('button:has-text("+")').click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill('テストシート')
+      await input.press('Enter')
+      await page.locator('button:has-text("完了")').click()
+      await page.locator('text=テストシート').click()
+      await page.locator('[data-testid="tab-variables"]').click()
+    })
 
-    // Variablesタブが表示されることを確認
-    await expect(page.locator('[data-testid="tab-variables"]')).toBeVisible()
+    test('8つの変数スロットが表示される', async ({ page }) => {
+      // Variable1〜8のラベルが表示されることを確認
+      for (let i = 1; i <= VARIABLE_SLOT_COUNT; i++) {
+        await expect(page.locator(`text=Variable${i}`)).toBeVisible()
+      }
 
-    // Variablesタブをクリック
-    await page.locator('[data-testid="tab-variables"]').click()
+      // 各スロットに変数名と値の入力フィールドが存在することを確認
+      for (let i = 1; i <= VARIABLE_SLOT_COUNT; i++) {
+        await expect(
+          page.locator(`[data-testid="variable-name-${i}"]`)
+        ).toBeVisible()
+        await expect(
+          page.locator(`[data-testid="variable-value-${i}"]`)
+        ).toBeVisible()
+      }
+    })
 
-    // Variable1〜8のラベルが表示されることを確認
-    for (let i = 1; i <= 8; i++) {
-      await expect(page.locator(`text=Variable${i}`)).toBeVisible()
-    }
+    test('変数名バリデーションが動作する', async ({ page }) => {
+      // 1. 日本語の変数名を入力（不正）
+      const nameInput1 = page.locator(`[data-testid="variable-name-1"]`)
+      await nameInput1.fill('変数名')
+      await nameInput1.blur()
 
-    // 各スロットに変数名と値の入力フィールドが存在することを確認
-    for (let i = 1; i <= 8; i++) {
-      await expect(
-        page.locator(`[data-testid="variable-name-${i}"]`)
-      ).toBeVisible()
-      await expect(
-        page.locator(`[data-testid="variable-value-${i}"]`)
-      ).toBeVisible()
-    }
-  })
+      // AlertDialogが表示されるまで少し待つ
+      await page.waitForTimeout(100)
 
-  test('変数名バリデーションが動作する @step4-1', async ({ page }) => {
-    await page.goto('/')
+      // AlertDialogが表示されることを確認
+      await expect(page.locator('[role="alertdialog"]')).toBeVisible()
+      await expect(page.getByText('変数名が無効です')).toBeVisible()
+      await page.locator('button:has-text("OK")').click()
 
-    // テスト用のシートを追加
-    await page.locator('button:has-text("編集")').click()
-    await page.locator('button:has-text("+")').click()
-    const input = page.locator('[data-testid="new-sheet-input"]')
-    await input.fill('バリデーションテストシート')
-    await input.press('Enter')
-    await page.locator('button:has-text("完了")').click()
+      // 2. 数字で始まる変数名を入力（不正）
+      await nameInput1.fill('1variable')
+      await nameInput1.blur()
 
-    // シートをクリックして詳細画面に遷移
-    await page.locator('text=バリデーションテストシート').click()
+      // AlertDialogが表示されるまで少し待つ
+      await page.waitForTimeout(100)
 
-    // Variablesタブをクリック
-    await page.locator('[data-testid="tab-variables"]').click()
+      // AlertDialogが表示されることを確認
+      await expect(page.locator('[role="alertdialog"]')).toBeVisible()
+      await page.locator('button:has-text("OK")').click()
 
-    // 1. 日本語の変数名を入力（不正）
-    const nameInput1 = page.locator(`[data-testid="variable-name-1"]`)
-    await nameInput1.fill('変数名')
-    await nameInput1.blur()
+      // 3. 有効な変数名を入力
+      await nameInput1.fill('validVar')
+      await nameInput1.blur()
 
-    // AlertDialogが表示されることを確認
-    await expect(page.locator('[role="alertdialog"]')).toBeVisible()
-    await expect(page.getByText('変数名が無効です')).toBeVisible()
-    await page.locator('button:has-text("OK")').click()
+      // 4. 同じ変数名を別のスロットに入力（重複）
+      const nameInput2 = page.locator(`[data-testid="variable-name-2"]`)
+      await nameInput2.fill('validVar')
+      await nameInput2.blur()
 
-    // 2. 数字で始まる変数名を入力（不正）
-    await nameInput1.fill('1variable')
-    await nameInput1.blur()
+      // AlertDialogが表示されるまで少し待つ
+      await page.waitForTimeout(100)
 
-    // AlertDialogが表示されることを確認
-    await expect(page.locator('[role="alertdialog"]')).toBeVisible()
-    await page.locator('button:has-text("OK")').click()
-
-    // 3. 有効な変数名を入力
-    await nameInput1.fill('validVar')
-    await nameInput1.blur()
-
-    // 4. 同じ変数名を別のスロットに入力（重複）
-    const nameInput2 = page.locator(`[data-testid="variable-name-2"]`)
-    await nameInput2.fill('validVar')
-    await nameInput2.blur()
-
-    // 重複エラーのAlertDialogが表示されることを確認
-    await expect(page.locator('[role="alertdialog"]')).toBeVisible()
-    await expect(page.getByText('重複した変数名です')).toBeVisible()
-    await page.locator('button:has-text("OK")').click()
+      // 重複エラーのAlertDialogが表示されることを確認
+      await expect(page.locator('[role="alertdialog"]')).toBeVisible()
+      await expect(page.getByText('重複した変数名です')).toBeVisible()
+      await page.locator('button:has-text("OK")').click()
+    })
   })
 })

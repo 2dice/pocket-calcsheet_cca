@@ -28,6 +28,8 @@ interface SheetsStore extends RootModel {
   reset: () => void
 }
 
+const VARIABLE_SLOT_COUNT = 8
+
 const generateId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID()
@@ -37,7 +39,7 @@ const generateId = () => {
 }
 
 const createInitialVariableSlots = (): VariableSlot[] => {
-  return Array.from({ length: 8 }, (_, i) => ({
+  return Array.from({ length: VARIABLE_SLOT_COUNT }, (_, i) => ({
     slot: i + 1,
     varName: '',
     expression: '',
@@ -73,24 +75,26 @@ export const useSheetsStore = create<SheetsStore>()(
       setStorageError: (error: boolean) => set({ storageError: error }),
       setPersistenceError: (error: boolean) => set({ persistenceError: error }),
       addSheet: (name: string) => {
-        const currentSheets = get().sheets
+        // 新規シートとエンティティを一度だけ作成
         const newSheet: SheetMeta = {
           id: generateId(),
           name,
-          order: currentSheets.length,
+          order: get().sheets.length,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
 
+        const sheetEntity: Sheet = {
+          ...newSheet,
+          variableSlots: createInitialVariableSlots(),
+        }
+
+        // 容量チェック用のnewState作成
         const newState = {
-          ...get(),
-          sheets: [...currentSheets, newSheet],
+          sheets: [...get().sheets, newSheet],
           entities: {
             ...get().entities,
-            [newSheet.id]: {
-              ...newSheet,
-              variableSlots: createInitialVariableSlots(),
-            },
+            [newSheet.id]: sheetEntity,
           },
           savedAt: new Date().toISOString(),
         }
@@ -103,20 +107,15 @@ export const useSheetsStore = create<SheetsStore>()(
           return
         }
 
-        set(state => {
-          const sheetEntity: Sheet = {
-            ...newSheet,
-            variableSlots: createInitialVariableSlots(),
-          }
-          return {
-            sheets: [...state.sheets, newSheet],
-            entities: {
-              ...state.entities,
-              [newSheet.id]: sheetEntity,
-            },
-            savedAt: new Date().toISOString(),
-          }
-        })
+        // state更新（sheetEntityを再利用）
+        set(state => ({
+          sheets: [...state.sheets, newSheet],
+          entities: {
+            ...state.entities,
+            [newSheet.id]: sheetEntity,
+          },
+          savedAt: new Date().toISOString(),
+        }))
       },
       removeSheet: (id: string) => {
         set(state => {
@@ -229,7 +228,7 @@ export const useSheetsStore = create<SheetsStore>()(
       updateVariableSlot: (sheetId, slotNumber, updates) =>
         set(state => {
           const sheet = state.entities[sheetId]
-          if (!sheet) return state
+          if (!sheet || !sheet.variableSlots) return state
 
           const updatedSlots = sheet.variableSlots.map(slot =>
             slot.slot === slotNumber ? { ...slot, ...updates } : slot

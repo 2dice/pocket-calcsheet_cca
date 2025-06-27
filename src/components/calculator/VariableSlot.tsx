@@ -47,24 +47,32 @@ export function VariableSlot({
 
   return (
     <div className="mb-4">
-      <div className="text-sm font-medium text-gray-700 mb-2">
-        Variable{slot.slot}
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm font-medium text-gray-700">
+          Variable{slot.slot}
+        </div>
+        <div className="text-sm text-gray-600 h-5">
+          {/* 計算値表示用スペース（後のステップで実装） */}
+        </div>
       </div>
-      <div className="space-y-2">
+      <div className="flex gap-2">
         <Input
           data-testid={`variable-name-${slot.slot}`}
           placeholder="変数名"
           value={slot.varName}
           onChange={e => handleNameChange(e.target.value)}
           onBlur={handleNameBlur}
-          className="w-full"
+          className="flex-1"
+          aria-label={`Variable${slot.slot} の名前`}
+          aria-invalid={!!slot.error}
         />
         <Input
           data-testid={`variable-value-${slot.slot}`}
           placeholder="値"
           value={slot.expression}
           onChange={e => handleValueChange(e.target.value)}
-          className="w-full"
+          className="flex-1"
+          aria-label={`Variable${slot.slot} の値`}
         />
       </div>
     </div>

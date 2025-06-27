@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   AlertDialog,
@@ -24,7 +24,8 @@ export function VariablesTab() {
     if (id && sheet && !sheet.variableSlots) {
       initializeSheet(id)
     }
-  }, [id, sheet, initializeSheet])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, sheet?.variableSlots])
 
   const handleSlotChange = (
     slotNumber: number,
@@ -38,6 +39,10 @@ export function VariablesTab() {
   const handleValidationError = (message: string) => {
     setValidationError(message)
   }
+
+  const closeDialog = useCallback(() => {
+    setValidationError('')
+  }, [])
 
   if (!sheet) {
     return (
@@ -57,7 +62,6 @@ export function VariablesTab() {
 
   return (
     <div className="p-4 pb-20 h-full overflow-y-auto">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Variables</h2>
       <div className="space-y-1">
         {sheet.variableSlots.map(slot => (
           <VariableSlot
@@ -71,19 +75,14 @@ export function VariablesTab() {
       </div>
 
       {/* バリデーションエラーダイアログ */}
-      <AlertDialog
-        open={!!validationError}
-        onOpenChange={() => setValidationError('')}
-      >
+      <AlertDialog open={!!validationError} onOpenChange={closeDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>入力エラー</AlertDialogTitle>
             <AlertDialogDescription>{validationError}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setValidationError('')}>
-              OK
-            </AlertDialogAction>
+            <AlertDialogAction onClick={closeDialog}>OK</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

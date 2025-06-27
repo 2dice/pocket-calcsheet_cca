@@ -5,6 +5,8 @@ import { VariableSlot } from '@/components/calculator/VariableSlot'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
 
 describe('VariableSlot', () => {
+  const VARIABLE_SLOT_COUNT = 8
+
   const mockSlot: VariableSlotType = {
     slot: 1,
     varName: '',
@@ -13,13 +15,16 @@ describe('VariableSlot', () => {
     error: null,
   }
 
-  const mockSlots: VariableSlotType[] = Array.from({ length: 8 }, (_, i) => ({
-    slot: i + 1,
-    varName: '',
-    expression: '',
-    value: null,
-    error: null,
-  }))
+  const mockSlots: VariableSlotType[] = Array.from(
+    { length: VARIABLE_SLOT_COUNT },
+    (_, i) => ({
+      slot: i + 1,
+      varName: '',
+      expression: '',
+      value: null,
+      error: null,
+    })
+  )
 
   const mockOnChange = vi.fn()
   const mockOnValidationError = vi.fn()
@@ -28,19 +33,17 @@ describe('VariableSlot', () => {
     vi.clearAllMocks()
   })
 
-  it('Variable1〜8のラベルが表示される', () => {
-    for (let i = 1; i <= 8; i++) {
-      const slot = { ...mockSlot, slot: i }
-      render(
-        <VariableSlot
-          slot={slot}
-          slots={mockSlots}
-          onChange={mockOnChange}
-          onValidationError={mockOnValidationError}
-        />
-      )
-      expect(screen.getByText(`Variable${i}`)).toBeInTheDocument()
-    }
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])('Variable%iのラベルが表示される', i => {
+    const slot = { ...mockSlot, slot: i }
+    render(
+      <VariableSlot
+        slot={slot}
+        slots={mockSlots}
+        onChange={mockOnChange}
+        onValidationError={mockOnValidationError}
+      />
+    )
+    expect(screen.getByText(`Variable${i}`)).toBeInTheDocument()
   })
 
   it('変数名と値の入力フィールドが表示される', () => {
