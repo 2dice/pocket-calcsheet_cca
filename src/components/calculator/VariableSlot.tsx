@@ -39,18 +39,17 @@ export function VariableSlot({
 
   const handleValueFocus = () => {
     if (!id) {
-      console.warn('Sheet ID is not available for keyboard display')
       return
     }
 
-    console.log('handleValueFocus called with id:', id, 'slot:', slot.slot) // デバッグログ
-
-    // 即座にキーボードを表示
-    showKeyboard({
-      type: 'variable',
-      sheetId: id,
-      slot: slot.slot,
-    })
+    // setTimeoutでReact Portalのレンダリングタイミングを調整
+    setTimeout(() => {
+      showKeyboard({
+        type: 'variable',
+        sheetId: id,
+        slot: slot.slot,
+      })
+    }, 0)
   }
 
   const handleNameBlur = () => {
@@ -89,9 +88,7 @@ export function VariableSlot({
           value={slot.varName}
           onChange={e => handleNameChange(e.target.value)}
           onBlur={handleNameBlur}
-          inputMode="none" // ネイティブキーボード無効化
-          readOnly // 編集は後のステップで実装
-          className="w-24"
+          className="flex-1"
           aria-label={`Variable${slot.slot} の名前`}
           aria-invalid={!!slot.error}
         />
@@ -103,11 +100,7 @@ export function VariableSlot({
           onChange={e => handleValueChange(e.target.value)}
           onFocus={handleValueFocus}
           inputMode="none"
-          readOnly // 古いブラウザ対策として追加
-          onClick={e => {
-            e.preventDefault()
-            handleValueFocus()
-          }}
+          readOnly
           className="flex-1 cursor-pointer"
           aria-label={`Variable${slot.slot} の値`}
         />

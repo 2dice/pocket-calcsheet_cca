@@ -83,7 +83,8 @@ describe('VariableSlot', () => {
     expect(screen.getByTestId('variable-value-1')).toBeInTheDocument()
   })
 
-  it('変数名入力フィールドがreadOnlyであることを確認', () => {
+  it('変数名入力時にonChangeが呼ばれる', async () => {
+    const user = userEvent.setup()
     render(
       <VariableSlot
         slot={mockSlot}
@@ -94,8 +95,9 @@ describe('VariableSlot', () => {
     )
 
     const nameInput = screen.getByTestId('variable-name-1')
-    expect(nameInput).toHaveAttribute('readOnly')
-    expect(nameInput).toHaveAttribute('inputMode', 'none')
+    await user.type(nameInput, 'test')
+
+    expect(mockOnChange).toHaveBeenCalled()
   })
 
   it('値入力フィールドがreadOnlyであることを確認', () => {

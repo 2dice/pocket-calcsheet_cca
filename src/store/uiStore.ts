@@ -17,7 +17,6 @@ export const useUIStore = create<UIStore>(set => ({
     target: null,
   },
   showKeyboard: target => {
-    console.log('showKeyboard called with target:', target) // デバッグログ
     set({
       keyboardState: {
         visible: true,
