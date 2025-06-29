@@ -93,7 +93,7 @@ export function VariableSlot({
           onFocus={handleNameFocus}
           onBlur={handleNameBlur}
           inputMode="url"
-          className="w-20"
+          className="flex-1"
           aria-label={`Variable${slot.slot} の名前`}
           aria-invalid={!!slot.error}
         />

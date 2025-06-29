@@ -33,90 +33,82 @@ export function CustomKeyboard({ visible }: Props) {
             </button>
           </div>
 
-          {/* メインキーボード: 5列グリッド */}
-          <div className="grid grid-cols-5 gap-1">
+          {/* メインキーボード: 12列グリッド */}
+          <div className="grid grid-cols-12 gap-1">
             {/* 1行目 */}
-            <div className="grid grid-cols-6 col-span-4 gap-1">
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                %
-              </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                ^
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                7
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                8
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                9
-              </button>
-            </div>
-            <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              %
+            </button>
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              ^
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              7
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              8
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              9
+            </button>
+            <button className="col-span-2 h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
               BS
             </button>
 
             {/* 2行目 */}
-            <div className="grid grid-cols-6 col-span-4 gap-1">
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                +
-              </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                -
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                4
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                5
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                6
-              </button>
-            </div>
-            <button className="h-12 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400">
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              +
+            </button>
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              -
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              4
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              5
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              6
+            </button>
+            <button className="col-span-2 h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400">
               f(x)
             </button>
 
             {/* 3行目 */}
-            <div className="grid grid-cols-6 col-span-4 gap-1">
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                *
-              </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                /
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                1
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                2
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                3
-              </button>
-            </div>
-            <button className="h-12 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400">
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              *
+            </button>
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              /
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              1
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              2
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              3
+            </button>
+            <button className="col-span-2 h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400">
               var
             </button>
 
             {/* 4行目 */}
-            <div className="grid grid-cols-6 col-span-4 gap-1">
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                (
-              </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
-                )
-              </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                0
-              </button>
-              <button className="h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
-                .
-              </button>
-            </div>
-            <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              (
+            </button>
+            <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              )
+            </button>
+            <button className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              0
+            </button>
+            <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              .
+            </button>
+            <button className="col-span-2 h-21 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
               ↵
             </button>
           </div>

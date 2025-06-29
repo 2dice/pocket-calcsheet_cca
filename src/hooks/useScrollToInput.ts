@@ -7,52 +7,44 @@ import { useEffect, type RefObject } from 'react'
  * @param inputRef - 対象の入力要素のref
  */
 export function useScrollToInput(
-  inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement | null>
+  ref: RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLElement | null>
 ) {
   useEffect(() => {
-    const element = inputRef.current
-    if (!element) return
+    if (!ref.current) return
 
     const handleFocus = () => {
-      // requestAnimationFrameで次のフレームまで待機
-      // これによりキーボードの表示が完了してからスクロール処理を実行
+      const element = ref.current
+      if (!element) return
+
+      // カスタムキーボードの高さを考慮（約280px）
+      const KEYBOARD_HEIGHT = 280
+
       requestAnimationFrame(() => {
         if (typeof window === 'undefined') return
 
-        if (
-          window.visualViewport &&
-          window.visualViewport.height < window.innerHeight
-        ) {
-          // 既存のvisualViewport処理
-          const rect = element.getBoundingClientRect()
-          const viewportHeight = window.visualViewport.height
-          const elementBottom = rect.bottom
+        const rect = element.getBoundingClientRect()
+        const viewportHeight = window.innerHeight
+        const elementBottom = rect.bottom
 
-          // 要素の下端がキーボード表示エリアに隠れる場合にスクロール
-          if (elementBottom > viewportHeight - 20) {
-            // 20pxのマージン
-            element.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-            })
-          }
-        } else {
-          // フォールバック: 標準のscrollIntoViewを使用
-          if (element.scrollIntoView) {
-            element.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-            })
-          }
+        // キーボードで隠れる位置を計算
+        const keyboardTop = viewportHeight - KEYBOARD_HEIGHT
+
+        if (elementBottom > keyboardTop) {
+          // 要素がキーボードで隠れる場合はスクロール
+          const scrollBy = elementBottom - keyboardTop + 20 // 20pxの余裕を追加
+          window.scrollBy({
+            top: scrollBy,
+            behavior: 'smooth',
+          })
         }
       })
     }
 
+    const element = ref.current
     element.addEventListener('focus', handleFocus)
 
-    // クリーンアップ
     return () => {
       element.removeEventListener('focus', handleFocus)
     }
-  }, [inputRef])
+  }, [ref])
 }

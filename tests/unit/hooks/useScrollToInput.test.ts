@@ -6,6 +6,7 @@ import { useScrollToInput } from '@/hooks/useScrollToInput'
 // グローバルオブジェクトのモック
 const mockScrollTo = vi.fn()
 const mockScrollIntoView = vi.fn()
+const mockScrollBy = vi.fn()
 
 describe('useScrollToInput hook', () => {
   beforeEach(() => {
@@ -21,16 +22,18 @@ describe('useScrollToInput hook', () => {
       writable: true,
     })
 
-    // scrollIntoViewのモック
+    // scrollByのモック（新しい実装で使用）
+    Object.defineProperty(window, 'scrollBy', {
+      value: mockScrollBy,
+      writable: true,
+    })
+
+    // scrollIntoViewのモック（フォールバック用）
     Element.prototype.scrollIntoView = mockScrollIntoView
 
-    // visualViewportのモック
-    Object.defineProperty(window, 'visualViewport', {
-      value: {
-        height: 812, // iPhone X size
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      },
+    // window.innerHeightのモック
+    Object.defineProperty(window, 'innerHeight', {
+      value: 812, // iPhone X size
       writable: true,
     })
 
@@ -68,15 +71,16 @@ describe('useScrollToInput hook', () => {
     const mockRef = { current: mockElement }
 
     // 要素がキーボードに隠れる位置にあることをシミュレート
+    // keyboardTop = 812(innerHeight) - 280(KEYBOARD_HEIGHT) = 532
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
-      top: 700,
+      top: 500,
       left: 0,
       right: 375,
-      bottom: 800, // viewportHeight(812) - 20(マージン) = 792 を超える
+      bottom: 550, // 532より大きい値なのでスクロールが必要
       width: 375,
       height: 50,
       x: 0,
-      y: 700,
+      y: 500,
       toJSON: () => {},
     }))
 
@@ -86,8 +90,11 @@ describe('useScrollToInput hook', () => {
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
 
-    // スクロール処理が呼ばれることを確認
-    expect(mockScrollIntoView).toHaveBeenCalled()
+    // window.scrollByが呼ばれることを確認
+    expect(mockScrollBy).toHaveBeenCalledWith({
+      top: 38, // 550 - 532 + 20 = 38
+      behavior: 'smooth',
+    })
   })
 
   it('refがnullの場合でもエラーにならない', () => {
@@ -100,56 +107,21 @@ describe('useScrollToInput hook', () => {
     }).not.toThrow()
   })
 
-  it('visualViewportがサポートされていない環境でも動作する', async () => {
-    // visualViewportを削除
-    Object.defineProperty(window, 'visualViewport', {
-      value: undefined,
-      writable: true,
-    })
-
+  it('要素がキーボードに隠れない場合はスクロールしない', () => {
     const mockElement = document.createElement('input')
     const mockRef = { current: mockElement }
 
-    renderHook(() => useScrollToInput(mockRef))
-
-    // フォーカスイベントをシミュレート
-    const focusEvent = new Event('focus')
-    mockElement.dispatchEvent(focusEvent)
-
-    // requestAnimationFrameを待機
-    await new Promise(resolve => requestAnimationFrame(resolve))
-
-    // scrollIntoViewが呼ばれることを確認（フォールバック）
-    expect(mockScrollIntoView).toHaveBeenCalledWith({
-      behavior: 'smooth',
-      block: 'center',
-    })
-  })
-
-  it('キーボード表示時にvisualViewport高さを考慮してスクロールする', async () => {
-    const mockElement = document.createElement('input')
-    const mockRef = { current: mockElement }
-
-    // visualViewportの高さを変更（キーボード表示状態）
-    Object.defineProperty(window, 'visualViewport', {
-      value: {
-        height: 400, // キーボード表示で高さが減る
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-      },
-      writable: true,
-    })
-
-    // 要素がキーボードに隠れる位置にあることをシミュレート
+    // 要素がキーボードに隠れない位置にあることをシミュレート
+    // keyboardTop = 812(innerHeight) - 280(KEYBOARD_HEIGHT) = 532
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
-      top: 350,
+      top: 200,
       left: 0,
       right: 375,
-      bottom: 400, // viewportHeight(400) - 20(マージン) = 380 を超える
+      bottom: 250, // 532より小さい値なのでスクロール不要
       width: 375,
       height: 50,
       x: 0,
-      y: 350,
+      y: 200,
       toJSON: () => {},
     }))
 
@@ -159,11 +131,39 @@ describe('useScrollToInput hook', () => {
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
 
-    // requestAnimationFrameを待機
-    await new Promise(resolve => requestAnimationFrame(resolve))
+    // スクロール処理が呼ばれないことを確認
+    expect(mockScrollBy).not.toHaveBeenCalled()
+  })
 
-    // スクロール処理が呼ばれることを確認
-    expect(mockScrollIntoView).toHaveBeenCalled()
+  it('カスタムキーボードの高さ（280px）を考慮してスクロールする', () => {
+    const mockElement = document.createElement('input')
+    const mockRef = { current: mockElement }
+
+    // 要素がカスタムキーボードに隠れる位置にあることをシミュレート
+    // keyboardTop = 812(innerHeight) - 280(KEYBOARD_HEIGHT) = 532
+    Element.prototype.getBoundingClientRect = vi.fn(() => ({
+      top: 600,
+      left: 0,
+      right: 375,
+      bottom: 650, // 532より大きい値なのでスクロールが必要
+      width: 375,
+      height: 50,
+      x: 0,
+      y: 600,
+      toJSON: () => {},
+    }))
+
+    renderHook(() => useScrollToInput(mockRef))
+
+    // フォーカスイベントをシミュレート
+    const focusEvent = new Event('focus')
+    mockElement.dispatchEvent(focusEvent)
+
+    // window.scrollByが呼ばれることを確認
+    expect(mockScrollBy).toHaveBeenCalledWith({
+      top: 138, // 650 - 532 + 20 = 138
+      behavior: 'smooth',
+    })
   })
 
   it('要素の位置がキーボードに隠れる場合にスクロールが実行される', () => {
@@ -171,11 +171,12 @@ describe('useScrollToInput hook', () => {
     const mockRef = { current: mockElement }
 
     // 要素が下の方に配置されている場合のBoundingClientRect
+    // keyboardTop = 812(innerHeight) - 280(KEYBOARD_HEIGHT) = 532
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
       top: 750, // 画面下部
       left: 0,
       right: 375,
-      bottom: 800, // viewportHeight(812) - 20(マージン) = 792 を超える
+      bottom: 800, // 532より大きい値なのでスクロールが必要
       width: 375,
       height: 50,
       x: 0,
@@ -189,8 +190,11 @@ describe('useScrollToInput hook', () => {
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
 
-    // すぐに確認できる
-    expect(mockScrollIntoView).toHaveBeenCalled()
+    // window.scrollByが呼ばれることを確認
+    expect(mockScrollBy).toHaveBeenCalledWith({
+      top: 288, // 800 - 532 + 20 = 288
+      behavior: 'smooth',
+    })
   })
 
   it('コンポーネントがアンマウントされた時にイベントリスナーが削除される', () => {
@@ -255,11 +259,12 @@ describe('useScrollToInput hook', () => {
     const mockRef = { current: mockElement }
 
     // 要素がキーボードに隠れる位置にあることをシミュレート
+    // keyboardTop = 812(innerHeight) - 280(KEYBOARD_HEIGHT) = 532
     Element.prototype.getBoundingClientRect = vi.fn(() => ({
       top: 750,
       left: 0,
       right: 375,
-      bottom: 800, // viewportHeight(812) - 20(マージン) = 792 を超える
+      bottom: 800, // 532より大きい値なのでスクロールが必要
       width: 375,
       height: 50,
       x: 0,
@@ -273,10 +278,10 @@ describe('useScrollToInput hook', () => {
     const focusEvent = new Event('focus')
     mockElement.dispatchEvent(focusEvent)
 
-    // すぐに確認できる
-    expect(mockScrollIntoView).toHaveBeenCalledWith({
+    // window.scrollByがsmoothオプションで呼ばれることを確認
+    expect(mockScrollBy).toHaveBeenCalledWith({
+      top: 288, // 800 - 532 + 20 = 288
       behavior: 'smooth',
-      block: 'center',
     })
   })
 })

@@ -373,8 +373,8 @@ test.describe('アプリケーション基本動作確認', () => {
       const keyboard = page.locator('[data-testid="custom-keyboard"]')
       await expect(keyboard).toBeVisible()
 
-      // 少し待機してスクロールが完了するのを待つ
-      await page.waitForTimeout(500)
+      // スクロールが完了するまで十分に待つ
+      await page.waitForTimeout(1000)
 
       // 入力フィールドとキーボードの位置を取得
       const inputBoundingBox = await valueInput.boundingBox()
