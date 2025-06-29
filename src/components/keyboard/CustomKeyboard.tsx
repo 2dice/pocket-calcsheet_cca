@@ -7,7 +7,23 @@ interface Props {
 }
 
 export function CustomKeyboard({ visible }: Props) {
-  console.log('CustomKeyboard render, visible:', visible)
+  const [forceRender, setForceRender] = useState(0)
+
+  useEffect(() => {
+    if (visible) {
+      // visibleになったら強制的に再レンダリング
+      requestAnimationFrame(() => {
+        setForceRender(prev => prev + 1)
+      })
+    }
+  }, [visible])
+
+  console.log(
+    'CustomKeyboard render, visible:',
+    visible,
+    'forceRender:',
+    forceRender
+  )
 
   // マウント状態を追跡
   const [isMounted, setIsMounted] = useState(false)
