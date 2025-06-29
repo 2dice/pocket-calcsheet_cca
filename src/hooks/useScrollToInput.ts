@@ -25,17 +25,38 @@ export function useScrollToInput(
         const rect = element.getBoundingClientRect()
         const viewportHeight = window.innerHeight
         const elementBottom = rect.bottom
+        const elementTop = rect.top
 
         // キーボードで隠れる位置を計算
         const keyboardTop = viewportHeight - KEYBOARD_HEIGHT
 
         if (elementBottom > keyboardTop) {
-          // 要素がキーボードで隠れる場合はスクロール
-          const scrollBy = elementBottom - keyboardTop + 20 // 20pxの余裕を追加
-          window.scrollBy({
-            top: scrollBy,
-            behavior: 'smooth',
-          })
+          // スクロール可能な最大値を計算
+          const maxScroll =
+            document.documentElement.scrollHeight - viewportHeight
+          const currentScroll = window.scrollY
+
+          // 必要なスクロール量
+          const idealScrollBy = elementBottom - keyboardTop + 40 // 40pxの余裕
+
+          // 実際にスクロール可能な量
+          const actualScrollBy = Math.min(
+            idealScrollBy,
+            maxScroll - currentScroll
+          )
+
+          if (actualScrollBy > 0) {
+            window.scrollBy({
+              top: actualScrollBy,
+              behavior: 'smooth',
+            })
+          } else if (elementTop < 0) {
+            // 要素が画面上部に隠れている場合
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+            })
+          }
         }
       })
     }

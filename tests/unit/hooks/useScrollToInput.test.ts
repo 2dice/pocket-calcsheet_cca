@@ -28,6 +28,18 @@ describe('useScrollToInput hook', () => {
       writable: true,
     })
 
+    // scrollYのモック（新しい実装で使用）
+    Object.defineProperty(window, 'scrollY', {
+      value: 0,
+      writable: true,
+    })
+
+    // document.documentElement.scrollHeightのモック（新しい実装で使用）
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 2000, // 十分に大きな値
+      writable: true,
+    })
+
     // scrollIntoViewのモック（フォールバック用）
     Element.prototype.scrollIntoView = mockScrollIntoView
 
@@ -92,7 +104,7 @@ describe('useScrollToInput hook', () => {
 
     // window.scrollByが呼ばれることを確認
     expect(mockScrollBy).toHaveBeenCalledWith({
-      top: 38, // 550 - 532 + 20 = 38
+      top: 58, // 550 - 532 + 40 = 58
       behavior: 'smooth',
     })
   })
@@ -161,7 +173,7 @@ describe('useScrollToInput hook', () => {
 
     // window.scrollByが呼ばれることを確認
     expect(mockScrollBy).toHaveBeenCalledWith({
-      top: 138, // 650 - 532 + 20 = 138
+      top: 158, // 650 - 532 + 40 = 158
       behavior: 'smooth',
     })
   })
@@ -192,7 +204,7 @@ describe('useScrollToInput hook', () => {
 
     // window.scrollByが呼ばれることを確認
     expect(mockScrollBy).toHaveBeenCalledWith({
-      top: 288, // 800 - 532 + 20 = 288
+      top: 308, // 800 - 532 + 40 = 308
       behavior: 'smooth',
     })
   })
@@ -280,7 +292,7 @@ describe('useScrollToInput hook', () => {
 
     // window.scrollByがsmoothオプションで呼ばれることを確認
     expect(mockScrollBy).toHaveBeenCalledWith({
-      top: 288, // 800 - 532 + 20 = 288
+      top: 308, // 800 - 532 + 40 = 308
       behavior: 'smooth',
     })
   })

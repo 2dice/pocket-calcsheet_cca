@@ -73,8 +73,9 @@ export function VariablesTab() {
   return (
     <>
       <div
-        className="p-4 pb-20 h-full overflow-y-auto"
+        className="p-4 pb-safe h-full overflow-y-auto"
         onClick={handleOutsideClick}
+        style={{ paddingBottom: 'calc(280px + env(safe-area-inset-bottom))' }}
       >
         <div className="space-y-1">
           {sheet.variableSlots.map(slot => (

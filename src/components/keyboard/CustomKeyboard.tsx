@@ -33,8 +33,8 @@ export function CustomKeyboard({ visible }: Props) {
             </button>
           </div>
 
-          {/* メインキーボード: 12列グリッド */}
-          <div className="grid grid-cols-12 gap-1">
+          {/* メインキーボード: 10列グリッド */}
+          <div className="grid grid-cols-10 gap-1">
             {/* 1行目 */}
             <button className="col-span-1 h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
               %
