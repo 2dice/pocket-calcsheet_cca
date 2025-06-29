@@ -23,7 +23,7 @@ export function VariableSlot({
   onValidationError,
 }: Props) {
   const { id } = useParams<{ id: string }>()
-  const { show: showKeyboard } = useCustomKeyboard()
+  const { show: showKeyboard, hide: hideKeyboard } = useCustomKeyboard()
   const valueInputRef = useRef<HTMLInputElement>(null)
 
   // スクロール制御を適用
@@ -48,6 +48,11 @@ export function VariableSlot({
       sheetId: id,
       slot: slot.slot,
     })
+  }
+
+  const handleNameFocus = () => {
+    // カスタムキーボードを非表示にする
+    hideKeyboard()
   }
 
   const handleNameBlur = () => {
@@ -85,8 +90,10 @@ export function VariableSlot({
           placeholder="変数名"
           value={slot.varName}
           onChange={e => handleNameChange(e.target.value)}
+          onFocus={handleNameFocus}
           onBlur={handleNameBlur}
-          className="flex-1"
+          inputMode="url"
+          className="w-20"
           aria-label={`Variable${slot.slot} の名前`}
           aria-invalid={!!slot.error}
         />

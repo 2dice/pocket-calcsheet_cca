@@ -341,45 +341,44 @@ test.describe('アプリケーション基本動作確認', () => {
       await expect(page.locator('button:has-text("+")')).toBeVisible()
       await expect(page.locator('button:has-text("BS")')).toBeVisible()
       await expect(page.locator('button:has-text("f(x)")')).toBeVisible()
-      await expect(page.locator('button:has-text("var")')).toBeVisible()
+      await expect(
+        page.locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      ).toBeVisible()
     })
 
     test('カスタムキーボードの表示/非表示動作 @step4-2', async ({ page }) => {
-      // Variablesタブで値入力フィールドをクリック
+      // 値入力フィールドをクリック
       const valueInput = page.locator('[data-testid="variable-value-1"]')
       await valueInput.click()
 
       // カスタムキーボードが表示される
-      await expect(
-        page.locator('[data-testid="custom-keyboard"]')
-      ).toBeVisible()
+      const keyboard = page.locator('[data-testid="custom-keyboard"]')
+      await expect(keyboard).toBeVisible()
+      await expect(keyboard).toHaveClass(/translate-y-0/)
 
-      // 別の場所（変数名フィールド）をクリック
+      // 別の場所をクリック
       const nameInput = page.locator('[data-testid="variable-name-1"]')
       await nameInput.click()
 
-      // カスタムキーボードが非表示になる
-      await expect(
-        page.locator('[data-testid="custom-keyboard"]')
-      ).not.toBeVisible()
+      // カスタムキーボードが非表示になる（見た目上）
+      await expect(keyboard).toHaveClass(/translate-y-full/)
+      await expect(keyboard).toHaveAttribute('aria-hidden', 'true')
     })
 
     test('入力エリアがキーボードに隠れない @step4-2', async ({ page }) => {
-      // Variable8の値入力フィールドをクリック（画面下部）
       const valueInput = page.locator('[data-testid="variable-value-8"]')
       await valueInput.click()
 
-      // カスタムキーボードが表示されるまで待つ
-      await expect(
-        page.locator('[data-testid="custom-keyboard"]')
-      ).toBeVisible()
+      // キーボードが表示されるまで待つ
+      const keyboard = page.locator('[data-testid="custom-keyboard"]')
+      await expect(keyboard).toBeVisible()
 
-      // 入力フィールドがビューポート内に表示されていることを確認
-      // （キーボードで隠れていないことを確認）
+      // 少し待機してスクロールが完了するのを待つ
+      await page.waitForTimeout(500)
+
+      // 入力フィールドとキーボードの位置を取得
       const inputBoundingBox = await valueInput.boundingBox()
-      const keyboardBoundingBox = await page
-        .locator('[data-testid="custom-keyboard"]')
-        .boundingBox()
+      const keyboardBoundingBox = await keyboard.boundingBox()
 
       if (inputBoundingBox && keyboardBoundingBox) {
         // 入力フィールドの下端がキーボードの上端より上にあることを確認

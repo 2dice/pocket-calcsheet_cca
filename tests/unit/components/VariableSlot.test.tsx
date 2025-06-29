@@ -13,6 +13,7 @@ vi.mock('react-router-dom', () => ({
 vi.mock('@/hooks/useCustomKeyboard', () => ({
   useCustomKeyboard: () => ({
     show: vi.fn(),
+    hide: vi.fn(),
   }),
 }))
 
