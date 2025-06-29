@@ -1,45 +1,65 @@
-// React import removed since not using JSX factory or hooks
+import { useEffect, useState, useRef } from 'react'
 import { Portal } from '@/components/common/Portal'
 import { cn } from '@/lib/utils'
 
 interface Props {
   visible: boolean
-  // onClose: () => void // ESCキーやオーバーレイクリックで使用予定（一時的にコメントアウト）
 }
 
 export function CustomKeyboard({ visible }: Props) {
-  console.log('CustomKeyboard render, visible:', visible) // デバッグログは残す
+  console.log('CustomKeyboard render, visible:', visible)
 
-  // useEffectより前に早期リターンを移動
-  if (!visible) return null
+  // マウント状態を追跡
+  const [isMounted, setIsMounted] = useState(false)
+  const portalRef = useRef<HTMLDivElement>(null)
 
-  // ESCキー対応のuseEffectは一旦コメントアウト
-  /*
   useEffect(() => {
-    if (!visible) return
-    
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      }
+    // コンポーネントマウント時
+    setIsMounted(true)
+
+    // Portal要素の存在確認
+    const checkPortal = () => {
+      const portalEl = document.getElementById('keyboard-portal')
+      console.log(
+        'Portal check - exists:',
+        !!portalEl,
+        'mounted:',
+        isMounted,
+        'visible:',
+        visible
+      )
     }
-    
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [visible, onClose])
-  */
+
+    // 少し遅延させてチェック
+    const timer = setTimeout(checkPortal, 100)
+
+    return () => {
+      clearTimeout(timer)
+      setIsMounted(false)
+    }
+  }, [visible, isMounted])
+
+  // visibleがtrueでもマウントされていない場合は一旦nullを返す
+  if (!visible) return null
 
   return (
     <Portal containerId="keyboard-portal">
       <div
+        ref={portalRef}
         data-testid="custom-keyboard"
         className={cn(
           'fixed bottom-0 left-0 right-0 bg-gray-100',
           'transform transition-transform duration-300 will-change-transform',
           'safe-area-bottom',
-          visible ? 'translate-y-0' : 'translate-y-full'
+          // 初回表示時のアニメーションを制御
+          visible && isMounted ? 'translate-y-0' : 'translate-y-full'
         )}
         role="toolbar"
+        style={{
+          // 初期状態を明示的に設定
+          transform: visible ? 'translateY(0)' : 'translateY(100%)',
+          transition: isMounted ? 'transform 0.3s' : 'none',
+        }}
       >
         <div className="p-2">
           {/* 最上段: カーソル移動キー */}

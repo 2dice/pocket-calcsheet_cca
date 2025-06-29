@@ -39,17 +39,20 @@ export function VariableSlot({
 
   const handleValueFocus = () => {
     if (!id) {
+      console.warn('Sheet ID is not available for keyboard display')
       return
     }
 
-    // setTimeoutでReact Portalのレンダリングタイミングを調整
+    console.log('handleValueFocus called with id:', id, 'slot:', slot.slot)
+
+    // Portal要素のマウントを待つため少し長めの遅延
     setTimeout(() => {
       showKeyboard({
         type: 'variable',
         sheetId: id,
         slot: slot.slot,
       })
-    }, 0)
+    }, 150) // 0から150msに変更
   }
 
   const handleNameBlur = () => {
