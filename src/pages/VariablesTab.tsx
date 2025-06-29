@@ -102,7 +102,7 @@ export function VariablesTab() {
         </AlertDialog>
       </div>
 
-      <CustomKeyboard visible={keyboardState.visible} onClose={hideKeyboard} />
+      <CustomKeyboard visible={keyboardState.visible} />
     </>
   )
 }

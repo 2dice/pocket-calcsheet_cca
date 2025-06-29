@@ -1,31 +1,33 @@
-import React, { useEffect } from 'react'
+// React import removed since not using JSX factory or hooks
 import { Portal } from '@/components/common/Portal'
 import { cn } from '@/lib/utils'
 
 interface Props {
   visible: boolean
-  onClose: () => void // ESCキーやオーバーレイクリックで使用予定
+  // onClose: () => void // ESCキーやオーバーレイクリックで使用予定（一時的にコメントアウト）
 }
 
-export const CustomKeyboard = React.memo(function CustomKeyboard({
-  visible,
-  onClose,
-}: Props) {
-  // ESCキー対応を追加
+export function CustomKeyboard({ visible }: Props) {
+  console.log('CustomKeyboard render, visible:', visible) // デバッグログは残す
+
+  // useEffectより前に早期リターンを移動
+  if (!visible) return null
+
+  // ESCキー対応のuseEffectは一旦コメントアウト
+  /*
   useEffect(() => {
     if (!visible) return
-
+    
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose()
       }
     }
-
+    
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
   }, [visible, onClose])
-
-  if (!visible) return null
+  */
 
   return (
     <Portal containerId="keyboard-portal">
@@ -208,4 +210,4 @@ export const CustomKeyboard = React.memo(function CustomKeyboard({
       </div>
     </Portal>
   )
-})
+}
