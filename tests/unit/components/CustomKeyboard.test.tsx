@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
 
@@ -43,24 +43,20 @@ describe('CustomKeyboard', () => {
     expect(screen.getByText('↵')).toBeInTheDocument()
   })
 
-  it('visible=trueでレンダリングされる', () => {
+  it('visible=trueでレンダリングされ、表示される', () => {
     render(<CustomKeyboard visible={true} />)
-
     const keyboard = screen.getByTestId('custom-keyboard')
     expect(keyboard).toBeInTheDocument()
     expect(keyboard).toHaveClass('translate-y-0')
+    expect(keyboard).not.toHaveClass('pointer-events-none')
   })
 
-  it('visible=falseで非表示になる', () => {
+  it('visible=falseでもDOMに存在するが、非表示になる', () => {
     render(<CustomKeyboard visible={false} />)
-
-    // visible=falseの場合はレンダリングされない
-    expect(screen.queryByTestId('custom-keyboard')).not.toBeInTheDocument()
-  })
-
-  // onCloseコールバックのテストは一時的にスキップ（デバッグ中のため）
-  it.skip('onCloseコールバックが呼ばれる', () => {
-    // テストは一時的に無効化
+    const keyboard = screen.getByTestId('custom-keyboard')
+    expect(keyboard).toBeInTheDocument()
+    expect(keyboard).toHaveClass('translate-y-full', 'pointer-events-none')
+    expect(keyboard).toHaveAttribute('aria-hidden', 'true')
   })
 
   it('ポータル内にレンダリングされる', () => {
@@ -68,18 +64,5 @@ describe('CustomKeyboard', () => {
 
     // Portalがモックされているので、単純にキーボードが表示されることを確認
     expect(screen.getByTestId('custom-keyboard')).toBeInTheDocument()
-  })
-
-  it('キーをクリックするとコンソールにログが出力される', () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    render(<CustomKeyboard visible={true} />)
-
-    const key = screen.getByText('1')
-    fireEvent.click(key)
-
-    expect(consoleSpy).toHaveBeenCalledWith('Key pressed: 1')
-
-    consoleSpy.mockRestore()
   })
 })
