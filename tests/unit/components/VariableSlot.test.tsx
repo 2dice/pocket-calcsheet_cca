@@ -101,7 +101,7 @@ describe('VariableSlot', () => {
     expect(mockOnChange).toHaveBeenCalled()
   })
 
-  it('値入力フィールドがreadOnlyであることを確認', () => {
+  it('値入力フィールドでカスタムキーボードが使用される', () => {
     render(
       <VariableSlot
         slot={mockSlot}
@@ -112,7 +112,6 @@ describe('VariableSlot', () => {
     )
 
     const valueInput = screen.getByTestId('variable-value-1')
-    expect(valueInput).toHaveAttribute('readonly')
     expect(valueInput).toHaveAttribute('inputMode', 'none')
   })
 

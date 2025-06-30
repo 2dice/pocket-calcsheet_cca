@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
@@ -8,6 +8,7 @@ import {
 } from '@/utils/validation/variableValidation'
 import { useCustomKeyboard } from '@/hooks/useCustomKeyboard'
 import { useScrollToInput } from '@/hooks/useScrollToInput'
+import { useUIStore } from '@/store/uiStore'
 
 interface Props {
   slot: VariableSlotType
@@ -23,11 +24,33 @@ export function VariableSlot({
   onValidationError,
 }: Props) {
   const { id } = useParams<{ id: string }>()
-  const { show: showKeyboard, hide: hideKeyboard } = useCustomKeyboard()
+  const {
+    show: showKeyboard,
+    hide: hideKeyboard,
+    target,
+    keyboardInput,
+  } = useCustomKeyboard()
+  const { updateKeyboardInput } = useUIStore()
   const valueInputRef = useRef<HTMLInputElement>(null)
 
   // スクロール制御を適用
   useScrollToInput(valueInputRef)
+
+  // カーソル位置の表示用（現在は実装せず、将来の実装のためのプレースホルダー）
+  const isCurrentTarget =
+    target?.type === 'variable' &&
+    target.sheetId === id &&
+    target.slot === slot.slot
+
+  // キーボード入力の初期化
+  useEffect(() => {
+    if (isCurrentTarget && keyboardInput === null) {
+      updateKeyboardInput({
+        value: slot.expression || '',
+        cursorPosition: (slot.expression || '').length,
+      })
+    }
+  }, [isCurrentTarget, keyboardInput, slot.expression, updateKeyboardInput])
 
   const handleNameChange = (value: string) => {
     onChange({ varName: value })
@@ -41,6 +64,12 @@ export function VariableSlot({
     if (!id) {
       return
     }
+
+    // キーボード入力を初期化
+    updateKeyboardInput({
+      value: slot.expression || '',
+      cursorPosition: (slot.expression || '').length,
+    })
 
     showKeyboard({
       type: 'variable',
@@ -104,7 +133,6 @@ export function VariableSlot({
           onChange={e => handleValueChange(e.target.value)}
           onFocus={handleValueFocus}
           inputMode="none"
-          readOnly
           className="flex-1 cursor-pointer"
           aria-label={`Variable${slot.slot} の値`}
         />

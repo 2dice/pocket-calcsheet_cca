@@ -1,12 +1,19 @@
 import { create } from 'zustand'
 import type { KeyboardState } from '@/types/keyboard'
 
+interface KeyboardInput {
+  value: string
+  cursorPosition: number
+}
+
 interface UIStore {
   isEditMode: boolean
   toggleEditMode: () => void
   keyboardState: KeyboardState
+  keyboardInput: KeyboardInput | null
   showKeyboard: (target: KeyboardState['target']) => void
   hideKeyboard: () => void
+  updateKeyboardInput: (input: KeyboardInput) => void
 }
 
 export const useUIStore = create<UIStore>(set => ({
@@ -16,6 +23,7 @@ export const useUIStore = create<UIStore>(set => ({
     visible: false,
     target: null,
   },
+  keyboardInput: null,
   showKeyboard: target => {
     set({
       keyboardState: {
@@ -30,5 +38,10 @@ export const useUIStore = create<UIStore>(set => ({
         visible: false,
         target: null,
       },
+      keyboardInput: null,
+    }),
+  updateKeyboardInput: input =>
+    set({
+      keyboardInput: input,
     }),
 }))

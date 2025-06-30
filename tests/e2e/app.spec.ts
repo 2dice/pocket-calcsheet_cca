@@ -401,4 +401,198 @@ test.describe('アプリケーション基本動作確認', () => {
       expect(inputMode).toBe('none')
     })
   })
+
+  test.describe('カスタムキーボード入力機能テスト @step4-3', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/')
+
+      // 共通のセットアップ
+      await page.locator('button:has-text("編集")').click()
+      await page.locator('button:has-text("+")').click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill('入力テスト')
+      await input.press('Enter')
+      await page.locator('button:has-text("完了")').click()
+      await page.locator('text=入力テスト').click()
+      await page.locator('[data-testid="tab-variables"]').click()
+    })
+
+    test('カスタムキーボードで数式を入力できる @step4-3', async ({ page }) => {
+      // Variable1の値フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // カスタムキーボードが表示されることを確認
+      await expect(
+        page.locator('[data-testid="custom-keyboard"]')
+      ).toBeVisible()
+
+      // "1+2"を入力
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("+")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
+        .click()
+
+      // 入力フィールドに"1+2"が表示されることを確認
+      await expect(valueInput).toHaveValue('1+2')
+    })
+
+    test('関数選択でf(x)を使用できる @step4-3', async ({ page }) => {
+      // Variable1の値フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // f(x)キーをクリック
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("f(x)")')
+        .click()
+
+      // 関数一覧が表示されることを確認
+      await expect(
+        page.locator('[data-testid="function-picker"]')
+      ).toBeVisible()
+      await expect(page.locator('text=sqrt - 平方根')).toBeVisible()
+
+      // "sqrt"を選択
+      await page.locator('text=sqrt - 平方根').click()
+
+      // 入力フィールドに"sqrt()"が挿入されることを確認
+      await expect(valueInput).toHaveValue('sqrt()')
+
+      // 関数一覧が閉じられることを確認
+      await expect(
+        page.locator('[data-testid="function-picker"]')
+      ).not.toBeVisible()
+    })
+
+    test('変数選択でvarを使用できる @step4-3', async ({ page }) => {
+      // 事前に変数名を設定
+      const nameInput = page.locator('[data-testid="variable-name-2"]')
+      await nameInput.fill('testVar')
+      await nameInput.blur()
+
+      // Variable1の値フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // varキーをクリック
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+        .click()
+
+      // 変数一覧が表示されることを確認
+      await expect(
+        page.locator('[data-testid="variable-picker"]')
+      ).toBeVisible()
+      await expect(page.locator('text=testVar')).toBeVisible()
+
+      // "testVar"を選択
+      await page.locator('text=testVar').click()
+
+      // 入力フィールドに"[testVar]"が挿入されることを確認
+      await expect(valueInput).toHaveValue('[testVar]')
+
+      // 変数一覧が閉じられることを確認
+      await expect(
+        page.locator('[data-testid="variable-picker"]')
+      ).not.toBeVisible()
+    })
+
+    test('カーソル移動とBackspaceでの編集操作 @step4-3', async ({ page }) => {
+      // Variable1の値フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // "123"を入力
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("3")')
+        .click()
+
+      // 入力値を確認
+      await expect(valueInput).toHaveValue('123')
+
+      // 左矢印キーでカーソルを移動
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("←")')
+        .click()
+
+      // Backspaceで文字削除
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("BS")')
+        .click()
+
+      // "13"になることを確認（2が削除される）
+      await expect(valueInput).toHaveValue('13')
+    })
+
+    test('Enterキーで入力確定 @step4-3', async ({ page }) => {
+      // Variable1の値フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // "42"を入力
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("4")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
+        .click()
+
+      // Enterキーで確定
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // カスタムキーボードが非表示になることを確認
+      const keyboard = page.locator('[data-testid="custom-keyboard"]')
+      await expect(keyboard).toHaveClass(/translate-y-full/)
+      await expect(keyboard).toHaveAttribute('aria-hidden', 'true')
+
+      // 入力値が保持されることを確認
+      await expect(valueInput).toHaveValue('42')
+    })
+
+    test('複合操作: 関数内に変数を含む数式入力 @step4-3', async ({ page }) => {
+      // 事前に変数名を設定
+      const nameInput = page.locator('[data-testid="variable-name-2"]')
+      await nameInput.fill('x')
+      await nameInput.blur()
+
+      // Variable1の値フィールドをクリック
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // sqrt関数を選択
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("f(x)")')
+        .click()
+      await page.locator('text=sqrt - 平方根').click()
+
+      // 括弧内に "2*[x]" を入力
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("*")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+        .click()
+      await page.locator('text=x').click()
+
+      // 最終的に "sqrt(2*[x])" が入力されることを確認
+      await expect(valueInput).toHaveValue('sqrt(2*[x])')
+    })
+  })
 })

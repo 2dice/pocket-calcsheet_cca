@@ -1,4 +1,8 @@
+import { useState } from 'react'
 import { Portal } from '@/components/common/Portal'
+import { FunctionPicker } from './FunctionPicker'
+import { VariablePicker } from './VariablePicker'
+import { useCustomKeyboard } from '@/hooks/useCustomKeyboard'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -6,6 +10,10 @@ interface Props {
 }
 
 export function CustomKeyboard({ visible }: Props) {
+  const { insertText, handleBackspace, moveCursor, handleEnter, target } =
+    useCustomKeyboard()
+  const [showFunctionPicker, setShowFunctionPicker] = useState(false)
+  const [showVariablePicker, setShowVariablePicker] = useState(false)
   return (
     <Portal containerId="keyboard-portal">
       <div
@@ -25,10 +33,16 @@ export function CustomKeyboard({ visible }: Props) {
         <div className="p-2">
           {/* 最上段: カーソル移動キー */}
           <div className="grid grid-cols-2 gap-1 mb-1">
-            <button className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200">
+            <button
+              className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
+              onClick={() => moveCursor('left')}
+            >
               ←
             </button>
-            <button className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200">
+            <button
+              className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
+              onClick={() => moveCursor('right')}
+            >
               →
             </button>
           </div>
@@ -38,88 +52,180 @@ export function CustomKeyboard({ visible }: Props) {
             {/* 左側: 数字・演算子キー (8列グリッド) */}
             <div className="flex-1 grid grid-cols-8 gap-1">
               {/* 1行目 */}
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('%')}
+              >
                 %
               </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('^')}
+              >
                 ^
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('7')}
+              >
                 7
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('8')}
+              >
                 8
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('9')}
+              >
                 9
               </button>
 
               {/* 2行目 */}
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('+')}
+              >
                 +
               </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('-')}
+              >
                 -
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('4')}
+              >
                 4
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('5')}
+              >
                 5
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('6')}
+              >
                 6
               </button>
 
               {/* 3行目 */}
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('*')}
+              >
                 *
               </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('/')}
+              >
                 /
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('1')}
+              >
                 1
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('2')}
+              >
                 2
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('3')}
+              >
                 3
               </button>
 
               {/* 4行目 */}
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText('(')}
+              >
                 (
               </button>
-              <button className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={() => insertText(')')}
+              >
                 )
               </button>
-              <button className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('0')}
+              >
                 0
               </button>
-              <button className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200">
+              <button
+                className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onClick={() => insertText('.')}
+              >
                 .
               </button>
             </div>
 
             {/* 右側: 特殊キー (固定幅) */}
             <div className="w-[20%] flex flex-col gap-1">
-              <button className="h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={handleBackspace}
+              >
                 BS
               </button>
-              <button className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400">
+              <button
+                className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
+                onClick={() => setShowFunctionPicker(true)}
+              >
                 f(x)
               </button>
-              <button className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400">
+              <button
+                className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
+                onClick={() => setShowVariablePicker(true)}
+              >
                 var
               </button>
-              <button className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400">
+              <button
+                className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onClick={handleEnter}
+              >
                 ↵
               </button>
             </div>
           </div>
         </div>
+
+        {/* Function Picker Dialog */}
+        <FunctionPicker
+          open={showFunctionPicker}
+          onSelect={functionText => {
+            insertText(functionText)
+            setShowFunctionPicker(false)
+          }}
+          onClose={() => setShowFunctionPicker(false)}
+        />
+
+        {/* Variable Picker Dialog */}
+        {target && (
+          <VariablePicker
+            open={showVariablePicker}
+            onSelect={variableText => {
+              insertText(variableText)
+              setShowVariablePicker(false)
+            }}
+            onClose={() => setShowVariablePicker(false)}
+            sheetId={target.sheetId}
+          />
+        )}
       </div>
     </Portal>
   )

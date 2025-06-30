@@ -58,13 +58,16 @@ pocket-calcsheet_cca/
 │   │   ├── calculator/               # 計算機能コンポーネント
 │   │   │   └── VariableSlot.tsx      # 変数スロット(名前+式+値)
 │   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
-│   │   │   └── CustomKeyboard.tsx    # カスタムキーボード本体
+│   │   │   ├── CustomKeyboard.tsx    # カスタムキーボード本体
+│   │   │   ├── FunctionPicker.tsx    # 関数選択ドラムロールUI
+│   │   │   └── VariablePicker.tsx    # 変数選択ドラムロールUI
 │   │   ├── common/                   # 共通コンポーネント
 │   │   │   └── Portal.tsx            # React Portal ラッパー
 │   │   └── ui/                       # shadcn/uiコンポーネント
 │   │       ├── button.tsx            # Buttonコンポーネント
 │   │       ├── input.tsx             # 基本入力フィールド
-│   │       └── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
+│   │       ├── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
+│   │       └── dialog.tsx            # モーダルダイアログ(関数・変数選択)
 │   ├── hooks/                        # カスタムフック
 │   │   ├── useDragAndDrop.ts         # dnd-kit操作フック
 │   │   ├── useScrollToInput.ts       # 入力時のスクロール制御フック
@@ -80,7 +83,9 @@ pocket-calcsheet_cca/
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── utils/                        # ユーティリティ関数
 │   │   ├── constants/                # 定数定義
-│   │   │   └── routes.ts             # ルート定義・タブバリデーション
+│   │   │   ├── routes.ts             # ルート定義・タブバリデーション
+│   │   │   ├── functions.ts          # 対応関数一覧定義
+│   │   │   └── keyboard.ts           # キーボードレイアウト定義
 │   │   ├── validation/               # バリデーション関連ユーティリティ
 │   │   │   └── variableValidation.ts # 変数名バリデーション
 │   │   └── storage/                  # ストレージ関連ユーティリティ
