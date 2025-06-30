@@ -10,12 +10,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { VariableSlot } from '@/components/calculator/VariableSlot'
+import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
 import { useSheetsStore } from '@/store'
+import { useUIStore } from '@/store/uiStore'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
+
+const KEYBOARD_HEIGHT = 280
 
 export function VariablesTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateVariableSlot, initializeSheet } = useSheetsStore()
+  const { keyboardState, hideKeyboard } = useUIStore()
   const [validationError, setValidationError] = useState<string>('')
 
   const sheet = entities[id || '']
@@ -44,6 +49,13 @@ export function VariablesTab() {
     setValidationError('')
   }, [])
 
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    const target = e.target
+    if (target instanceof HTMLElement && target.tagName !== 'INPUT') {
+      hideKeyboard()
+    }
+  }
+
   if (!sheet) {
     return (
       <div className="p-4">
@@ -61,31 +73,41 @@ export function VariablesTab() {
   }
 
   return (
-    <div className="p-4 pb-20 h-full overflow-y-auto">
-      <div className="space-y-1">
-        {sheet.variableSlots.map(slot => (
-          <VariableSlot
-            key={slot.slot}
-            slot={slot}
-            slots={sheet.variableSlots}
-            onChange={updates => handleSlotChange(slot.slot, updates)}
-            onValidationError={handleValidationError}
-          />
-        ))}
+    <>
+      <div
+        className="p-4 pb-safe h-full overflow-y-auto"
+        onClick={handleOutsideClick}
+        style={{
+          paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
+        }}
+      >
+        <div className="space-y-1">
+          {sheet.variableSlots.map(slot => (
+            <VariableSlot
+              key={slot.slot}
+              slot={slot}
+              slots={sheet.variableSlots}
+              onChange={updates => handleSlotChange(slot.slot, updates)}
+              onValidationError={handleValidationError}
+            />
+          ))}
+        </div>
+
+        {/* バリデーションエラーダイアログ */}
+        <AlertDialog open={!!validationError} onOpenChange={closeDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>入力エラー</AlertDialogTitle>
+              <AlertDialogDescription>{validationError}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={closeDialog}>OK</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
-      {/* バリデーションエラーダイアログ */}
-      <AlertDialog open={!!validationError} onOpenChange={closeDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>入力エラー</AlertDialogTitle>
-            <AlertDialogDescription>{validationError}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={closeDialog}>OK</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      <CustomKeyboard visible={keyboardState.visible} />
+    </>
   )
 }
