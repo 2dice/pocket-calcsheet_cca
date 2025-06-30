@@ -101,7 +101,3 @@
   padding-bottom: env(safe-area-inset-bottom, 0);
   bottom: env(safe-area-inset-bottom, 0);
 }
-
-@utility h-21 {
-  height: 5.25rem; /* 1.75倍の高さ */
-}

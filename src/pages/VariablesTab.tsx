@@ -15,6 +15,8 @@ import { useSheetsStore } from '@/store'
 import { useUIStore } from '@/store/uiStore'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
 
+const KEYBOARD_HEIGHT = 280
+
 export function VariablesTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateVariableSlot, initializeSheet } = useSheetsStore()
@@ -75,7 +77,9 @@ export function VariablesTab() {
       <div
         className="p-4 pb-safe h-full overflow-y-auto"
         onClick={handleOutsideClick}
-        style={{ paddingBottom: 'calc(280px + env(safe-area-inset-bottom))' }}
+        style={{
+          paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
+        }}
       >
         <div className="space-y-1">
           {sheet.variableSlots.map(slot => (

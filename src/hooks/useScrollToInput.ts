@@ -1,5 +1,7 @@
 import { useEffect, type RefObject } from 'react'
 
+const KEYBOARD_HEIGHT = 280
+
 /**
  * 入力要素がフォーカスされた時に、キーボードに隠れないよう自動スクロールするフック
  * モバイルブラウザのvisualViewportを考慮してスクロール調整を行う
@@ -15,9 +17,6 @@ export function useScrollToInput(
     const handleFocus = () => {
       const element = ref.current
       if (!element) return
-
-      // カスタムキーボードの高さを考慮（約280px）
-      const KEYBOARD_HEIGHT = 280
 
       requestAnimationFrame(() => {
         if (typeof window === 'undefined') return

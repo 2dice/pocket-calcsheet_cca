@@ -42,7 +42,6 @@ export function VariableSlot({
       return
     }
 
-    // setTimeoutとconsole.logを削除し、同期的に実行
     showKeyboard({
       type: 'variable',
       sheetId: id,

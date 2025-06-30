@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 
@@ -8,13 +8,11 @@ interface Props {
 }
 
 export function Portal({ children, containerId }: Props) {
-  const containerRef = useRef<HTMLElement | null>(null)
+  const [container, setContainer] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
-    containerRef.current = document.getElementById(containerId)
+    setContainer(document.getElementById(containerId))
   }, [containerId])
 
-  if (!containerRef.current) return null
-
-  return createPortal(children, containerRef.current)
+  return container ? createPortal(children, container) : null
 }

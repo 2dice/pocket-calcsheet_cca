@@ -22,25 +22,25 @@ describe('useScrollToInput hook', () => {
       writable: true,
     })
 
-    // scrollByのモック（新しい実装で使用）
+    // scrollByのモック
     Object.defineProperty(window, 'scrollBy', {
       value: mockScrollBy,
       writable: true,
     })
 
-    // scrollYのモック（新しい実装で使用）
+    // scrollYのモック
     Object.defineProperty(window, 'scrollY', {
       value: 0,
       writable: true,
     })
 
-    // document.documentElement.scrollHeightのモック（新しい実装で使用）
+    // document.documentElement.scrollHeightのモック
     Object.defineProperty(document.documentElement, 'scrollHeight', {
       value: 2000, // 十分に大きな値
       writable: true,
     })
 
-    // scrollIntoViewのモック（フォールバック用）
+    // scrollIntoViewのモック
     Element.prototype.scrollIntoView = mockScrollIntoView
 
     // window.innerHeightのモック

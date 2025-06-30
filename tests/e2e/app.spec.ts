@@ -373,19 +373,17 @@ test.describe('アプリケーション基本動作確認', () => {
       const keyboard = page.locator('[data-testid="custom-keyboard"]')
       await expect(keyboard).toBeVisible()
 
-      // スクロールが完了するまで十分に待つ
-      await page.waitForTimeout(1000)
+      // スクロールが完了し、入力フィールドがキーボードに隠れないことをアサーションがパスするまで待つ
+      await expect(async () => {
+        const inputBoundingBox = await valueInput.boundingBox()
+        const keyboardBoundingBox = await keyboard.boundingBox()
 
-      // 入力フィールドとキーボードの位置を取得
-      const inputBoundingBox = await valueInput.boundingBox()
-      const keyboardBoundingBox = await keyboard.boundingBox()
-
-      if (inputBoundingBox && keyboardBoundingBox) {
-        // 入力フィールドの下端がキーボードの上端より上にあることを確認
-        expect(inputBoundingBox.y + inputBoundingBox.height).toBeLessThan(
-          keyboardBoundingBox.y
+        expect(inputBoundingBox).not.toBeNull()
+        expect(keyboardBoundingBox).not.toBeNull()
+        expect(inputBoundingBox!.y + inputBoundingBox!.height).toBeLessThan(
+          keyboardBoundingBox!.y
         )
-      }
+      }).toPass({ timeout: 5000 })
     })
 
     test('ネイティブキーボードが表示されない @step4-2', async ({ page }) => {
