@@ -38,8 +38,7 @@ pocket-calcsheet_cca/
 │   │   │   ├── SheetListItem.tsx      # シート一覧の個別アイテム
 │   │   │   └── DragHandle.tsx         # ドラッグ&ドロップ用ハンドル
 │   │   ├── keyboard/
-│   │   │   ├── CustomKeyboard.tsx     # カスタムキーボード本体
-│   │   │   ├── KeyboardKey.tsx        # キーボードの個別キー
+│   │   │   ├── CustomKeyboard.tsx     # カスタムキーボード本体/個別
 │   │   │   ├── FunctionPicker.tsx     # 関数選択ドラムロールUI
 │   │   │   └── VariablePicker.tsx     # 変数選択ドラムロールUI
 │   │   ├── calculator/

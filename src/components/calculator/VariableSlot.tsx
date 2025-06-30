@@ -1,9 +1,13 @@
+import { useRef } from 'react'
+import { useParams } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
 import {
   isValidVariableName,
   isDuplicateVariableName,
 } from '@/utils/validation/variableValidation'
+import { useCustomKeyboard } from '@/hooks/useCustomKeyboard'
+import { useScrollToInput } from '@/hooks/useScrollToInput'
 
 interface Props {
   slot: VariableSlotType
@@ -18,12 +22,36 @@ export function VariableSlot({
   onChange,
   onValidationError,
 }: Props) {
+  const { id } = useParams<{ id: string }>()
+  const { show: showKeyboard, hide: hideKeyboard } = useCustomKeyboard()
+  const valueInputRef = useRef<HTMLInputElement>(null)
+
+  // スクロール制御を適用
+  useScrollToInput(valueInputRef)
+
   const handleNameChange = (value: string) => {
     onChange({ varName: value })
   }
 
   const handleValueChange = (value: string) => {
     onChange({ expression: value })
+  }
+
+  const handleValueFocus = () => {
+    if (!id) {
+      return
+    }
+
+    showKeyboard({
+      type: 'variable',
+      sheetId: id,
+      slot: slot.slot,
+    })
+  }
+
+  const handleNameFocus = () => {
+    // カスタムキーボードを非表示にする
+    hideKeyboard()
   }
 
   const handleNameBlur = () => {
@@ -61,17 +89,23 @@ export function VariableSlot({
           placeholder="変数名"
           value={slot.varName}
           onChange={e => handleNameChange(e.target.value)}
+          onFocus={handleNameFocus}
           onBlur={handleNameBlur}
+          inputMode="url"
           className="flex-1"
           aria-label={`Variable${slot.slot} の名前`}
           aria-invalid={!!slot.error}
         />
         <Input
+          ref={valueInputRef}
           data-testid={`variable-value-${slot.slot}`}
           placeholder="値"
           value={slot.expression}
           onChange={e => handleValueChange(e.target.value)}
-          className="flex-1"
+          onFocus={handleValueFocus}
+          inputMode="none"
+          readOnly
+          className="flex-1 cursor-pointer"
           aria-label={`Variable${slot.slot} の値`}
         />
       </div>
