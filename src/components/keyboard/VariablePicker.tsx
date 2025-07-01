@@ -49,14 +49,7 @@ export function VariablePicker({ open, onSelect, onClose, sheetId }: Props) {
                 className="w-full justify-start text-left h-auto py-3"
                 onClick={() => handleSelect(slot.slot, slot.varName)}
               >
-                <div>
-                  <div className="font-medium">{displayName}</div>
-                  {slot.varName && (
-                    <div className="text-sm text-gray-500">
-                      Variable{slot.slot}
-                    </div>
-                  )}
-                </div>
+                <div className="font-medium">{displayName}</div>
               </Button>
             )
           })}

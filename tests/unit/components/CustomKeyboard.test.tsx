@@ -240,9 +240,12 @@ describe('VariablePicker', () => {
       />
     )
 
-    // Variable1〜8が表示されることを確認
-    for (let i = 1; i <= 8; i++) {
-      expect(screen.getByText(`Variable${i}`)).toBeInTheDocument()
+    // テストデータに基づく実際の表示名を確認
+    expect(screen.getByText('testVar1')).toBeInTheDocument() // slot 1 - custom name
+    expect(screen.getByText('Variable2')).toBeInTheDocument() // slot 2 - default name
+    expect(screen.getByText('var3')).toBeInTheDocument() // slot 3 - custom name
+    for (let i = 4; i <= 8; i++) {
+      expect(screen.getByText(`Variable${i}`)).toBeInTheDocument() // slots 4-8 - default names
     }
   })
 
