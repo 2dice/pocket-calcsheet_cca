@@ -10,14 +10,19 @@ import { FUNCTIONS } from '@/utils/constants/functions'
 
 interface Props {
   open: boolean
-  onSelect: (functionText: string) => void
+  onSelect: (template: string, cursorOffset: number) => void
   onClose: () => void
 }
 
 export function FunctionPicker({ open, onSelect, onClose }: Props) {
   const handleSelect = (functionId: string) => {
-    // 関数名に括弧を付けて返す
-    onSelect(`${functionId}()`)
+    if (functionId === 'random') {
+      onSelect('random(,)', 2) // カンマの手前にカーソル
+    } else if (functionId === 'pi' || functionId === 'e') {
+      onSelect(`${functionId}()`, 0) // 括弧の後ろにカーソル
+    } else {
+      onSelect(`${functionId}()`, 1) // 括弧の内側にカーソル
+    }
     onClose()
   }
 

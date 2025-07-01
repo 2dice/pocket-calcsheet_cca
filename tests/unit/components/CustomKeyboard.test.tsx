@@ -203,7 +203,7 @@ describe('FunctionPicker', () => {
     const sqrtFunction = screen.getByText('sqrt - 平方根')
     fireEvent.click(sqrtFunction)
 
-    expect(mockOnSelect).toHaveBeenCalledWith('sqrt()')
+    expect(mockOnSelect).toHaveBeenCalledWith('sqrt()', 1)
   })
 
   it('閉じるボタンでダイアログが閉じられる', () => {

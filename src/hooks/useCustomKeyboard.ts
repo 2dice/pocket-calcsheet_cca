@@ -11,15 +11,18 @@ export function useCustomKeyboard() {
   } = useUIStore()
   const { updateVariableSlot } = useSheetsStore()
 
-  const insertText = (text: string) => {
+  const insertText = (text: string, cursorOffset = 0) => {
     if (!keyboardState.target || !keyboardInput) return
 
-    const cursorPosition = keyboardInput.cursorPosition
+    const { value: currentValue, cursorPosition } = keyboardInput
+
     const newValue =
-      keyboardInput.value.slice(0, cursorPosition) +
+      currentValue.slice(0, cursorPosition) +
       text +
-      keyboardInput.value.slice(cursorPosition)
-    const newPosition = cursorPosition + text.length
+      currentValue.slice(cursorPosition)
+
+    // 挿入したテキストの末尾からオフセットを引いて新しいカーソル位置を計算
+    const newPosition = cursorPosition + text.length - cursorOffset
 
     updateKeyboardInput({
       value: newValue,

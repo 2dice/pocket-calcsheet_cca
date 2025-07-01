@@ -207,8 +207,8 @@ export function CustomKeyboard({ visible }: Props) {
         {/* Function Picker Dialog */}
         <FunctionPicker
           open={showFunctionPicker}
-          onSelect={functionText => {
-            insertText(functionText)
+          onSelect={(template, cursorOffset) => {
+            insertText(template, cursorOffset)
             setShowFunctionPicker(false)
           }}
           onClose={() => setShowFunctionPicker(false)}
