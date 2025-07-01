@@ -80,6 +80,16 @@ export function VariableSlot({
     onChange({ expression: value })
   }
 
+  const handleSelectionChange = () => {
+    if (isCurrentTarget && valueInputRef.current) {
+      const cursorPos = valueInputRef.current.selectionStart || 0
+      updateKeyboardInput({
+        value: keyboardInput?.value || slot.expression || '',
+        cursorPosition: cursorPos,
+      })
+    }
+  }
+
   const handleValueFocus = () => {
     if (!id) {
       return
@@ -156,6 +166,9 @@ export function VariableSlot({
           }
           onChange={e => handleValueChange(e.target.value)}
           onFocus={handleValueFocus}
+          onClick={handleSelectionChange}
+          onKeyUp={handleSelectionChange}
+          onSelect={handleSelectionChange}
           inputMode="none"
           className="flex-1 cursor-pointer"
           aria-label={`Variable${slot.slot} の値`}
