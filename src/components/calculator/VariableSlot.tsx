@@ -52,6 +52,26 @@ export function VariableSlot({
     }
   }, [isCurrentTarget, keyboardInput, slot.expression, updateKeyboardInput])
 
+  // カーソル位置とフォーカスを制御するためのuseEffect
+  useEffect(() => {
+    // このスロットが現在キーボード入力の対象であり、keyboardInputが存在する場合
+    if (isCurrentTarget && keyboardInput && valueInputRef.current) {
+      const input = valueInputRef.current
+
+      // フォーカスを当てる
+      input.focus()
+
+      // カーソル位置を設定
+      // setSelectionRangeを使用してカーソル位置を正確に設定
+      requestAnimationFrame(() => {
+        input.setSelectionRange(
+          keyboardInput.cursorPosition,
+          keyboardInput.cursorPosition
+        )
+      })
+    }
+  }, [isCurrentTarget, keyboardInput])
+
   const handleNameChange = (value: string) => {
     onChange({ varName: value })
   }
@@ -129,7 +149,11 @@ export function VariableSlot({
           ref={valueInputRef}
           data-testid={`variable-value-${slot.slot}`}
           placeholder="値"
-          value={slot.expression}
+          value={
+            isCurrentTarget && keyboardInput
+              ? keyboardInput.value
+              : slot.expression || ''
+          }
           onChange={e => handleValueChange(e.target.value)}
           onFocus={handleValueFocus}
           inputMode="none"
