@@ -34,13 +34,17 @@ export function CustomKeyboard({ visible }: Props) {
           {/* 最上段: カーソル移動キー */}
           <div className="grid grid-cols-2 gap-1 mb-1">
             <button
+              type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
+              onMouseDown={e => e.preventDefault()}
               onClick={() => moveCursor('left')}
             >
               ←
             </button>
             <button
+              type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
+              onMouseDown={e => e.preventDefault()}
               onClick={() => moveCursor('right')}
             >
               →
