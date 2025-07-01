@@ -589,7 +589,9 @@ test.describe('アプリケーション基本動作確認', () => {
       await page
         .locator('[data-testid="custom-keyboard"] button:has-text("var")')
         .click()
-      await page.locator('text=x').click()
+      await page
+        .locator('[data-testid="variable-picker"] button:has-text("x")')
+        .click()
 
       // 最終的に "sqrt(2*[x])" が入力されることを確認
       await expect(valueInput).toHaveValue('sqrt(2*[x])')

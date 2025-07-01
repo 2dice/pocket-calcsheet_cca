@@ -115,7 +115,7 @@ describe('VariableSlot', () => {
     expect(valueInput).toHaveAttribute('inputMode', 'none')
   })
 
-  it('値入力フィールドに直接onChangeイベントを発火すると呼ばれる', () => {
+  it('値入力フィールドに直接onChangeイベントを発火してもonChangeは呼ばれない（カスタムキーボードで状態管理）', () => {
     render(
       <VariableSlot
         slot={mockSlot}
@@ -128,7 +128,8 @@ describe('VariableSlot', () => {
     const valueInput = screen.getByTestId('variable-value-1')
     fireEvent.change(valueInput, { target: { value: '123' } })
 
-    expect(mockOnChange).toHaveBeenCalledWith({ expression: '123' })
+    // カスタムキーボードで状態管理するため、直接のonChangeは呼ばれない
+    expect(mockOnChange).not.toHaveBeenCalled()
   })
 
   it('無効な変数名でonValidationErrorが呼ばれる', () => {
