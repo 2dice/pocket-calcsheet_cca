@@ -85,6 +85,10 @@ export function useCustomKeyboard() {
   }
 
   const handleEnter = () => {
+    // 現在フォーカスされている要素のフォーカスを解除
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
     hideKeyboard()
   }
 
