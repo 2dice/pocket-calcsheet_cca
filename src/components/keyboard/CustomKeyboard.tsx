@@ -36,16 +36,20 @@ export function CustomKeyboard({ visible }: Props) {
             <button
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
-              onMouseDown={e => e.preventDefault()}
-              onClick={() => moveCursor('left')}
+              onMouseDown={e => {
+                e.preventDefault()
+                moveCursor('left')
+              }}
             >
               ←
             </button>
             <button
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
-              onMouseDown={e => e.preventDefault()}
-              onClick={() => moveCursor('right')}
+              onMouseDown={e => {
+                e.preventDefault()
+                moveCursor('right')
+              }}
             >
               →
             </button>
@@ -59,40 +63,50 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('%')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('%')
+                }}
               >
                 %
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('^')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('^')
+                }}
               >
                 ^
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('7')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('7')
+                }}
               >
                 7
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('8')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('8')
+                }}
               >
                 8
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('9')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('9')
+                }}
               >
                 9
               </button>
@@ -101,40 +115,50 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('+')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('+')
+                }}
               >
                 +
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('-')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('-')
+                }}
               >
                 -
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('4')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('4')
+                }}
               >
                 4
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('5')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('5')
+                }}
               >
                 5
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('6')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('6')
+                }}
               >
                 6
               </button>
@@ -143,40 +167,50 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('*')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('*')
+                }}
               >
                 *
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('/')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('/')
+                }}
               >
                 /
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('1')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('1')
+                }}
               >
                 1
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('2')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('2')
+                }}
               >
                 2
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('3')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('3')
+                }}
               >
                 3
               </button>
@@ -185,32 +219,40 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('(')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('(')
+                }}
               >
                 (
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText(')')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText(')')
+                }}
               >
                 )
               </button>
               <button
                 type="button"
                 className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('0')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('0')
+                }}
               >
                 0
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => insertText('.')}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('.')
+                }}
               >
                 .
               </button>
@@ -221,32 +263,40 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={handleBackspace}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  handleBackspace()
+                }}
               >
                 BS
               </button>
               <button
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => setShowFunctionPicker(true)}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  setShowFunctionPicker(true)
+                }}
               >
                 f(x)
               </button>
               <button
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={() => setShowVariablePicker(true)}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  setShowVariablePicker(true)
+                }}
               >
                 var
               </button>
               <button
                 type="button"
                 className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => e.preventDefault()}
-                onClick={handleEnter}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  handleEnter()
+                }}
               >
                 ↵
               </button>

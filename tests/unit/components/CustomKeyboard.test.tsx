@@ -120,7 +120,7 @@ describe('CustomKeyboard', () => {
       render(<CustomKeyboard visible={true} />)
 
       const key7 = screen.getByText('7')
-      fireEvent.click(key7)
+      fireEvent.mouseDown(key7)
 
       expect(mockInsertText).toHaveBeenCalledWith('7')
     })
@@ -129,7 +129,7 @@ describe('CustomKeyboard', () => {
       render(<CustomKeyboard visible={true} />)
 
       const plusKey = screen.getByText('+')
-      fireEvent.click(plusKey)
+      fireEvent.mouseDown(plusKey)
 
       expect(mockInsertText).toHaveBeenCalledWith('+')
     })
@@ -138,7 +138,7 @@ describe('CustomKeyboard', () => {
       render(<CustomKeyboard visible={true} />)
 
       const backspaceKey = screen.getByText('BS')
-      fireEvent.click(backspaceKey)
+      fireEvent.mouseDown(backspaceKey)
 
       expect(mockHandleBackspace).toHaveBeenCalled()
     })
@@ -149,10 +149,10 @@ describe('CustomKeyboard', () => {
       const leftArrow = screen.getByText('←')
       const rightArrow = screen.getByText('→')
 
-      fireEvent.click(leftArrow)
+      fireEvent.mouseDown(leftArrow)
       expect(mockMoveCursor).toHaveBeenCalledWith('left')
 
-      fireEvent.click(rightArrow)
+      fireEvent.mouseDown(rightArrow)
       expect(mockMoveCursor).toHaveBeenCalledWith('right')
     })
 
@@ -160,7 +160,7 @@ describe('CustomKeyboard', () => {
       render(<CustomKeyboard visible={true} />)
 
       const enterKey = screen.getByText('↵')
-      fireEvent.click(enterKey)
+      fireEvent.mouseDown(enterKey)
 
       expect(mockHandleEnter).toHaveBeenCalled()
     })
