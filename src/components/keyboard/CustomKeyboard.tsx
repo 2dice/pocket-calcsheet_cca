@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Portal } from '@/components/common/Portal'
 import { FunctionPicker } from './FunctionPicker'
 import { VariablePicker } from './VariablePicker'
@@ -14,6 +14,9 @@ export function CustomKeyboard({ visible }: Props) {
     useCustomKeyboard()
   const [showFunctionPicker, setShowFunctionPicker] = useState(false)
   const [showVariablePicker, setShowVariablePicker] = useState(false)
+
+  // タッチイベント処理済みフラグ
+  const touchProcessedRef = useRef(false)
   return (
     <Portal containerId="keyboard-portal">
       <div
@@ -36,12 +39,17 @@ export function CustomKeyboard({ visible }: Props) {
             <button
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
-              onMouseDown={e => {
-                e.preventDefault()
-                moveCursor('left')
-              }}
               onTouchStart={e => {
                 e.preventDefault()
+                touchProcessedRef.current = true
+                moveCursor('left')
+              }}
+              onMouseDown={e => {
+                e.preventDefault()
+                if (touchProcessedRef.current) {
+                  touchProcessedRef.current = false
+                  return
+                }
                 moveCursor('left')
               }}
             >
@@ -50,12 +58,17 @@ export function CustomKeyboard({ visible }: Props) {
             <button
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
-              onMouseDown={e => {
-                e.preventDefault()
-                moveCursor('right')
-              }}
               onTouchStart={e => {
                 e.preventDefault()
+                touchProcessedRef.current = true
+                moveCursor('right')
+              }}
+              onMouseDown={e => {
+                e.preventDefault()
+                if (touchProcessedRef.current) {
+                  touchProcessedRef.current = false
+                  return
+                }
                 moveCursor('right')
               }}
             >
@@ -71,12 +84,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('%')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('%')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('%')
                 }}
               >
@@ -85,12 +103,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('^')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('^')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('^')
                 }}
               >
@@ -99,12 +122,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('7')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('7')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('7')
                 }}
               >
@@ -113,12 +141,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('8')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('8')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('8')
                 }}
               >
@@ -127,12 +160,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('9')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('9')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('9')
                 }}
               >
@@ -143,12 +181,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('+')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('+')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('+')
                 }}
               >
@@ -157,12 +200,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('-')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('-')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('-')
                 }}
               >
@@ -171,12 +219,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('4')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('4')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('4')
                 }}
               >
@@ -185,12 +238,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('5')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('5')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('5')
                 }}
               >
@@ -199,12 +257,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('6')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('6')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('6')
                 }}
               >
@@ -215,12 +278,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('*')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('*')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('*')
                 }}
               >
@@ -229,12 +297,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('/')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('/')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('/')
                 }}
               >
@@ -243,12 +316,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('1')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('1')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('1')
                 }}
               >
@@ -257,12 +335,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('2')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('2')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('2')
                 }}
               >
@@ -271,12 +354,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('3')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('3')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('3')
                 }}
               >
@@ -287,12 +375,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('(')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('(')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('(')
                 }}
               >
@@ -301,12 +394,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText(')')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText(')')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText(')')
                 }}
               >
@@ -315,12 +413,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('0')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('0')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('0')
                 }}
               >
@@ -329,12 +432,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  insertText('.')
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  insertText('.')
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   insertText('.')
                 }}
               >
@@ -347,12 +455,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  handleBackspace()
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  handleBackspace()
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   handleBackspace()
                 }}
               >
@@ -361,12 +474,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  setShowFunctionPicker(true)
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  setShowFunctionPicker(true)
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   setShowFunctionPicker(true)
                 }}
               >
@@ -375,12 +493,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  setShowVariablePicker(true)
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  setShowVariablePicker(true)
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   setShowVariablePicker(true)
                 }}
               >
@@ -389,12 +512,17 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onMouseDown={e => {
-                  e.preventDefault()
-                  handleEnter()
-                }}
                 onTouchStart={e => {
                   e.preventDefault()
+                  touchProcessedRef.current = true
+                  handleEnter()
+                }}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  if (touchProcessedRef.current) {
+                    touchProcessedRef.current = false
+                    return
+                  }
                   handleEnter()
                 }}
               >
