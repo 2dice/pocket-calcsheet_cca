@@ -512,17 +512,8 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
-                  touchProcessedRef.current = true
-                  handleEnter()
-                }}
                 onMouseDown={e => {
                   e.preventDefault()
-                  if (touchProcessedRef.current) {
-                    touchProcessedRef.current = false
-                    return
-                  }
                   handleEnter()
                 }}
               >
