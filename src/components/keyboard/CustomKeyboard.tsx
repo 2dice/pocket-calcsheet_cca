@@ -40,6 +40,10 @@ export function CustomKeyboard({ visible }: Props) {
                 e.preventDefault()
                 moveCursor('left')
               }}
+              onTouchStart={e => {
+                e.preventDefault()
+                moveCursor('left')
+              }}
             >
               ←
             </button>
@@ -47,6 +51,10 @@ export function CustomKeyboard({ visible }: Props) {
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
               onMouseDown={e => {
+                e.preventDefault()
+                moveCursor('right')
+              }}
+              onTouchStart={e => {
                 e.preventDefault()
                 moveCursor('right')
               }}
@@ -67,6 +75,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('%')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('%')
+                }}
               >
                 %
               </button>
@@ -74,6 +86,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('^')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('^')
                 }}
@@ -87,6 +103,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('7')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('7')
+                }}
               >
                 7
               </button>
@@ -97,6 +117,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('8')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('8')
+                }}
               >
                 8
               </button>
@@ -104,6 +128,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('9')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('9')
                 }}
@@ -119,6 +147,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('+')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('+')
+                }}
               >
                 +
               </button>
@@ -126,6 +158,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('-')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('-')
                 }}
@@ -139,6 +175,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('4')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('4')
+                }}
               >
                 4
               </button>
@@ -149,6 +189,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('5')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('5')
+                }}
               >
                 5
               </button>
@@ -156,6 +200,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('6')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('6')
                 }}
@@ -171,6 +219,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('*')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('*')
+                }}
               >
                 *
               </button>
@@ -178,6 +230,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('/')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('/')
                 }}
@@ -191,6 +247,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('1')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('1')
+                }}
               >
                 1
               </button>
@@ -201,6 +261,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('2')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('2')
+                }}
               >
                 2
               </button>
@@ -208,6 +272,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('3')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('3')
                 }}
@@ -223,6 +291,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('(')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('(')
+                }}
               >
                 (
               </button>
@@ -230,6 +302,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText(')')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText(')')
                 }}
@@ -243,6 +319,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   insertText('0')
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  insertText('0')
+                }}
               >
                 0
               </button>
@@ -250,6 +330,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  insertText('.')
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   insertText('.')
                 }}
@@ -267,6 +351,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   handleBackspace()
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  handleBackspace()
+                }}
               >
                 BS
               </button>
@@ -274,6 +362,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  setShowFunctionPicker(true)
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   setShowFunctionPicker(true)
                 }}
@@ -287,6 +379,10 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   setShowVariablePicker(true)
                 }}
+                onTouchStart={e => {
+                  e.preventDefault()
+                  setShowVariablePicker(true)
+                }}
               >
                 var
               </button>
@@ -294,6 +390,10 @@ export function CustomKeyboard({ visible }: Props) {
                 type="button"
                 className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
                 onMouseDown={e => {
+                  e.preventDefault()
+                  handleEnter()
+                }}
+                onTouchStart={e => {
                   e.preventDefault()
                   handleEnter()
                 }}
