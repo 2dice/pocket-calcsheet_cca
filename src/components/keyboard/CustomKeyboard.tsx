@@ -57,31 +57,41 @@ export function CustomKeyboard({ visible }: Props) {
             <div className="flex-1 grid grid-cols-8 gap-1">
               {/* 1行目 */}
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('%')}
               >
                 %
               </button>
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('^')}
               >
                 ^
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('7')}
               >
                 7
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('8')}
               >
                 8
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('9')}
               >
                 9
@@ -89,31 +99,41 @@ export function CustomKeyboard({ visible }: Props) {
 
               {/* 2行目 */}
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('+')}
               >
                 +
               </button>
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('-')}
               >
                 -
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('4')}
               >
                 4
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('5')}
               >
                 5
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('6')}
               >
                 6
@@ -121,31 +141,41 @@ export function CustomKeyboard({ visible }: Props) {
 
               {/* 3行目 */}
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('*')}
               >
                 *
               </button>
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('/')}
               >
                 /
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('1')}
               >
                 1
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('2')}
               >
                 2
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('3')}
               >
                 3
@@ -153,25 +183,33 @@ export function CustomKeyboard({ visible }: Props) {
 
               {/* 4行目 */}
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('(')}
               >
                 (
               </button>
               <button
+                type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText(')')}
               >
                 )
               </button>
               <button
+                type="button"
                 className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('0')}
               >
                 0
               </button>
               <button
+                type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => insertText('.')}
               >
                 .
@@ -181,25 +219,33 @@ export function CustomKeyboard({ visible }: Props) {
             {/* 右側: 特殊キー (固定幅) */}
             <div className="w-[20%] flex flex-col gap-1">
               <button
+                type="button"
                 className="h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={handleBackspace}
               >
                 BS
               </button>
               <button
+                type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => setShowFunctionPicker(true)}
               >
                 f(x)
               </button>
               <button
+                type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={() => setShowVariablePicker(true)}
               >
                 var
               </button>
               <button
+                type="button"
                 className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
+                onMouseDown={e => e.preventDefault()}
                 onClick={handleEnter}
               >
                 ↵
