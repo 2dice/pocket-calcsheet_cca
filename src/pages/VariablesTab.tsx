@@ -39,7 +39,8 @@ export function VariablesTab() {
     if (id && sheet?.variableSlots) {
       calculateAllVariables(id)
     }
-  }, [id, sheet?.variableSlots, calculateAllVariables])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   const handleSlotChange = (
     slotNumber: number,
@@ -62,10 +63,6 @@ export function VariablesTab() {
     const target = e.target
     if (target instanceof HTMLElement && target.tagName !== 'INPUT') {
       hideKeyboard()
-      // キーボードを隠すときに計算を実行
-      if (id) {
-        setTimeout(() => calculateAllVariables(id), 0)
-      }
     }
   }
 

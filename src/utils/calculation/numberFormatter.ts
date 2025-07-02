@@ -8,7 +8,7 @@ export function formatWithSIPrefix(value: number): string {
   const exponent = Math.floor(Math.log10(absValue))
 
   // 3の倍数に調整（SI接頭語: -12, -9, -6, -3, 0, 3, 6, 9, 12...）
-  const siExponent = Math.floor(exponent / 3) * 3
+  let siExponent = Math.floor(exponent / 3) * 3
 
   // 仮数部を1以上1000未満に調整
   let mantissa = absValue / Math.pow(10, siExponent)
@@ -16,8 +16,7 @@ export function formatWithSIPrefix(value: number): string {
   // 1000以上の場合は次の3の倍数へ
   if (mantissa >= 1000) {
     mantissa /= 1000
-    const newSiExponent = siExponent + 3
-    mantissa = absValue / Math.pow(10, newSiExponent)
+    siExponent += 3
   }
 
   // 小数点以下2桁で切り捨て

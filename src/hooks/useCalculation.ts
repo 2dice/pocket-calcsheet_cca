@@ -11,12 +11,18 @@ export function useCalculation() {
       const sheet = entities[sheetId]
       if (!sheet?.variableSlots) return
 
-      // 2回計算（循環参照対策）
-      for (let iteration = 0; iteration < 2; iteration++) {
-        // 変数マップを構築
-        const variables: Record<string, number | null> = {}
+      // 変数マップを外側で初期化
+      const variables: Record<string, number | null> = {}
+
+      // スロット数分ループして依存関係を解決
+      for (
+        let iteration = 0;
+        iteration < sheet.variableSlots.length;
+        iteration++
+      ) {
+        // 各イテレーションで変数マップを再構築
         sheet.variableSlots.forEach(slot => {
-          if (slot.varName) {
+          if (slot.varName && slot.value !== null) {
             variables[slot.varName] = slot.value
           }
         })
@@ -24,7 +30,6 @@ export function useCalculation() {
         // 各スロットを順番に計算
         sheet.variableSlots.forEach(slot => {
           if (!slot.expression.trim()) {
-            // 空の式の場合
             updateVariableSlot(sheetId, slot.slot, {
               value: null,
               error: null,
@@ -41,7 +46,7 @@ export function useCalculation() {
           })
 
           // 変数マップを更新
-          if (slot.varName && result.value !== null) {
+          if (slot.varName) {
             variables[slot.varName] = result.value
           }
         })
