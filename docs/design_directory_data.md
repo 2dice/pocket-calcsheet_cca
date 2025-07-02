@@ -83,7 +83,6 @@ pocket-calcsheet_cca/
 │   │   │   └── presetData.ts         # プリセットデータ定義
 │   │   └── constants/
 │   │       ├── functions.ts          # 対応関数一覧定義
-│   │       ├── keyboard.ts           # キーボードレイアウト定義
 │   │       └── routes.ts             # ルート定義
 │   ├── types/
 │   │   ├── sheet.ts                  # シートモデル型定義
