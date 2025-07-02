@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
@@ -8,6 +8,7 @@ import {
 } from '@/utils/validation/variableValidation'
 import { useCustomKeyboard } from '@/hooks/useCustomKeyboard'
 import { useScrollToInput } from '@/hooks/useScrollToInput'
+import { useUIStore } from '@/store/uiStore'
 
 interface Props {
   slot: VariableSlotType
@@ -23,23 +24,82 @@ export function VariableSlot({
   onValidationError,
 }: Props) {
   const { id } = useParams<{ id: string }>()
-  const { show: showKeyboard, hide: hideKeyboard } = useCustomKeyboard()
+  const {
+    show: showKeyboard,
+    hide: hideKeyboard,
+    target,
+    keyboardInput,
+  } = useCustomKeyboard()
+  const { updateKeyboardInput } = useUIStore()
   const valueInputRef = useRef<HTMLInputElement>(null)
 
   // スクロール制御を適用
   useScrollToInput(valueInputRef)
 
+  // カーソル位置の表示用（現在は実装せず、将来の実装のためのプレースホルダー）
+  const isCurrentTarget =
+    target?.type === 'variable' &&
+    target.sheetId === id &&
+    target.slot === slot.slot
+
+  // キーボード入力の初期化
+  useEffect(() => {
+    if (isCurrentTarget && keyboardInput === null) {
+      updateKeyboardInput({
+        value: slot.expression || '',
+        cursorPosition: (slot.expression || '').length,
+      })
+    }
+  }, [isCurrentTarget, keyboardInput, slot.expression, updateKeyboardInput])
+
+  // カーソル位置とフォーカスを制御するためのuseEffect
+  useEffect(() => {
+    if (isCurrentTarget && keyboardInput && valueInputRef.current) {
+      const input = valueInputRef.current
+
+      // フォーカスを当てる
+      input.focus()
+
+      // DOM更新後に確実にカーソル位置を設定
+      setTimeout(() => {
+        input.setSelectionRange(
+          keyboardInput.cursorPosition,
+          keyboardInput.cursorPosition
+        )
+      }, 0)
+    }
+  }, [
+    isCurrentTarget,
+    keyboardInput,
+    keyboardInput?.cursorPosition,
+    keyboardInput?.value,
+  ])
+
   const handleNameChange = (value: string) => {
     onChange({ varName: value })
   }
 
-  const handleValueChange = (value: string) => {
-    onChange({ expression: value })
+  const handleSelectionChange = () => {
+    if (isCurrentTarget && valueInputRef.current) {
+      const cursorPos = valueInputRef.current.selectionStart || 0
+      updateKeyboardInput({
+        value: keyboardInput?.value || slot.expression || '',
+        cursorPosition: cursorPos,
+      })
+    }
   }
 
   const handleValueFocus = () => {
     if (!id) {
       return
+    }
+
+    // 初回フォーカス時のみキーボード入力を初期化
+    if (!isCurrentTarget) {
+      updateKeyboardInput({
+        value: slot.expression || '',
+        cursorPosition: (slot.expression || '').length,
+      })
     }
 
     showKeyboard({
@@ -100,11 +160,15 @@ export function VariableSlot({
           ref={valueInputRef}
           data-testid={`variable-value-${slot.slot}`}
           placeholder="値"
-          value={slot.expression}
-          onChange={e => handleValueChange(e.target.value)}
+          value={
+            isCurrentTarget && keyboardInput
+              ? keyboardInput.value
+              : slot.expression || ''
+          }
+          onChange={() => {}} // カスタムキーボードで状態管理するため空関数
           onFocus={handleValueFocus}
+          onClick={handleSelectionChange}
           inputMode="none"
-          readOnly
           className="flex-1 cursor-pointer"
           aria-label={`Variable${slot.slot} の値`}
         />
