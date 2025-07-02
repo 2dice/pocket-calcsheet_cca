@@ -84,8 +84,7 @@ pocket-calcsheet_cca/
 │   ├── utils/                        # ユーティリティ関数
 │   │   ├── constants/                # 定数定義
 │   │   │   ├── routes.ts             # ルート定義・タブバリデーション
-│   │   │   ├── functions.ts          # 対応関数一覧定義
-│   │   │   └── keyboard.ts           # キーボードレイアウト定義
+│   │   │   └── functions.ts          # 対応関数一覧定義
 │   │   ├── validation/               # バリデーション関連ユーティリティ
 │   │   │   └── variableValidation.ts # 変数名バリデーション
 │   │   └── storage/                  # ストレージ関連ユーティリティ
