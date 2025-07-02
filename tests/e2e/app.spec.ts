@@ -597,4 +597,166 @@ test.describe('アプリケーション基本動作確認', () => {
       await expect(valueInput).toHaveValue('sqrt(2*[x])')
     })
   })
+
+  test.describe('数式計算機能テスト @step4-4', () => {
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/')
+
+      // 共通のセットアップ
+      await page.locator('button:has-text("編集")').click()
+      await page.locator('button:has-text("+")').click()
+      const input = page.locator('[data-testid="new-sheet-input"]')
+      await input.fill('計算テスト')
+      await input.press('Enter')
+      await page.locator('button:has-text("完了")').click()
+      await page.locator('text=計算テスト').click()
+      await page.locator('[data-testid="tab-variables"]').click()
+    })
+
+    test('変数の計算が自動実行される @step4-4', async ({ page }) => {
+      // Variable1に"100"を入力
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // 計算結果"100.00"が表示されることを確認
+      await expect(page.locator('text=100.00')).toBeVisible()
+    })
+
+    test('変数参照を含む計算が動作する @step4-4', async ({ page }) => {
+      // Variable1に変数名"x"を入力
+      const nameInput1 = page.locator('[data-testid="variable-name-1"]')
+      await nameInput1.fill('x')
+      await nameInput1.blur()
+
+      // Variable1に"100"を入力・確定
+      const valueInput1 = page.locator('[data-testid="variable-value-1"]')
+      await valueInput1.click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // Variable2に"[x]*2"を入力・確定
+      const valueInput2 = page.locator('[data-testid="variable-value-2"]')
+      await valueInput2.click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("[")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("x")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("]")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("*")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // Variable2の計算結果"200.00"が表示されることを確認
+      await expect(page.locator('text=200.00')).toBeVisible()
+    })
+
+    test('計算エラー時の表示確認 @step4-4', async ({ page }) => {
+      // Variable1に無効な式"1/0"を入力
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("/")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // "Error"が表示されることを確認
+      await expect(page.locator('text=Error')).toBeVisible()
+    })
+
+    test('三角関数の計算 @step4-4', async ({ page }) => {
+      // Variable1に"sin(90)"を入力
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+
+      // f(x)から sin を選択
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("f(x)")')
+        .click()
+      await page.locator('text=sin - サイン(度)').click()
+
+      // 括弧内に90を入力
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("9")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // 計算結果"1.00"が表示されることを確認
+      await expect(page.locator('text=1.00')).toBeVisible()
+    })
+
+    test('SI接頭語フォーマットの確認 @step4-4', async ({ page }) => {
+      // Variable1に"0.0003"を入力
+      const valueInput = page.locator('[data-testid="variable-value-1"]')
+      await valueInput.click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text(".")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("3")')
+        .click()
+      await page
+        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+        .click()
+
+      // SI接頭語フォーマット"300.00×10^-6"が表示されることを確認
+      await expect(page.locator('text=300.00×10^-6')).toBeVisible()
+    })
+  })
 })

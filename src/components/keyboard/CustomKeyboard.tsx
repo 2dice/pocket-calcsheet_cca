@@ -7,11 +7,19 @@ import { cn } from '@/lib/utils'
 
 interface Props {
   visible: boolean
+  onEnter?: () => void
 }
 
-export function CustomKeyboard({ visible }: Props) {
+export function CustomKeyboard({ visible, onEnter }: Props) {
   const { insertText, handleBackspace, moveCursor, handleEnter, target } =
     useCustomKeyboard()
+
+  const handleEnterClick = () => {
+    handleEnter()
+    if (onEnter) {
+      onEnter()
+    }
+  }
   const [showFunctionPicker, setShowFunctionPicker] = useState(false)
   const [showVariablePicker, setShowVariablePicker] = useState(false)
 
@@ -514,7 +522,7 @@ export function CustomKeyboard({ visible }: Props) {
                 className="flex-1 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
                 onMouseDown={e => {
                   e.preventDefault()
-                  handleEnter()
+                  handleEnterClick()
                 }}
               >
                 ↵

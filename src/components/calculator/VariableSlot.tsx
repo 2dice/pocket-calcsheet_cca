@@ -9,6 +9,7 @@ import {
 import { useCustomKeyboard } from '@/hooks/useCustomKeyboard'
 import { useScrollToInput } from '@/hooks/useScrollToInput'
 import { useUIStore } from '@/store/uiStore'
+import { formatWithSIPrefix } from '@/utils/calculation/numberFormatter'
 
 interface Props {
   slot: VariableSlotType
@@ -139,8 +140,12 @@ export function VariableSlot({
         <div className="text-sm font-medium text-gray-700">
           Variable{slot.slot}
         </div>
-        <div className="text-sm text-gray-600 h-5">
-          {/* 計算値表示用スペース（後のステップで実装） */}
+        <div className="text-right text-sm font-mono h-5">
+          {slot.error ? (
+            <span className="text-red-500">Error</span>
+          ) : slot.value !== null ? (
+            <span>{formatWithSIPrefix(slot.value)}</span>
+          ) : null}
         </div>
       </div>
       <div className="flex gap-2">
