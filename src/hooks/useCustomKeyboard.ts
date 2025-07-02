@@ -1,5 +1,6 @@
 import { useUIStore } from '@/store/uiStore'
 import { useSheetsStore } from '@/store/sheetsStore'
+import { useCallback } from 'react'
 
 export function useCustomKeyboard() {
   const {
@@ -11,92 +12,92 @@ export function useCustomKeyboard() {
   } = useUIStore()
   const { updateVariableSlot } = useSheetsStore()
 
-  const insertText = (text: string, cursorOffset = 0) => {
-    if (!keyboardState.target || !keyboardInput) return
+  const insertText = useCallback(
+    (text: string, cursorOffset = 0) => {
+      // 実行時に最新の状態を取得
+      const state = useUIStore.getState()
+      if (!state.keyboardState.target || !state.keyboardInput) return
 
-    const { value: currentValue, cursorPosition } = keyboardInput
+      const { value: currentValue, cursorPosition } = state.keyboardInput
+      const newValue =
+        currentValue.slice(0, cursorPosition) +
+        text +
+        currentValue.slice(cursorPosition)
+      const newPosition = cursorPosition + text.length - cursorOffset
 
-    const newValue =
-      currentValue.slice(0, cursorPosition) +
-      text +
-      currentValue.slice(cursorPosition)
+      updateKeyboardInput({ value: newValue, cursorPosition: newPosition })
 
-    // 挿入したテキストの末尾からオフセットを引いて新しいカーソル位置を計算
-    const newPosition = cursorPosition + text.length - cursorOffset
+      if (state.keyboardState.target.type === 'variable') {
+        updateVariableSlot(
+          state.keyboardState.target.sheetId,
+          state.keyboardState.target.slot,
+          { expression: newValue }
+        )
+      }
+    },
+    [updateKeyboardInput, updateVariableSlot]
+  )
 
-    updateKeyboardInput({
-      value: newValue,
-      cursorPosition: newPosition,
-    })
-
-    // 実際の入力フィールドにも反映
-    if (keyboardState.target.type === 'variable') {
-      updateVariableSlot(
-        keyboardState.target.sheetId,
-        keyboardState.target.slot,
-        { expression: newValue }
-      )
+  const handleBackspace = useCallback(() => {
+    const state = useUIStore.getState()
+    if (
+      !state.keyboardState.target ||
+      !state.keyboardInput ||
+      state.keyboardInput.cursorPosition === 0
+    ) {
+      return
     }
-  }
 
-  const handleBackspace = () => {
-    if (!keyboardState.target || !keyboardInput) return
-    const cursorPosition = keyboardInput.cursorPosition
-    if (cursorPosition === 0) return
-
+    const { value: currentValue, cursorPosition } = state.keyboardInput
     const newValue =
-      keyboardInput.value.slice(0, cursorPosition - 1) +
-      keyboardInput.value.slice(cursorPosition)
+      currentValue.slice(0, cursorPosition - 1) +
+      currentValue.slice(cursorPosition)
     const newPosition = cursorPosition - 1
 
-    updateKeyboardInput({
-      value: newValue,
-      cursorPosition: newPosition,
-    })
+    updateKeyboardInput({ value: newValue, cursorPosition: newPosition })
 
-    // 実際の入力フィールドにも反映
-    if (keyboardState.target.type === 'variable') {
+    if (state.keyboardState.target.type === 'variable') {
       updateVariableSlot(
-        keyboardState.target.sheetId,
-        keyboardState.target.slot,
+        state.keyboardState.target.sheetId,
+        state.keyboardState.target.slot,
         { expression: newValue }
       )
     }
-  }
+  }, [updateKeyboardInput, updateVariableSlot])
 
-  const moveCursor = (direction: 'left' | 'right') => {
-    if (!keyboardInput) return
+  const moveCursor = useCallback(
+    (direction: 'left' | 'right') => {
+      const state = useUIStore.getState()
+      if (!state.keyboardInput) return
 
-    const cursorPosition = keyboardInput.cursorPosition
-    let newPosition = cursorPosition
-    if (direction === 'left' && cursorPosition > 0) {
-      newPosition = cursorPosition - 1
-    } else if (
-      direction === 'right' &&
-      cursorPosition < keyboardInput.value.length
-    ) {
-      newPosition = cursorPosition + 1
-    }
+      const { value, cursorPosition } = state.keyboardInput
+      let newPosition = cursorPosition
 
-    updateKeyboardInput({
-      value: keyboardInput.value,
-      cursorPosition: newPosition,
-    })
-  }
+      if (direction === 'left' && cursorPosition > 0) {
+        newPosition -= 1
+      } else if (direction === 'right' && cursorPosition < value.length) {
+        newPosition += 1
+      }
 
-  const handleEnter = () => {
-    // 現在フォーカスされている要素のフォーカスを解除
+      if (newPosition !== cursorPosition) {
+        updateKeyboardInput({ value, cursorPosition: newPosition })
+      }
+    },
+    [updateKeyboardInput]
+  )
+
+  const handleEnter = useCallback(() => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
     hideKeyboard()
-  }
+  }, [hideKeyboard])
 
   return {
     isVisible: keyboardState.visible,
     target: keyboardState.target,
     keyboardInput,
-    cursorPosition: keyboardInput?.cursorPosition || 0,
+    cursorPosition: keyboardInput?.cursorPosition ?? 0,
     show: showKeyboard,
     hide: hideKeyboard,
     insertText,
