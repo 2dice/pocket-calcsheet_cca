@@ -1054,4 +1054,206 @@ describe('SheetsStore', () => {
       checkStorageQuotaSpy.mockRestore()
     })
   })
+
+  describe('Formula機能', () => {
+    beforeEach(() => {
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('Formulaテストシート')
+    })
+
+    it('updateFormulaDataアクションが存在する', () => {
+      const { updateFormulaData } = useSheetsStore.getState()
+      expect(typeof updateFormulaData).toBe('function')
+    })
+
+    it('新規シート作成時にformulaDataが初期化される', () => {
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('新規Formulaシート')
+
+      const { sheets, entities } = useSheetsStore.getState()
+      const newSheet = sheets[sheets.length - 1]
+      const entity = entities[newSheet.id]
+
+      expect(entity.formulaData).toBeDefined()
+      expect(entity.formulaData.inputExpr).toBe('')
+      expect(entity.formulaData.result).toBeNull()
+      expect(entity.formulaData.error).toBeNull()
+    })
+
+    it('updateFormulaDataで数式データが更新される', () => {
+      const { updateFormulaData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+
+      const testFormula = '2 + 3 * 4\n+ 5'
+      updateFormulaData(sheetId, { inputExpr: testFormula })
+
+      const { entities } = useSheetsStore.getState()
+      const updatedSheet = entities[sheetId]
+
+      expect(updatedSheet.formulaData.inputExpr).toBe(testFormula)
+      expect(updatedSheet.formulaData.result).toBeNull() // 本ステップでは未使用
+      expect(updatedSheet.formulaData.error).toBeNull() // 本ステップでは未使用
+    })
+
+    it('updateFormulaDataで部分的な更新が可能', () => {
+      const { updateFormulaData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+
+      // 初期データを設定
+      updateFormulaData(sheetId, {
+        inputExpr: '初期式',
+        result: 42,
+        error: '初期エラー',
+      })
+
+      // inputExprのみ更新
+      updateFormulaData(sheetId, { inputExpr: '更新された式' })
+
+      const { entities } = useSheetsStore.getState()
+      const updatedSheet = entities[sheetId]
+
+      expect(updatedSheet.formulaData.inputExpr).toBe('更新された式')
+      expect(updatedSheet.formulaData.result).toBe(42) // 変更されない
+      expect(updatedSheet.formulaData.error).toBe('初期エラー') // 変更されない
+    })
+
+    it('updateFormulaData実行時にupdatedAtが更新される', () => {
+      vi.useFakeTimers()
+
+      const { updateFormulaData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+      const initialUpdatedAt =
+        useSheetsStore.getState().entities[sheetId].updatedAt
+
+      // 時間を進める
+      vi.advanceTimersByTime(1000)
+
+      updateFormulaData(sheetId, { inputExpr: 'テスト式' })
+
+      const { entities } = useSheetsStore.getState()
+      const updatedSheet = entities[sheetId]
+
+      expect(updatedSheet.updatedAt).not.toBe(initialUpdatedAt)
+      expect(updatedSheet.updatedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      vi.useRealTimers()
+    })
+
+    it('updateFormulaData実行時にsavedAtが更新される', () => {
+      vi.useFakeTimers()
+
+      const { updateFormulaData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+      const initialSavedAt = useSheetsStore.getState().savedAt
+
+      // 時間を進める
+      vi.advanceTimersByTime(1000)
+
+      updateFormulaData(sheetId, { inputExpr: 'テスト式' })
+
+      const updatedSavedAt = useSheetsStore.getState().savedAt
+
+      expect(updatedSavedAt).not.toBe(initialSavedAt)
+      expect(updatedSavedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      vi.useRealTimers()
+    })
+
+    it('存在しないシートIDでupdateFormulaDataを実行してもエラーにならない', () => {
+      const { updateFormulaData } = useSheetsStore.getState()
+
+      expect(() => {
+        updateFormulaData('non-existent-id', { inputExpr: 'テスト' })
+      }).not.toThrow()
+
+      // 元のデータが変更されていないことを確認
+      const { sheets } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(1)
+    })
+
+    it('initializeSheetでformulaDataが初期化される', () => {
+      const { initializeSheet } = useSheetsStore.getState()
+      const { addSheet } = useSheetsStore.getState()
+
+      // formulaDataなしのシートを作成（通常のaddSheetは自動でformulaDataを追加するため、手動で削除）
+      addSheet('初期化テストシート')
+      const { sheets, entities } = useSheetsStore.getState()
+      const newSheetId = sheets[sheets.length - 1].id
+
+      // formulaDataを削除してinitializeSheetをテスト
+      const sheetWithoutFormula = { ...entities[newSheetId] }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      delete (sheetWithoutFormula as any).formulaData
+      useSheetsStore.setState(state => ({
+        ...state,
+        entities: {
+          ...state.entities,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          [newSheetId]: sheetWithoutFormula as any,
+        },
+      }))
+
+      // initializeSheetを実行
+      initializeSheet(newSheetId)
+
+      const { entities: updatedEntities } = useSheetsStore.getState()
+      const initializedSheet = updatedEntities[newSheetId]
+
+      expect(initializedSheet.formulaData).toBeDefined()
+      expect(initializedSheet.formulaData.inputExpr).toBe('')
+      expect(initializedSheet.formulaData.result).toBeNull()
+      expect(initializedSheet.formulaData.error).toBeNull()
+    })
+
+    it('localStorage保存時にvariableSlots+formulaDataが同時保存される', () => {
+      vi.useFakeTimers()
+
+      const { updateFormulaData, updateVariableSlot } =
+        useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+
+      // 変数とformula両方を更新
+      updateVariableSlot(sheetId, 1, { varName: 'x', expression: '10' })
+      updateFormulaData(sheetId, { inputExpr: '[x] * 2 + 5' })
+
+      // persistミドルウェアの非同期処理を即座に実行
+      vi.runAllTimers()
+
+      const key = 'pocket-calcsheet/1'
+      const saved = localStorage.getItem(key)
+      expect(saved).toBeTruthy()
+
+      if (saved) {
+        const parsedData = JSON.parse(saved) as {
+          state: {
+            entities: Record<
+              string,
+              {
+                variableSlots: Array<{ varName: string; expression: string }>
+                formulaData: { inputExpr: string }
+              }
+            >
+          }
+        }
+        const savedEntity = parsedData.state.entities[sheetId]
+
+        expect(savedEntity.variableSlots).toBeDefined()
+        expect(savedEntity.variableSlots[0].varName).toBe('x')
+        expect(savedEntity.variableSlots[0].expression).toBe('10')
+        expect(savedEntity.formulaData).toBeDefined()
+        expect(savedEntity.formulaData.inputExpr).toBe('[x] * 2 + 5')
+      }
+
+      vi.useRealTimers()
+    })
+  })
 })

@@ -382,4 +382,117 @@ test.describe('アプリケーション基本動作確認', () => {
     // エラー表示確認
     await expect(page.locator('text=Error')).toBeVisible()
   })
+
+  test('Formulaタブで数式入力ができる @step5-1', async ({ page }) => {
+    await page.goto('/')
+
+    // シート作成（共通セットアップ）
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('数式テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=数式テスト').click()
+
+    // Formulaタブへ遷移
+    await page.locator('[data-testid="tab-formula"]').click()
+
+    // textareaが表示される
+    const textarea = page.locator('textarea')
+    await expect(textarea).toBeVisible()
+
+    // Formulaラベルが表示される
+    await expect(page.locator('label:has-text("Formula")')).toBeVisible()
+
+    // フォーカスでカスタムキーボード表示
+    await textarea.click()
+    await expect(page.locator('[data-testid="custom-keyboard"]')).toBeVisible()
+
+    // 数式入力
+    await page.locator('button:has-text("2")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("3")').click()
+    await page.locator('button:has-text("*")').click()
+    await page.locator('button:has-text("4")').click()
+
+    // Enterで改行
+    await page.locator('button:has-text("↵")').click() // Formula用のEnterは改行
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("5")').click()
+
+    // textareaの内容確認（改行を含む）
+    const textareaValue = await textarea.inputValue()
+    expect(textareaValue).toContain('2+3*4')
+    expect(textareaValue).toContain('\n')
+    expect(textareaValue).toContain('+5')
+
+    // 別エリアクリックで確定
+    await page.locator('label:has-text("Formula")').click()
+
+    // キーボード非表示確認
+    const keyboard = page.locator('[data-testid="custom-keyboard"]')
+    await expect(keyboard).toHaveClass(/translate-y-full/)
+    await expect(keyboard).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  test('Formula+Variables同時保存が動作する @step5-1', async ({ page }) => {
+    await page.goto('/')
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('統合テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=統合テスト').click()
+
+    // Variable入力
+    await page.locator('[data-testid="tab-variables"]').click()
+    const nameInput = page.locator('[data-testid="variable-name-1"]')
+    await nameInput.fill('x')
+    await nameInput.blur()
+
+    const valueInput = page.locator('[data-testid="variable-value-1"]')
+    await valueInput.click()
+    await page.locator('button:has-text("1")').click()
+    await page.locator('button:has-text("0")').click()
+    await page.locator('button:has-text("↵")').click()
+
+    // Formula入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+
+    // 変数参照を含む数式を入力
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    await page.locator('[role="dialog"] >> text=x').click() // 変数選択
+    await page.locator('button:has-text("*")').click()
+    await page.locator('button:has-text("2")').click()
+    await page.locator('button:has-text("↵")').click() // 改行
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("5")').click()
+
+    // 別エリアクリックで確定
+    await page.locator('label:has-text("Formula")').click()
+
+    // ページリロード
+    await page.reload()
+
+    // Variables データが復元される
+    await page.locator('[data-testid="tab-variables"]').click()
+    await expect(page.locator('[data-testid="variable-name-1"]')).toHaveValue(
+      'x'
+    )
+    await expect(page.locator('text=10.00')).toBeVisible()
+
+    // Formula データが復元される
+    await page.locator('[data-testid="tab-formula"]').click()
+    const restoredTextarea = page.locator('textarea')
+    const restoredValue = await restoredTextarea.inputValue()
+    expect(restoredValue).toContain('[x]*2')
+    expect(restoredValue).toContain('\n')
+    expect(restoredValue).toContain('+5')
+  })
 })

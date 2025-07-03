@@ -56,7 +56,8 @@ pocket-calcsheet_cca/
 │   │   │   ├── SheetListItem.tsx     # シート一覧の個別アイテム(SortableItem)
 │   │   │   └── DragHandle.tsx        # ドラッグ&ドロップ用ハンドル
 │   │   ├── calculator/               # 計算機能コンポーネント
-│   │   │   └── VariableSlot.tsx      # 変数スロット(名前+式+値)
+│   │   │   ├── VariableSlot.tsx      # 変数スロット(名前+式+値)
+│   │   │   └── FormulaInput.tsx      # 数式入力コンポーネント
 │   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
 │   │   │   ├── CustomKeyboard.tsx    # カスタムキーボード本体
 │   │   │   ├── FunctionPicker.tsx    # 関数選択ドラムロールUI
@@ -66,6 +67,7 @@ pocket-calcsheet_cca/
 │   │   └── ui/                       # shadcn/uiコンポーネント
 │   │       ├── button.tsx            # Buttonコンポーネント
 │   │       ├── input.tsx             # 基本入力フィールド
+│   │       ├── textarea.tsx          # 複数行入力フィールド
 │   │       ├── alert-dialog.tsx      # 確認ダイアログ(削除確認等)
 │   │       └── dialog.tsx            # モーダルダイアログ(関数・変数選択)
 │   ├── hooks/                        # カスタムフック

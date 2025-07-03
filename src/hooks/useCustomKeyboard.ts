@@ -10,7 +10,7 @@ export function useCustomKeyboard() {
     hideKeyboard,
     updateKeyboardInput,
   } = useUIStore()
-  const { updateVariableSlot } = useSheetsStore()
+  const { updateVariableSlot, updateFormulaData } = useSheetsStore()
 
   const insertText = useCallback(
     (text: string, cursorOffset = 0) => {
@@ -33,9 +33,13 @@ export function useCustomKeyboard() {
           state.keyboardState.target.slot,
           { expression: newValue }
         )
+      } else if (state.keyboardState.target.type === 'formula') {
+        updateFormulaData(state.keyboardState.target.sheetId, {
+          inputExpr: newValue,
+        })
       }
     },
-    [updateKeyboardInput, updateVariableSlot]
+    [updateKeyboardInput, updateVariableSlot, updateFormulaData]
   )
 
   const handleBackspace = useCallback(() => {
@@ -62,8 +66,12 @@ export function useCustomKeyboard() {
         state.keyboardState.target.slot,
         { expression: newValue }
       )
+    } else if (state.keyboardState.target.type === 'formula') {
+      updateFormulaData(state.keyboardState.target.sheetId, {
+        inputExpr: newValue,
+      })
     }
-  }, [updateKeyboardInput, updateVariableSlot])
+  }, [updateKeyboardInput, updateVariableSlot, updateFormulaData])
 
   const moveCursor = useCallback(
     (direction: 'left' | 'right') => {
@@ -87,11 +95,20 @@ export function useCustomKeyboard() {
   )
 
   const handleEnter = useCallback(() => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur()
+    const state = useUIStore.getState()
+    if (!state.keyboardState.target) return
+
+    if (state.keyboardState.target.type === 'formula') {
+      // Formulaの場合は改行
+      insertText('\n', 0)
+    } else {
+      // Variables の場合は既存の処理（フォーカス解除）
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
+      hideKeyboard()
     }
-    hideKeyboard()
-  }, [hideKeyboard])
+  }, [insertText, hideKeyboard])
 
   return {
     isVisible: keyboardState.visible,
