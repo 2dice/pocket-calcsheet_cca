@@ -662,7 +662,7 @@ test.describe('アプリケーション基本動作確認', () => {
       await page
         .locator('[data-testid="custom-keyboard"] button:has-text("var")')
         .click()
-      await page.locator('text=x').click() // 変数選択
+      await page.locator('[role="dialog"] >> text=x').click() // 変数選択
       await page
         .locator('[data-testid="custom-keyboard"] button:has-text("*")')
         .click()
