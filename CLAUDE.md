@@ -71,7 +71,8 @@ pocket-calcsheet_cca/
 │   ├── hooks/                        # カスタムフック
 │   │   ├── useDragAndDrop.ts         # dnd-kit操作フック
 │   │   ├── useScrollToInput.ts       # 入力時のスクロール制御フック
-│   │   └── useCustomKeyboard.ts      # カスタムキーボード制御フック
+│   │   ├── useCustomKeyboard.ts      # カスタムキーボード制御フック
+│   │   └── useCalculation.ts         # 数式計算処理フック
 │   ├── pages/                        # ページコンポーネント
 │   │   ├── TopPage.tsx               # トップページ（シート一覧）
 │   │   ├── OverviewTab.tsx           # 概要タブページ
@@ -82,6 +83,10 @@ pocket-calcsheet_cca/
 │   │   ├── sheetsStore.ts            # シート一覧・永続化ストア(persistミドルウェア対応済み)
 │   │   └── uiStore.ts                # UI一時状態ストア(非永続化)
 │   ├── utils/                        # ユーティリティ関数
+│   │   ├── calculation/              # 計算関連ユーティリティ
+│   │   │   ├── mathEngine.ts         # math.js ラッパー・計算エンジン
+│   │   │   ├── expressionParser.ts   # 数式パース・変数抽出
+│   │   │   └── numberFormatter.ts    # 数値フォーマット(SI接頭語等)
 │   │   ├── constants/                # 定数定義
 │   │   │   ├── routes.ts             # ルート定義・タブバリデーション
 │   │   │   └── functions.ts          # 対応関数一覧定義
@@ -95,7 +100,8 @@ pocket-calcsheet_cca/
 │   ├── types/
 │   │   ├── sheet.ts                  # シートモデル型定義
 │   │   ├── storage.ts                # ストレージ関連型定義（ルートモデル）
-│   │   └── keyboard.ts               # キーボード関連型定義
+│   │   ├── keyboard.ts               # キーボード関連型定義
+│   │   └── calculation.ts            # 計算関連型定義
 │   ├── App.tsx                       # ルートコンポーネント(Router設定)
 │   ├── main.tsx                      # アプリケーションエントリーポイント
 │   ├── index.css                     # グローバルCSS、Tailwind CSSのインポート + SafeArea対応
@@ -113,7 +119,8 @@ pocket-calcsheet_cca/
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   ├── utils/
-│   │   │   └── validation.test.ts    # バリデーションテスト
+│   │   │   ├── validation.test.ts    # バリデーションテスト
+│   │   │   └── mathEngine.test.ts    # 計算エンジンユニットテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
 │   │       └── storageManager.test.ts # StorageManager + MigrationManagerテスト

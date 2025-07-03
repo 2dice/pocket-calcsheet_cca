@@ -104,6 +104,7 @@ pocket-calcsheet_cca/
 │   │   │   ├── SheetList.test.tsx      # シート一覧コンポーネントテスト
 │   │   │   ├── TabNavigation.test.tsx  # タブナビゲーション関連テスト
 │   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
+│   │   │   ├── FormulaInput.test.tsx   # 数式入力コンポーネントテスト
 │   │   │   └── VariableSlot.test.tsx   # 変数スロットテスト
 │   │   ├── utils/
 │   │   │   ├── mathEngine.test.ts     # 計算エンジンユニットテスト

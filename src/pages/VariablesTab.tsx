@@ -13,6 +13,7 @@ import { VariableSlot } from '@/components/calculator/VariableSlot'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
 import { useSheetsStore } from '@/store'
 import { useUIStore } from '@/store/uiStore'
+import { useCalculation } from '@/hooks/useCalculation'
 import type { VariableSlot as VariableSlotType } from '@/types/sheet'
 
 const KEYBOARD_HEIGHT = 280
@@ -21,6 +22,7 @@ export function VariablesTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateVariableSlot, initializeSheet } = useSheetsStore()
   const { keyboardState, hideKeyboard } = useUIStore()
+  const { calculateAllVariables } = useCalculation()
   const [validationError, setValidationError] = useState<string>('')
 
   const sheet = entities[id || '']
@@ -31,6 +33,14 @@ export function VariablesTab() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, sheet?.variableSlots])
+
+  // タブ遷移時の自動計算
+  useEffect(() => {
+    if (id && sheet?.variableSlots) {
+      calculateAllVariables(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   const handleSlotChange = (
     slotNumber: number,
@@ -55,6 +65,15 @@ export function VariablesTab() {
       hideKeyboard()
     }
   }
+
+  // hideKeyboard実行時に計算を実行するようにuseEffectで監視
+  useEffect(() => {
+    // キーボードが非表示になった時に計算実行
+    if (!keyboardState.visible && id && sheet?.variableSlots) {
+      calculateAllVariables(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyboardState.visible, id]) // sheet?.variableSlotsは除外（無限ループ防止）
 
   if (!sheet) {
     return (

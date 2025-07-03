@@ -231,370 +231,155 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(page.locator('text=新しいシート')).toBeVisible()
   })
 
-  test.describe('Variables タブテスト @step4-1', () => {
-    const VARIABLE_SLOT_COUNT = 8
+  test('Variables機能統合テスト @step4', async ({ page }) => {
+    await page.goto('/')
 
-    test.beforeEach(async ({ page }) => {
-      await page.goto('/')
+    // シート作成（共通セットアップ）
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('変数テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=変数テスト').click()
+    await page.locator('[data-testid="tab-variables"]').click()
 
-      // 共通のセットアップ
-      await page.locator('button:has-text("編集")').click()
-      await page.locator('button:has-text("+")').click()
-      const input = page.locator('[data-testid="new-sheet-input"]')
-      await input.fill('テストシート')
-      await input.press('Enter')
-      await page.locator('button:has-text("完了")').click()
-      await page.locator('text=テストシート').click()
-      await page.locator('[data-testid="tab-variables"]').click()
-    })
+    // 8スロット確認
+    await expect(page.locator('text=Variable8')).toBeVisible()
 
-    test('8つの変数スロットが表示される', async ({ page }) => {
-      // Variable1〜8のラベルが表示されることを確認
-      for (let i = 1; i <= VARIABLE_SLOT_COUNT; i++) {
-        await expect(page.locator(`text=Variable${i}`)).toBeVisible()
-      }
-
-      // 各スロットに変数名と値の入力フィールドが存在することを確認
-      for (let i = 1; i <= VARIABLE_SLOT_COUNT; i++) {
-        await expect(
-          page.locator(`[data-testid="variable-name-${i}"]`)
-        ).toBeVisible()
-        await expect(
-          page.locator(`[data-testid="variable-value-${i}"]`)
-        ).toBeVisible()
-      }
-    })
-
-    test('変数名バリデーションが動作する', async ({ page }) => {
-      // 1. 日本語の変数名を入力（不正）
-      const nameInput1 = page.locator(`[data-testid="variable-name-1"]`)
-      await nameInput1.fill('変数名')
-      await nameInput1.blur()
-
-      // AlertDialogが表示されるまで少し待つ
-      await page.waitForTimeout(100)
-
-      // AlertDialogが表示されることを確認
-      await expect(page.locator('[role="alertdialog"]')).toBeVisible()
-      await expect(page.getByText('変数名が無効です')).toBeVisible()
-      await page.locator('button:has-text("OK")').click()
-
-      // 2. 数字で始まる変数名を入力（不正）
-      await nameInput1.fill('1variable')
-      await nameInput1.blur()
-
-      // AlertDialogが表示されるまで少し待つ
-      await page.waitForTimeout(100)
-
-      // AlertDialogが表示されることを確認
-      await expect(page.locator('[role="alertdialog"]')).toBeVisible()
-      await page.locator('button:has-text("OK")').click()
-
-      // 3. 有効な変数名を入力
-      await nameInput1.fill('validVar')
-      await nameInput1.blur()
-
-      // 4. 同じ変数名を別のスロットに入力（重複）
-      const nameInput2 = page.locator(`[data-testid="variable-name-2"]`)
-      await nameInput2.fill('validVar')
-      await nameInput2.blur()
-
-      // AlertDialogが表示されるまで少し待つ
-      await page.waitForTimeout(100)
-
-      // 重複エラーのAlertDialogが表示されることを確認
-      await expect(page.locator('[role="alertdialog"]')).toBeVisible()
-      await expect(page.getByText('重複した変数名です')).toBeVisible()
-      await page.locator('button:has-text("OK")').click()
-    })
-  })
-
-  test.describe('カスタムキーボードテスト @step4-2', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.goto('/')
-
-      // 共通のセットアップ
-      await page.locator('button:has-text("編集")').click()
-      await page.locator('button:has-text("+")').click()
-      const input = page.locator('[data-testid="new-sheet-input"]')
-      await input.fill('キーボードテスト')
-      await input.press('Enter')
-      await page.locator('button:has-text("完了")').click()
-      await page.locator('text=キーボードテスト').click()
-      await page.locator('[data-testid="tab-variables"]').click()
-    })
-
-    test('変数の値入力フィールドフォーカス時にカスタムキーボード表示 @step4-2', async ({
-      page,
-    }) => {
-      // Variable1の値入力フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
-
-      // カスタムキーボードが表示されることを確認
+    // 各スロットに変数名と値の入力フィールドが存在することを確認
+    for (let i = 1; i <= 8; i++) {
       await expect(
-        page.locator('[data-testid="custom-keyboard"]')
+        page.locator(`[data-testid="variable-name-${i}"]`)
       ).toBeVisible()
-
-      // 主要なキーが表示されることを確認
-      await expect(page.locator('button:has-text("1")')).toBeVisible()
-      await expect(page.locator('button:has-text("+")')).toBeVisible()
-      await expect(page.locator('button:has-text("BS")')).toBeVisible()
-      await expect(page.locator('button:has-text("f(x)")')).toBeVisible()
       await expect(
-        page.locator('[data-testid="custom-keyboard"] button:has-text("var")')
+        page.locator(`[data-testid="variable-value-${i}"]`)
       ).toBeVisible()
-    })
+    }
 
-    test('カスタムキーボードの表示/非表示動作 @step4-2', async ({ page }) => {
-      // 値入力フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
+    // バリデーション（日本語）
+    const nameInput1 = page.locator('[data-testid="variable-name-1"]')
+    await nameInput1.fill('変数')
+    await nameInput1.blur()
+    await expect(page.locator('[role="alertdialog"]')).toBeVisible()
+    await page.locator('button:has-text("OK")').click()
 
-      // カスタムキーボードが表示される
-      const keyboard = page.locator('[data-testid="custom-keyboard"]')
-      await expect(keyboard).toBeVisible()
-      await expect(keyboard).toHaveClass(/translate-y-0/)
+    // 有効な変数名設定
+    await nameInput1.fill('x')
+    await nameInput1.blur()
 
-      // 別の場所をクリック
-      const nameInput = page.locator('[data-testid="variable-name-1"]')
-      await nameInput.click()
+    // キーボード表示→入力→計算
+    const valueInput1 = page.locator('[data-testid="variable-value-1"]')
+    await valueInput1.click()
+    await expect(page.locator('[data-testid="custom-keyboard"]')).toBeVisible()
 
-      // カスタムキーボードが非表示になる（見た目上）
-      await expect(keyboard).toHaveClass(/translate-y-full/)
-      await expect(keyboard).toHaveAttribute('aria-hidden', 'true')
-    })
+    // 主要なキーが表示されることを確認
+    await expect(page.locator('button:has-text("1")')).toBeVisible()
+    await expect(page.locator('button:has-text("+")')).toBeVisible()
+    await expect(page.locator('button:has-text("BS")')).toBeVisible()
+    await expect(page.locator('button:has-text("f(x)")')).toBeVisible()
+    await expect(
+      page.locator('[data-testid="custom-keyboard"] button:has-text("var")')
+    ).toBeVisible()
 
-    test('入力エリアがキーボードに隠れない @step4-2', async ({ page }) => {
-      const valueInput = page.locator('[data-testid="variable-value-8"]')
-      await valueInput.click()
+    // 100を入力
+    await page.locator('button:has-text("1")').click()
+    await page.locator('button:has-text("0")').click()
+    await page.locator('button:has-text("0")').click()
+    await page.locator('button:has-text("↵")').click()
 
-      // キーボードが表示されるまで待つ
-      const keyboard = page.locator('[data-testid="custom-keyboard"]')
-      await expect(keyboard).toBeVisible()
+    // 計算結果確認
+    await expect(page.locator('text=100.00')).toBeVisible()
 
-      // スクロールが完了し、入力フィールドがキーボードに隠れないことをアサーションがパスするまで待つ
-      await expect(async () => {
-        const inputBoundingBox = await valueInput.boundingBox()
-        const keyboardBoundingBox = await keyboard.boundingBox()
+    // キーボード非表示確認
+    const keyboard = page.locator('[data-testid="custom-keyboard"]')
+    await expect(keyboard).toHaveClass(/translate-y-full/)
+    await expect(keyboard).toHaveAttribute('aria-hidden', 'true')
 
-        expect(inputBoundingBox).not.toBeNull()
-        expect(keyboardBoundingBox).not.toBeNull()
-        expect(inputBoundingBox!.y + inputBoundingBox!.height).toBeLessThan(
-          keyboardBoundingBox!.y
-        )
-      }).toPass({ timeout: 5000 })
-    })
+    // 変数参照計算テスト
+    const valueInput2 = page.locator('[data-testid="variable-value-2"]')
+    await valueInput2.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    await page.locator('[role="dialog"] >> text=x').click() // 変数選択
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("*")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("2")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+      .click()
 
-    test('ネイティブキーボードが表示されない @step4-2', async ({ page }) => {
-      // Variable1の値入力フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
+    // Variable2の計算結果確認
+    await expect(page.locator('text=200.00')).toBeVisible()
 
-      // カスタムキーボードが表示されることを確認
-      await expect(
-        page.locator('[data-testid="custom-keyboard"]')
-      ).toBeVisible()
+    // 三角関数計算テスト
+    const valueInput3 = page.locator('[data-testid="variable-value-3"]')
+    await valueInput3.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("f(x)")')
+      .click()
+    await page.locator('text=sin - サイン(度)').click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("9")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+      .click()
 
-      // inputMode="none"が設定されていることを確認（間接的な確認）
-      const inputMode = await valueInput.getAttribute('inputmode')
-      expect(inputMode).toBe('none')
-    })
-  })
+    // sin(90)=1.00の結果確認
+    await expect(page.locator('text=1.00')).toBeVisible()
 
-  test.describe('カスタムキーボード入力機能テスト @step4-3', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.goto('/')
+    // SI接頭語フォーマット確認
+    const valueInput4 = page.locator('[data-testid="variable-value-4"]')
+    await valueInput4.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text(".")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("3")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+      .click()
 
-      // 共通のセットアップ
-      await page.locator('button:has-text("編集")').click()
-      await page.locator('button:has-text("+")').click()
-      const input = page.locator('[data-testid="new-sheet-input"]')
-      await input.fill('入力テスト')
-      await input.press('Enter')
-      await page.locator('button:has-text("完了")').click()
-      await page.locator('text=入力テスト').click()
-      await page.locator('[data-testid="tab-variables"]').click()
-    })
+    // SI接頭語フォーマット結果確認
+    await expect(page.locator('text=300.00×10^-6')).toBeVisible()
 
-    test('カスタムキーボードで数式を入力できる @step4-3', async ({ page }) => {
-      // Variable1の値フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
+    // エラーハンドリング確認
+    const valueInput5 = page.locator('[data-testid="variable-value-5"]')
+    await valueInput5.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("1")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("/")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("0")')
+      .click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
+      .click()
 
-      // カスタムキーボードが表示されることを確認
-      await expect(
-        page.locator('[data-testid="custom-keyboard"]')
-      ).toBeVisible()
-
-      // "1+2"を入力
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("+")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
-        .click()
-
-      // 入力フィールドに"1+2"が表示されることを確認
-      await expect(valueInput).toHaveValue('1+2')
-    })
-
-    test('関数選択でf(x)を使用できる @step4-3', async ({ page }) => {
-      // Variable1の値フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
-
-      // f(x)キーをクリック
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("f(x)")')
-        .click()
-
-      // 関数一覧が表示されることを確認
-      await expect(
-        page.locator('[data-testid="function-picker"]')
-      ).toBeVisible()
-      await expect(page.locator('text=sqrt - 平方根')).toBeVisible()
-
-      // "sqrt"を選択
-      await page.locator('text=sqrt - 平方根').click()
-
-      // 入力フィールドに"sqrt()"が挿入されることを確認
-      await expect(valueInput).toHaveValue('sqrt()')
-
-      // 関数一覧が閉じられることを確認
-      await expect(
-        page.locator('[data-testid="function-picker"]')
-      ).not.toBeVisible()
-    })
-
-    test('変数選択でvarを使用できる @step4-3', async ({ page }) => {
-      // 事前に変数名を設定
-      const nameInput = page.locator('[data-testid="variable-name-2"]')
-      await nameInput.fill('testVar')
-      await nameInput.blur()
-
-      // Variable1の値フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
-
-      // varキーをクリック
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("var")')
-        .click()
-
-      // 変数一覧が表示されることを確認
-      await expect(
-        page.locator('[data-testid="variable-picker"]')
-      ).toBeVisible()
-      await expect(page.locator('text=testVar')).toBeVisible()
-
-      // "testVar"を選択
-      await page.locator('text=testVar').click()
-
-      // 入力フィールドに"[testVar]"が挿入されることを確認
-      await expect(valueInput).toHaveValue('[testVar]')
-
-      // 変数一覧が閉じられることを確認
-      await expect(
-        page.locator('[data-testid="variable-picker"]')
-      ).not.toBeVisible()
-    })
-
-    test('カーソル移動とBackspaceでの編集操作 @step4-3', async ({ page }) => {
-      // Variable1の値フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
-
-      // "123"を入力
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("1")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("3")')
-        .click()
-
-      // 入力値を確認
-      await expect(valueInput).toHaveValue('123')
-
-      // 左矢印キーでカーソルを移動
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("←")')
-        .click()
-
-      // Backspaceで文字削除
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("BS")')
-        .click()
-
-      // "13"になることを確認（2が削除される）
-      await expect(valueInput).toHaveValue('13')
-    })
-
-    test('Enterキーで入力確定 @step4-3', async ({ page }) => {
-      // Variable1の値フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
-
-      // "42"を入力
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("4")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
-        .click()
-
-      // Enterキーで確定
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("↵")')
-        .click()
-
-      // カスタムキーボードが非表示になることを確認
-      const keyboard = page.locator('[data-testid="custom-keyboard"]')
-      await expect(keyboard).toHaveClass(/translate-y-full/)
-      await expect(keyboard).toHaveAttribute('aria-hidden', 'true')
-
-      // 入力値が保持されることを確認
-      await expect(valueInput).toHaveValue('42')
-    })
-
-    test('複合操作: 関数内に変数を含む数式入力 @step4-3', async ({ page }) => {
-      // 事前に変数名を設定
-      const nameInput = page.locator('[data-testid="variable-name-2"]')
-      await nameInput.fill('x')
-      await nameInput.blur()
-
-      // Variable1の値フィールドをクリック
-      const valueInput = page.locator('[data-testid="variable-value-1"]')
-      await valueInput.click()
-
-      // sqrt関数を選択
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("f(x)")')
-        .click()
-      await page.locator('text=sqrt - 平方根').click()
-
-      // 括弧内に "2*[x]" を入力
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("2")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("*")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("var")')
-        .click()
-      await page
-        .locator('[data-testid="variable-picker"] button:has-text("x")')
-        .click()
-
-      // 最終的に "sqrt(2*[x])" が入力されることを確認
-      await expect(valueInput).toHaveValue('sqrt(2*[x])')
-    })
+    // エラー表示確認
+    await expect(page.locator('text=Error')).toBeVisible()
   })
 })

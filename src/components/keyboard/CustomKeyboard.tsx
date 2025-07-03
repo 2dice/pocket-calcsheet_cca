@@ -12,6 +12,7 @@ interface Props {
 export function CustomKeyboard({ visible }: Props) {
   const { insertText, handleBackspace, moveCursor, handleEnter, target } =
     useCustomKeyboard()
+
   const [showFunctionPicker, setShowFunctionPicker] = useState(false)
   const [showVariablePicker, setShowVariablePicker] = useState(false)
 
