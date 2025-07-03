@@ -26,7 +26,7 @@ export function formatWithSIPrefix(value: number): string {
   }
 
   // 小数点以下2桁で四捨五入（floorからroundに変更）
-  const formatted = Math.round(mantissa * 100) / 100
+  const formatted = Math.round((mantissa + Number.EPSILON) * 100) / 100
 
   if (siExponent === 0) {
     return `${sign}${formatted.toFixed(2)}`

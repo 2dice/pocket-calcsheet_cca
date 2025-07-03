@@ -5,32 +5,31 @@ import { formatWithSIPrefix } from './numberFormatter'
 
 const mathInstance = math.create(math.all)
 
+// Store original functions before overriding
+const originalSin = mathInstance.sin.bind(mathInstance)
+const originalCos = mathInstance.cos.bind(mathInstance)
+const originalTan = mathInstance.tan.bind(mathInstance)
+const originalAsin = mathInstance.asin.bind(mathInstance)
+const originalAcos = mathInstance.acos.bind(mathInstance)
+const originalAtan = mathInstance.atan.bind(mathInstance)
+
 // 度数法の三角関数設定
 mathInstance.import(
   {
-    sin: (x: number) => {
-      const radians = (x * Math.PI) / 180
-      return Math.sin(radians)
-    },
-    cos: (x: number) => {
-      const radians = (x * Math.PI) / 180
-      return Math.cos(radians)
-    },
-    tan: (x: number) => {
-      const radians = (x * Math.PI) / 180
-      return Math.tan(radians)
-    },
+    sin: (x: number) => originalSin(mathInstance.unit(`${x} deg`)),
+    cos: (x: number) => originalCos(mathInstance.unit(`${x} deg`)),
+    tan: (x: number) => originalTan(mathInstance.unit(`${x} deg`)),
     asin: (x: number) => {
-      const radians = Math.asin(x)
-      return (radians * 180) / Math.PI
+      const result = originalAsin(x)
+      return mathInstance.unit(`${Number(result)} rad`).toNumber('deg')
     },
     acos: (x: number) => {
-      const radians = Math.acos(x)
-      return (radians * 180) / Math.PI
+      const result = originalAcos(x)
+      return mathInstance.unit(`${Number(result)} rad`).toNumber('deg')
     },
     atan: (x: number) => {
-      const radians = Math.atan(x)
-      return (radians * 180) / Math.PI
+      const result = originalAtan(x)
+      return mathInstance.unit(`${Number(result)} rad`).toNumber('deg')
     },
     dtor: (x: number) => (x * Math.PI) / 180,
     rtod: (x: number) => (x * 180) / Math.PI,
