@@ -7,11 +7,17 @@ export function formatWithSIPrefix(value: number): string {
   // 10の何乗かを計算
   const exponent = Math.floor(Math.log10(absValue))
 
-  // 3の倍数に調整（SI接頭語: -12, -9, -6, -3, 0, 3, 6, 9, 12...）
+  // 3の倍数に調整（SI接頭語）
   let siExponent = Math.floor(exponent / 3) * 3
 
-  // 仮数部を1以上1000未満に調整
+  // 仮数部を計算
   let mantissa = absValue / Math.pow(10, siExponent)
+
+  // 1未満の場合は前の3の倍数へ（追加）
+  if (mantissa < 1) {
+    mantissa *= 1000
+    siExponent -= 3
+  }
 
   // 1000以上の場合は次の3の倍数へ
   if (mantissa >= 1000) {
@@ -19,8 +25,8 @@ export function formatWithSIPrefix(value: number): string {
     siExponent += 3
   }
 
-  // 小数点以下2桁で切り捨て
-  const formatted = Math.floor(mantissa * 100) / 100
+  // 小数点以下2桁で四捨五入（floorからroundに変更）
+  const formatted = Math.round(mantissa * 100) / 100
 
   if (siExponent === 0) {
     return `${sign}${formatted.toFixed(2)}`

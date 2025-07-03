@@ -660,14 +660,9 @@ test.describe('アプリケーション基本動作確認', () => {
       const valueInput2 = page.locator('[data-testid="variable-value-2"]')
       await valueInput2.click()
       await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("[")')
+        .locator('[data-testid="custom-keyboard"] button:has-text("var")')
         .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("x")')
-        .click()
-      await page
-        .locator('[data-testid="custom-keyboard"] button:has-text("]")')
-        .click()
+      await page.locator('text=x').click() // 変数選択
       await page
         .locator('[data-testid="custom-keyboard"] button:has-text("*")')
         .click()

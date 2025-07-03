@@ -37,7 +37,10 @@ export function useCalculation() {
             return
           }
 
-          const context: CalculationContext = { variables }
+          const context: CalculationContext = {
+            variables,
+            variableSlots: sheet.variableSlots,
+          }
           const result = evaluateExpression(slot.expression, context)
 
           updateVariableSlot(sheetId, slot.slot, {

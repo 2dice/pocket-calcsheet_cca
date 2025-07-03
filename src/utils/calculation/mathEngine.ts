@@ -1,12 +1,12 @@
-import { create, all } from 'mathjs'
+import * as math from 'mathjs'
 import type { CalculationContext, CalculationResult } from '@/types/calculation'
 import { preprocessExpression } from './expressionParser'
 import { formatWithSIPrefix } from './numberFormatter'
 
-const math = create(all)
+const mathInstance = math.create(math.all)
 
 // 度数法の三角関数設定
-math.import(
+mathInstance.import(
   {
     sin: (x: number) => {
       const radians = (x * Math.PI) / 180
@@ -34,6 +34,14 @@ math.import(
     },
     dtor: (x: number) => (x * Math.PI) / 180,
     rtod: (x: number) => (x * 180) / Math.PI,
+
+    // 常用対数（底10）- mathjs標準のlogを上書き
+    log: (x: number) => Math.log10(x),
+    // 自然対数をlnとして追加（mathjs標準のlogをコピー）
+    ln: (x: number) => Math.log(x),
+    // 定数関数
+    pi: () => Math.PI,
+    e: () => Math.E,
   },
   { override: true }
 )
@@ -49,7 +57,11 @@ export function evaluateExpression(
     }
 
     // 変数参照を実際の値に置換
-    const processed = preprocessExpression(expression, context.variables)
+    const processed = preprocessExpression(
+      expression,
+      context.variables,
+      context.variableSlots
+    )
 
     // 未解決の変数参照が残っている場合
     if (processed.includes('[')) {
@@ -57,7 +69,7 @@ export function evaluateExpression(
     }
 
     // 計算実行
-    const result = math.evaluate(processed) as unknown
+    const result = mathInstance.evaluate(processed) as unknown
     const numValue = Number(result)
 
     if (isNaN(numValue) || !isFinite(numValue)) {

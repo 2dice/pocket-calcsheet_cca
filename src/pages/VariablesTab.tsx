@@ -66,6 +66,15 @@ export function VariablesTab() {
     }
   }
 
+  // hideKeyboard実行時に計算を実行するようにuseEffectで監視
+  useEffect(() => {
+    // キーボードが非表示になった時に計算実行
+    if (!keyboardState.visible && id && sheet?.variableSlots) {
+      calculateAllVariables(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyboardState.visible, id]) // sheet?.variableSlotsは除外（無限ループ防止）
+
   if (!sheet) {
     return (
       <div className="p-4">
@@ -117,14 +126,7 @@ export function VariablesTab() {
         </AlertDialog>
       </div>
 
-      <CustomKeyboard
-        visible={keyboardState.visible}
-        onEnter={() => {
-          if (id) {
-            setTimeout(() => calculateAllVariables(id), 0)
-          }
-        }}
-      />
+      <CustomKeyboard visible={keyboardState.visible} />
     </>
   )
 }
