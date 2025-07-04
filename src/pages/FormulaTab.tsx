@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { FormulaInput } from '@/components/calculator/FormulaInput'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
@@ -11,6 +11,7 @@ export function FormulaTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateFormulaData, initializeSheet } = useSheetsStore()
   const { keyboardState, hideKeyboard } = useUIStore()
+  const formulaInputRef = useRef<HTMLDivElement>(null)
 
   const sheet = entities[id || '']
 
@@ -18,8 +19,7 @@ export function FormulaTab() {
     if (id && sheet && !sheet.formulaData) {
       initializeSheet(id)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, sheet?.formulaData])
+  }, [id, sheet, initializeSheet])
 
   // hideKeyboard実行時に値を保存
   useEffect(() => {
@@ -34,18 +34,13 @@ export function FormulaTab() {
         updateFormulaData(id, { inputExpr: keyboardInput.value })
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyboardState.visible, id])
-
-  const handleFormulaChange = (value: string) => {
-    if (id) {
-      updateFormulaData(id, { inputExpr: value })
-    }
-  }
+  }, [keyboardState, id, updateFormulaData])
 
   const handleOutsideClick = (e: React.MouseEvent) => {
-    const target = e.target
-    if (target instanceof HTMLElement && target.tagName !== 'TEXTAREA') {
+    if (
+      formulaInputRef.current &&
+      !formulaInputRef.current.contains(e.target as Node)
+    ) {
       hideKeyboard()
     }
   }
@@ -76,8 +71,8 @@ export function FormulaTab() {
         }}
       >
         <FormulaInput
+          ref={formulaInputRef}
           value={sheet.formulaData.inputExpr}
-          onChange={handleFormulaChange}
         />
         {/* Result表示は次のステップで実装 */}
       </div>

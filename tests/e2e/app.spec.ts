@@ -426,8 +426,8 @@ test.describe('アプリケーション基本動作確認', () => {
     expect(textareaValue).toContain('\n')
     expect(textareaValue).toContain('+5')
 
-    // 別エリアクリックで確定
-    await page.locator('label:has-text("Formula")').click()
+    // 別エリアクリックで確定（FormulaInput外の余白エリアをクリック）
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
 
     // キーボード非表示確認
     const keyboard = page.locator('[data-testid="custom-keyboard"]')
@@ -474,8 +474,8 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('button:has-text("+")').click()
     await page.locator('button:has-text("5")').click()
 
-    // 別エリアクリックで確定
-    await page.locator('label:has-text("Formula")').click()
+    // 別エリアクリックで確定（FormulaInput外の余白エリアをクリック）
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
 
     // ページリロード
     await page.reload()

@@ -36,8 +36,9 @@ vi.mock('@/store/uiStore', () => ({
 
 // useParams のモック
 const mockUseParams = vi.fn()
-vi.mock('react-router-dom', async importOriginal => {
-  const actual = await importOriginal()
+vi.mock('react-router-dom', async () => {
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return {
     ...actual,
     useParams: () => mockUseParams(),
@@ -53,7 +54,6 @@ const renderWithRouter = (
 }
 
 describe('FormulaInput', () => {
-  const mockOnChange = vi.fn()
   const testValue = '2 + 3 * 4\n+ 5'
 
   beforeEach(() => {
@@ -75,7 +75,7 @@ describe('FormulaInput', () => {
   })
 
   it('textareaが表示される', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toBeInTheDocument()
@@ -83,7 +83,7 @@ describe('FormulaInput', () => {
   })
 
   it('複数行の入力が可能', () => {
-    renderWithRouter(<FormulaInput value={testValue} onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value={testValue} />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveValue(testValue)
@@ -93,14 +93,14 @@ describe('FormulaInput', () => {
   })
 
   it('readOnly属性でネイティブキーボード無効', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveAttribute('inputMode', 'none')
   })
 
   it('onFocusイベントが発生する', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     fireEvent.focus(textarea)
@@ -113,42 +113,42 @@ describe('FormulaInput', () => {
 
   it('value propが正しく表示される', () => {
     const testValue = 'sin(x) + cos(y)'
-    renderWithRouter(<FormulaInput value={testValue} onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value={testValue} />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveValue(testValue)
   })
 
   it('空の値が正しく処理される', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveValue('')
   })
 
   it('labelが正しく表示される', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const label = screen.getByText('Formula')
     expect(label).toBeInTheDocument()
   })
 
   it('textareaがmin-heightスタイルを持つ', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveClass('min-h-[120px]')
   })
 
   it('textareaがresize-noneスタイルを持つ', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveClass('resize-none')
   })
 
   it('textareaがcursor-pointerスタイルを持つ', () => {
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     expect(textarea).toHaveClass('cursor-pointer')
@@ -157,7 +157,7 @@ describe('FormulaInput', () => {
   it('パラメータにidが存在しない場合はフォーカス処理をスキップ', () => {
     mockUseParams.mockReturnValue({}) // idなし
 
-    renderWithRouter(<FormulaInput value="" onChange={mockOnChange} />)
+    renderWithRouter(<FormulaInput value="" />)
 
     const textarea = screen.getByRole('textbox')
     fireEvent.focus(textarea)
@@ -166,15 +166,15 @@ describe('FormulaInput', () => {
   })
 
   it('クリック時にselection changeイベントが処理される', () => {
-    renderWithRouter(
-      <FormulaInput value="test formula" onChange={mockOnChange} />
-    )
+    renderWithRouter(<FormulaInput value="test formula" />)
 
     const textarea = screen.getByRole('textbox')
 
     // カーソル位置を設定してクリック
-    textarea.selectionStart = 5
-    textarea.selectionEnd = 5
+    if (textarea instanceof HTMLTextAreaElement) {
+      textarea.selectionStart = 5
+      textarea.selectionEnd = 5
+    }
     fireEvent.click(textarea)
 
     // mockUpdateKeyboardInputが適切に呼ばれることは、キーボード統合時に確認される
