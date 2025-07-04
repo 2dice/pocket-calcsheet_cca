@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { FormulaInput } from '@/components/calculator/FormulaInput'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
@@ -11,7 +11,6 @@ export function FormulaTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateFormulaData, initializeSheet } = useSheetsStore()
   const { keyboardState, hideKeyboard } = useUIStore()
-  const formulaInputRef = useRef<HTMLDivElement>(null)
 
   const sheet = entities[id || '']
 
@@ -37,10 +36,8 @@ export function FormulaTab() {
   }, [keyboardState, id, updateFormulaData])
 
   const handleOutsideClick = (e: React.MouseEvent) => {
-    if (
-      formulaInputRef.current &&
-      !formulaInputRef.current.contains(e.target as Node)
-    ) {
+    const target = e.target
+    if (target instanceof HTMLElement && target.tagName !== 'TEXTAREA') {
       hideKeyboard()
     }
   }
@@ -70,10 +67,7 @@ export function FormulaTab() {
           paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
         }}
       >
-        <FormulaInput
-          ref={formulaInputRef}
-          value={sheet.formulaData.inputExpr}
-        />
+        <FormulaInput value={sheet.formulaData.inputExpr} />
         {/* Result表示は次のステップで実装 */}
       </div>
 
