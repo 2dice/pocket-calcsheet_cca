@@ -476,7 +476,10 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 別エリアクリックで確定（FormulaInput外の余白エリアをクリック）
     await page.locator('body').click({ position: { x: 50, y: 50 } })
-
+    
+    // 保存待ち
+    await page.waitForTimeout(100)
+    
     // ページリロード
     await page.reload()
 
