@@ -358,7 +358,7 @@ describe('mathEngine', () => {
 
       const result = evaluateFormulaExpression('[undefined_var] + 1', context)
       expect(result.value).toBe(null)
-      expect(result.error).toBe('Error')
+      expect(result.error).toBe('Undefined variable')
     })
 
     it('構文エラーでエラーを返す', () => {
@@ -371,7 +371,7 @@ describe('mathEngine', () => {
       // より明確な構文エラーを使用
       const result = evaluateFormulaExpression('1 + / 2', context)
       expect(result.value).toBe(null)
-      expect(result.error).toBe('Error')
+      expect(result.error).toBe('Syntax error')
     })
 
     it('ゼロ除算でエラーを返す', () => {
@@ -382,7 +382,7 @@ describe('mathEngine', () => {
 
       const result = evaluateFormulaExpression('1 / 0', context)
       expect(result.value).toBe(null)
-      expect(result.error).toBe('Error')
+      expect(result.error).toBe('Division by zero')
     })
 
     it('空文字列の場合はnullを返す', () => {

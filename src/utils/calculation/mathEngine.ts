@@ -1,5 +1,9 @@
 import * as math from 'mathjs'
-import type { CalculationContext, CalculationResult } from '@/types/calculation'
+import type {
+  CalculationContext,
+  CalculationResult,
+  FormulaError,
+} from '@/types/calculation'
 import { preprocessExpression } from './expressionParser'
 import { formatWithSIPrefix, formatForFormula } from './numberFormatter'
 
@@ -64,7 +68,7 @@ export function evaluateExpression(
 
     // 未解決の変数参照が残っている場合
     if (processed.includes('[')) {
-      return { value: null, error: 'Error' }
+      return { value: null, error: 'Error' as FormulaError }
     }
 
     // 計算実行
@@ -72,7 +76,7 @@ export function evaluateExpression(
     const numValue = Number(result)
 
     if (isNaN(numValue) || !isFinite(numValue)) {
-      return { value: null, error: 'Error' }
+      return { value: null, error: 'Error' as FormulaError }
     }
 
     return {
@@ -81,7 +85,7 @@ export function evaluateExpression(
       formattedValue: formatWithSIPrefix(numValue),
     }
   } catch {
-    return { value: null, error: 'Error' }
+    return { value: null, error: 'Error' as FormulaError }
   }
 }
 
@@ -109,7 +113,7 @@ export function evaluateFormulaExpression(
     if (processed.includes('[')) {
       return {
         value: null,
-        error: 'Error',
+        error: 'Undefined variable' as FormulaError,
       }
     }
 
@@ -117,16 +121,28 @@ export function evaluateFormulaExpression(
     const result = mathInstance.evaluate(processed) as unknown
     const numValue = Number(result)
 
-    if (isNaN(numValue) || !isFinite(numValue)) {
-      return { value: null, error: 'Error' }
+    if (isNaN(numValue)) {
+      return { value: null, error: 'Syntax error' as FormulaError }
+    }
+
+    if (!isFinite(numValue)) {
+      return { value: null, error: 'Division by zero' as FormulaError }
     }
 
     return {
       value: numValue,
       error: null,
-      formattedValue: formatForFormula(numValue), // formatForFormulaを使用
+      formattedValue: formatForFormula(numValue),
     }
-  } catch {
-    return { value: null, error: 'Error' }
+  } catch (error) {
+    // エラーメッセージから判定
+    const errorMessage = error instanceof Error ? error.message : ''
+    if (errorMessage.includes('divide by zero')) {
+      return { value: null, error: 'Division by zero' as FormulaError }
+    }
+    if (errorMessage.includes('Undefined')) {
+      return { value: null, error: 'Undefined variable' as FormulaError }
+    }
+    return { value: null, error: 'Syntax error' as FormulaError }
   }
 }

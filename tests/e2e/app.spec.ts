@@ -563,9 +563,9 @@ test.describe('アプリケーション基本動作確認', () => {
     // 別エリアクリックで確定
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
-    // "Error"が表示される
+    // "Division by Zero"が表示される
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(page.locator('text=Error')).toBeVisible()
+    await expect(page.locator('text=Division by Zero')).toBeVisible()
   })
 
   test('未定義変数使用時にエラーが表示される @step5-2', async ({ page }) => {
@@ -596,9 +596,9 @@ test.describe('アプリケーション基本動作確認', () => {
     // 別エリアクリックで確定
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
-    // "Error"が表示される
+    // "Undefined Variable"が表示される
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(page.locator('text=Error')).toBeVisible()
+    await expect(page.locator('text=Undefined Variable')).toBeVisible()
   })
 
   test('タブ切り替え時の自動計算確認 @step5-2', async ({ page }) => {
@@ -641,7 +641,7 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
     // 計算結果確認
-    await expect(page.locator('text=6.280000000000001')).toBeVisible()
+    await expect(page.locator('text=6.283185307179586')).toBeVisible()
 
     // 他のタブに移動してからFormulaタブに戻る
     await page.locator('[data-testid="tab-variables"]').click()
@@ -649,6 +649,6 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 計算結果が維持されている
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(page.locator('text=6.280000000000001')).toBeVisible()
+    await expect(page.locator('text=6.283185307179586')).toBeVisible()
   })
 })

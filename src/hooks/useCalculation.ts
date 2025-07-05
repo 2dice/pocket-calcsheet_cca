@@ -74,7 +74,8 @@ export function useCalculation() {
 
   const calculateFormula = useCallback(
     (sheetId: string) => {
-      const sheet = entities[sheetId]
+      // 常に最新のstateを参照（関数の参照を安定化）
+      const sheet = useSheetsStore.getState().entities[sheetId]
       if (!sheet?.formulaData || !sheet.variableSlots) return
 
       // 変数マップを構築（実際の計算値を使用）
@@ -101,8 +102,8 @@ export function useCalculation() {
         error: result.error,
       })
     },
-    [entities, updateFormulaData]
-  )
+    [updateFormulaData]
+  ) // 依存配列からentitiesを削除
 
   // 変数計算後にFormula計算も実行
   const calculateAll = useCallback(

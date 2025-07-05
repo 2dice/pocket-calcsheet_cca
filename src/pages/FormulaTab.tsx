@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { FormulaInput } from '@/components/calculator/FormulaInput'
 import { ResultDisplay } from '@/components/calculator/ResultDisplay'
@@ -18,18 +18,25 @@ export function FormulaTab() {
 
   const sheet = entities[id || '']
 
+  // 変数の値の状態をJSON文字列として保持
+  const variablesState = useMemo(
+    () => JSON.stringify(sheet?.variableSlots?.map(s => s.value)),
+    [sheet?.variableSlots]
+  )
+
   useEffect(() => {
     if (id && sheet && !sheet.formulaData) {
       initializeSheet(id)
     }
   }, [id, sheet, initializeSheet])
 
-  // タブ遷移時の計算
+  // タブ遷移時および計算に必要な値が変更されたときに計算を実行
   useEffect(() => {
     if (id && sheet?.formulaData) {
       calculateFormula(id)
     }
-  }, [id, calculateFormula, sheet?.formulaData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, calculateFormula, sheet?.formulaData?.inputExpr, variablesState])
 
   // hideKeyboard実行時に値を保存と計算
   useEffect(() => {

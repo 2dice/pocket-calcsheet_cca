@@ -1,3 +1,5 @@
+import type { FormulaError } from './calculation'
+
 export interface SheetMeta {
   id: string
   name: string
@@ -28,5 +30,5 @@ export interface VariableSlot {
 export interface FormulaData {
   inputExpr: string // ユーザー入力式（改行・空白を含む）
   result: number | null // 計算結果（本ステップでは未使用）
-  error: string | null // エラー内容（本ステップでは未使用）
+  error: FormulaError | null // エラー内容（本ステップでは未使用）
 }

@@ -26,6 +26,39 @@ describe('ResultDisplay', () => {
     expect(errorText).toHaveClass('text-red-500')
   })
 
+  it('未定義変数エラーを表示する', () => {
+    render(<ResultDisplay result={null} error="Undefined variable" />)
+
+    expect(screen.getByText('Result')).toBeInTheDocument()
+    expect(screen.getByText('Undefined Variable')).toBeInTheDocument()
+
+    // エラー時の赤色スタイルが適用されているかチェック
+    const errorText = screen.getByText('Undefined Variable')
+    expect(errorText).toHaveClass('text-red-500')
+  })
+
+  it('ゼロ除算エラーを表示する', () => {
+    render(<ResultDisplay result={null} error="Division by zero" />)
+
+    expect(screen.getByText('Result')).toBeInTheDocument()
+    expect(screen.getByText('Division by Zero')).toBeInTheDocument()
+
+    // エラー時の赤色スタイルが適用されているかチェック
+    const errorText = screen.getByText('Division by Zero')
+    expect(errorText).toHaveClass('text-red-500')
+  })
+
+  it('構文エラーを表示する', () => {
+    render(<ResultDisplay result={null} error="Syntax error" />)
+
+    expect(screen.getByText('Result')).toBeInTheDocument()
+    expect(screen.getByText('Syntax Error')).toBeInTheDocument()
+
+    // エラー時の赤色スタイルが適用されているかチェック
+    const errorText = screen.getByText('Syntax Error')
+    expect(errorText).toHaveClass('text-red-500')
+  })
+
   it('結果がnullでエラーもない場合は"-"を表示する', () => {
     render(<ResultDisplay result={null} error={null} />)
 
