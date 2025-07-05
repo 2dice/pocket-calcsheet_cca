@@ -23,3 +23,10 @@ export interface VariableSlot {
   value: number | null // 計算結果（本ステップでは未使用）
   error: string | null // エラー内容（本ステップでは未使用）
 }
+
+// 数式データの型定義
+export interface FormulaData {
+  inputExpr: string // ユーザー入力式（改行・空白を含む）
+  result: number | null // 計算結果（本ステップでは未使用）
+  error: string | null // エラー内容（本ステップでは未使用）
+}

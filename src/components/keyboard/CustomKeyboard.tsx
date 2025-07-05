@@ -40,8 +40,7 @@ export function CustomKeyboard({ visible }: Props) {
             <button
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
-              onTouchStart={e => {
-                e.preventDefault()
+              onTouchStart={() => {
                 touchProcessedRef.current = true
                 moveCursor('left')
               }}
@@ -53,14 +52,14 @@ export function CustomKeyboard({ visible }: Props) {
                 }
                 moveCursor('left')
               }}
+              style={{ touchAction: 'none' }}
             >
               ←
             </button>
             <button
               type="button"
               className="h-9 rounded bg-white text-center shadow-sm active:bg-gray-200"
-              onTouchStart={e => {
-                e.preventDefault()
+              onTouchStart={() => {
                 touchProcessedRef.current = true
                 moveCursor('right')
               }}
@@ -72,6 +71,7 @@ export function CustomKeyboard({ visible }: Props) {
                 }
                 moveCursor('right')
               }}
+              style={{ touchAction: 'none' }}
             >
               →
             </button>
@@ -85,8 +85,7 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('%')
                 }}
@@ -98,14 +97,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('%')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 %
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('^')
                 }}
@@ -117,14 +116,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('^')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 ^
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('7')
                 }}
@@ -136,14 +135,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('7')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 7
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('8')
                 }}
@@ -155,14 +154,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('8')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 8
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('9')
                 }}
@@ -174,6 +173,7 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('9')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 9
               </button>
@@ -182,8 +182,7 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('+')
                 }}
@@ -195,14 +194,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('+')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 +
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('-')
                 }}
@@ -214,14 +213,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('-')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 -
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('4')
                 }}
@@ -233,14 +232,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('4')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 4
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('5')
                 }}
@@ -252,14 +251,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('5')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 5
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('6')
                 }}
@@ -271,6 +270,7 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('6')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 6
               </button>
@@ -279,8 +279,7 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('*')
                 }}
@@ -292,14 +291,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('*')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 *
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('/')
                 }}
@@ -311,14 +310,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('/')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 /
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('1')
                 }}
@@ -330,14 +329,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('1')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 1
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('2')
                 }}
@@ -349,14 +348,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('2')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 2
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('3')
                 }}
@@ -368,6 +367,7 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('3')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 3
               </button>
@@ -376,8 +376,7 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('(')
                 }}
@@ -389,14 +388,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('(')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 (
               </button>
               <button
                 type="button"
                 className="h-12 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText(')')
                 }}
@@ -408,14 +407,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText(')')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 )
               </button>
               <button
                 type="button"
                 className="col-span-4 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('0')
                 }}
@@ -427,14 +426,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('0')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 0
               </button>
               <button
                 type="button"
                 className="col-span-2 h-12 rounded bg-white text-center shadow-sm active:bg-gray-200"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   insertText('.')
                 }}
@@ -446,6 +445,7 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   insertText('.')
                 }}
+                style={{ touchAction: 'none' }}
               >
                 .
               </button>
@@ -456,8 +456,7 @@ export function CustomKeyboard({ visible }: Props) {
               <button
                 type="button"
                 className="h-9 rounded bg-gray-300 text-center shadow-sm active:bg-gray-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   handleBackspace()
                 }}
@@ -469,14 +468,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   handleBackspace()
                 }}
+                style={{ touchAction: 'none' }}
               >
                 BS
               </button>
               <button
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   setShowFunctionPicker(true)
                 }}
@@ -488,14 +487,14 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   setShowFunctionPicker(true)
                 }}
+                style={{ touchAction: 'none' }}
               >
                 f(x)
               </button>
               <button
                 type="button"
                 className="h-9 rounded-xl bg-purple-300 text-center shadow-sm active:bg-purple-400"
-                onTouchStart={e => {
-                  e.preventDefault()
+                onTouchStart={() => {
                   touchProcessedRef.current = true
                   setShowVariablePicker(true)
                 }}
@@ -507,6 +506,7 @@ export function CustomKeyboard({ visible }: Props) {
                   }
                   setShowVariablePicker(true)
                 }}
+                style={{ touchAction: 'none' }}
               >
                 var
               </button>
@@ -517,6 +517,7 @@ export function CustomKeyboard({ visible }: Props) {
                   e.preventDefault()
                   handleEnter()
                 }}
+                style={{ touchAction: 'none' }}
               >
                 ↵
               </button>

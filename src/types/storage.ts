@@ -1,4 +1,4 @@
-import type { SheetMeta, VariableSlot } from './sheet'
+import type { SheetMeta, VariableSlot, FormulaData } from './sheet'
 
 // ルートモデルの型定義
 export interface RootModel {
@@ -11,4 +11,5 @@ export interface RootModel {
 // Sheet型の拡張
 export interface Sheet extends SheetMeta {
   variableSlots: VariableSlot[] // 8要素の配列
+  formulaData: FormulaData // 数式データ
 }
