@@ -1,10 +1,13 @@
 import { useCallback } from 'react'
 import { useSheetsStore } from '@/store'
-import { evaluateExpression } from '@/utils/calculation/mathEngine'
+import {
+  evaluateExpression,
+  evaluateFormulaExpression,
+} from '@/utils/calculation/mathEngine'
 import type { CalculationContext } from '@/types/calculation'
 
 export function useCalculation() {
-  const { entities, updateVariableSlot } = useSheetsStore()
+  const { entities, updateVariableSlot, updateFormulaData } = useSheetsStore()
 
   const calculateAllVariables = useCallback(
     (sheetId: string) => {
@@ -69,5 +72,48 @@ export function useCalculation() {
     [entities, updateVariableSlot]
   )
 
-  return { calculateAllVariables }
+  const calculateFormula = useCallback(
+    (sheetId: string) => {
+      // 常に最新のstateを参照（関数の参照を安定化）
+      const sheet = useSheetsStore.getState().entities[sheetId]
+      if (!sheet?.formulaData || !sheet.variableSlots) return
+
+      // 変数マップを構築（実際の計算値を使用）
+      const variables: Record<string, number | null> = {}
+      sheet.variableSlots.forEach(slot => {
+        if (slot.varName) {
+          variables[slot.varName] = slot.value
+        }
+      })
+
+      const context: CalculationContext = {
+        variables,
+        variableSlots: sheet.variableSlots,
+      }
+
+      // Formula計算実行
+      const result = evaluateFormulaExpression(
+        sheet.formulaData.inputExpr,
+        context
+      )
+
+      updateFormulaData(sheetId, {
+        result: result.value,
+        error: result.error,
+      })
+    },
+    [updateFormulaData]
+  ) // 依存配列からentitiesを削除
+
+  // 変数計算後にFormula計算も実行
+  const calculateAll = useCallback(
+    (sheetId: string) => {
+      calculateAllVariables(sheetId)
+      // 変数計算完了後にFormula計算
+      setTimeout(() => calculateFormula(sheetId), 0)
+    },
+    [calculateAllVariables, calculateFormula]
+  )
+
+  return { calculateAllVariables, calculateFormula, calculateAll }
 }

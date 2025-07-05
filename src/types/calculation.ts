@@ -1,5 +1,11 @@
 import type { VariableSlot } from './sheet'
 
+export type FormulaError =
+  | 'Undefined variable'
+  | 'Division by zero'
+  | 'Syntax error'
+  | 'Error'
+
 export interface CalculationContext {
   variables: Record<string, number | null>
   variableSlots: VariableSlot[]
@@ -7,7 +13,7 @@ export interface CalculationContext {
 
 export interface CalculationResult {
   value: number | null
-  error: string | null
+  error: FormulaError | null
   formattedValue?: string
 }
 
