@@ -495,4 +495,160 @@ test.describe('アプリケーション基本動作確認', () => {
     expect(restoredValue).toContain('\n')
     expect(restoredValue).toContain('+5')
   })
+
+  test('Formula計算が自動実行される @step5-2', async ({ page }) => {
+    await page.goto('/')
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('計算テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=計算テスト').click()
+
+    // Variable1に"100"を入力
+    await page.locator('[data-testid="tab-variables"]').click()
+    const nameInput = page.locator('[data-testid="variable-name-1"]')
+    await nameInput.fill('var1')
+    await nameInput.blur()
+
+    const valueInput = page.locator('[data-testid="variable-value-1"]')
+    await valueInput.click()
+    await page.locator('button:has-text("1")').click()
+    await page.locator('button:has-text("0")').click()
+    await page.locator('button:has-text("0")').click()
+    await page.locator('button:has-text("↵")').click()
+
+    // Formulaタブへ遷移
+    await page.locator('[data-testid="tab-formula"]').click()
+
+    // "[var1]*2"を入力
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    await page.locator('[role="dialog"] >> text=var1').click()
+    await page.locator('button:has-text("*")').click()
+    await page.locator('button:has-text("2")').click()
+
+    // 別エリアクリックで確定
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // 計算結果"200.000000000000000"が表示される
+    await expect(page.locator('text=Result')).toBeVisible()
+    await expect(page.locator('text=200.000000000000000')).toBeVisible()
+  })
+
+  test('計算エラーが表示される @step5-2', async ({ page }) => {
+    await page.goto('/')
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('エラーテスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=エラーテスト').click()
+
+    // Formulaタブで"1/0"を入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page.locator('button:has-text("1")').click()
+    await page.locator('button:has-text("/")').click()
+    await page.locator('button:has-text("0")').click()
+
+    // 別エリアクリックで確定
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // "Error"が表示される
+    await expect(page.locator('text=Result')).toBeVisible()
+    await expect(page.locator('text=Error')).toBeVisible()
+  })
+
+  test('未定義変数使用時にエラーが表示される @step5-2', async ({ page }) => {
+    await page.goto('/')
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page
+      .locator('[data-testid="new-sheet-input"]')
+      .fill('未定義変数テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=未定義変数テスト').click()
+
+    // Formulaタブで未定義変数を参照
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    // 未入力のVariable1を選択
+    await page.locator('[role="dialog"] >> text=Variable1').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("1")').click()
+
+    // 別エリアクリックで確定
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // "Error"が表示される
+    await expect(page.locator('text=Result')).toBeVisible()
+    await expect(page.locator('text=Error')).toBeVisible()
+  })
+
+  test('タブ切り替え時の自動計算確認 @step5-2', async ({ page }) => {
+    await page.goto('/')
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('自動計算テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=自動計算テスト').click()
+
+    // 変数を入力
+    await page.locator('[data-testid="tab-variables"]').click()
+    const nameInput = page.locator('[data-testid="variable-name-1"]')
+    await nameInput.fill('pi')
+    await nameInput.blur()
+
+    const valueInput = page.locator('[data-testid="variable-value-1"]')
+    await valueInput.click()
+    await page.locator('button:has-text("3")').click()
+    await page.locator('button:has-text(".")').click()
+    await page.locator('button:has-text("1")').click()
+    await page.locator('button:has-text("4")').click()
+    await page.locator('button:has-text("↵")').click()
+
+    // 数式を入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    await page.locator('[role="dialog"] >> text=pi').click()
+    await page.locator('button:has-text("*")').click()
+    await page.locator('button:has-text("2")').click()
+
+    // 別エリアクリックで確定
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // 計算結果確認
+    await expect(page.locator('text=6.280000000000001')).toBeVisible()
+
+    // 他のタブに移動してからFormulaタブに戻る
+    await page.locator('[data-testid="tab-variables"]').click()
+    await page.locator('[data-testid="tab-formula"]').click()
+
+    // 計算結果が維持されている
+    await expect(page.locator('text=Result')).toBeVisible()
+    await expect(page.locator('text=6.280000000000001')).toBeVisible()
+  })
 })

@@ -1,7 +1,7 @@
 import * as math from 'mathjs'
 import type { CalculationContext, CalculationResult } from '@/types/calculation'
 import { preprocessExpression } from './expressionParser'
-import { formatWithSIPrefix } from './numberFormatter'
+import { formatWithSIPrefix, formatForFormula } from './numberFormatter'
 
 const mathInstance = math.create(math.all)
 
@@ -79,6 +79,52 @@ export function evaluateExpression(
       value: numValue,
       error: null,
       formattedValue: formatWithSIPrefix(numValue),
+    }
+  } catch {
+    return { value: null, error: 'Error' }
+  }
+}
+
+export function evaluateFormulaExpression(
+  expression: string,
+  context: CalculationContext
+): CalculationResult {
+  try {
+    // 空文字列の場合
+    if (!expression.trim()) {
+      return { value: null, error: null }
+    }
+
+    // 改行・余分な空白を除去
+    const cleanedExpression = expression.replace(/\s+/g, ' ').trim()
+
+    // 変数参照を実際の値に置換
+    const processed = preprocessExpression(
+      cleanedExpression,
+      context.variables,
+      context.variableSlots
+    )
+
+    // 未解決の変数参照が残っている場合
+    if (processed.includes('[')) {
+      return {
+        value: null,
+        error: 'Error',
+      }
+    }
+
+    // 計算実行
+    const result = mathInstance.evaluate(processed) as unknown
+    const numValue = Number(result)
+
+    if (isNaN(numValue) || !isFinite(numValue)) {
+      return { value: null, error: 'Error' }
+    }
+
+    return {
+      value: numValue,
+      error: null,
+      formattedValue: formatForFormula(numValue), // formatForFormulaを使用
     }
   } catch {
     return { value: null, error: 'Error' }

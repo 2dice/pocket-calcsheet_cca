@@ -57,7 +57,8 @@ pocket-calcsheet_cca/
 │   │   │   └── DragHandle.tsx        # ドラッグ&ドロップ用ハンドル
 │   │   ├── calculator/               # 計算機能コンポーネント
 │   │   │   ├── VariableSlot.tsx      # 変数スロット(名前+式+値)
-│   │   │   └── FormulaInput.tsx      # 数式入力コンポーネント
+│   │   │   ├── FormulaInput.tsx      # 数式入力コンポーネント
+│   │   │   └── ResultDisplay.tsx     # 計算結果表示
 │   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
 │   │   │   ├── CustomKeyboard.tsx    # カスタムキーボード本体
 │   │   │   ├── FunctionPicker.tsx    # 関数選択ドラムロールUI
@@ -117,7 +118,8 @@ pocket-calcsheet_cca/
 │   │   │   ├── SheetList.test.tsx    # シート一覧コンポーネントテスト
 │   │   │   ├── TabNavigation.test.tsx # タブナビゲーション関連テスト
 │   │   │   ├── VariableSlot.test.tsx # 変数スロットテスト
-│   │   │   └── CustomKeyboard.test.tsx # カスタムキーボードテスト
+│   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
+│   │   │   └── ResultDisplay.test.tsx # 計算結果表示テスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   ├── utils/

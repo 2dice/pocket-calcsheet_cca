@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { FormulaInput } from '@/components/calculator/FormulaInput'
+import { ResultDisplay } from '@/components/calculator/ResultDisplay'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
 import { useSheetsStore } from '@/store'
 import { useUIStore } from '@/store/uiStore'
+import { useCalculation } from '@/hooks/useCalculation'
+import { formatForFormula } from '@/utils/calculation/numberFormatter'
 
 const KEYBOARD_HEIGHT = 280
 
@@ -11,6 +14,7 @@ export function FormulaTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateFormulaData, initializeSheet } = useSheetsStore()
   const { keyboardState, hideKeyboard } = useUIStore()
+  const { calculateFormula } = useCalculation()
 
   const sheet = entities[id || '']
 
@@ -20,9 +24,15 @@ export function FormulaTab() {
     }
   }, [id, sheet, initializeSheet])
 
-  // hideKeyboard実行時に値を保存
+  // タブ遷移時の計算
   useEffect(() => {
-    // キーボードが非表示になった時に保存
+    if (id && sheet?.formulaData) {
+      calculateFormula(id)
+    }
+  }, [id, calculateFormula, sheet?.formulaData])
+
+  // hideKeyboard実行時に値を保存と計算
+  useEffect(() => {
     if (
       !keyboardState.visible &&
       keyboardState.target?.type === 'formula' &&
@@ -31,9 +41,11 @@ export function FormulaTab() {
       const { keyboardInput } = useUIStore.getState()
       if (keyboardInput !== null) {
         updateFormulaData(id, { inputExpr: keyboardInput.value })
+        // 入力確定後に計算実行
+        setTimeout(() => calculateFormula(id), 0)
       }
     }
-  }, [keyboardState, id, updateFormulaData])
+  }, [keyboardState, id, updateFormulaData, calculateFormula])
 
   const handleOutsideClick = (e: React.MouseEvent) => {
     const target = e.target
@@ -68,7 +80,13 @@ export function FormulaTab() {
         }}
       >
         <FormulaInput value={sheet.formulaData.inputExpr} />
-        {/* Result表示は次のステップで実装 */}
+
+        <ResultDisplay
+          result={sheet.formulaData.result}
+          error={sheet.formulaData.error}
+          className="mt-6"
+          formatter={formatForFormula} // Formula用フォーマッター
+        />
       </div>
 
       <CustomKeyboard visible={keyboardState.visible} />

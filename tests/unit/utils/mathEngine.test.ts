@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { formatWithSIPrefix } from '@/utils/calculation/numberFormatter'
-import { evaluateExpression } from '@/utils/calculation/mathEngine'
+import {
+  formatWithSIPrefix,
+  formatForFormula,
+} from '@/utils/calculation/numberFormatter'
+import {
+  evaluateExpression,
+  evaluateFormulaExpression,
+} from '@/utils/calculation/mathEngine'
 import {
   extractVariableNames,
   preprocessExpression,
@@ -283,6 +289,135 @@ describe('mathEngine', () => {
       const result = evaluateExpression('[Variable1] * 2', context)
       expect(result.value).toBe(200)
       expect(result.formattedValue).toBe('200.00')
+    })
+  })
+
+  describe('formatForFormula', () => {
+    it('小数点以下15桁まで0埋めで表示する', () => {
+      expect(formatForFormula(1.5)).toBe('1.500000000000000')
+      expect(formatForFormula(123.456)).toBe('123.456000000000003') // 浮動小数点誤差考慮
+    })
+
+    it('SI接頭語を適用する', () => {
+      expect(formatForFormula(1234567.89)).toBe('1.234567890000000×10^6')
+      expect(formatForFormula(0.000123)).toBe('123.000000000000014×10^-6') // 浮動小数点誤差考慮
+    })
+
+    it('ゼロは特別な形式で表示', () => {
+      expect(formatForFormula(0)).toBe('0.000000000000000')
+    })
+
+    it('負の数値を正しくフォーマット', () => {
+      expect(formatForFormula(-1.5)).toBe('-1.500000000000000')
+      expect(formatForFormula(-1234567.89)).toBe('-1.234567890000000×10^6')
+    })
+
+    it('1000の境界値', () => {
+      expect(formatForFormula(1000)).toBe('1.000000000000000×10^3')
+      expect(formatForFormula(999.999999999999)).toBe('999.999999999998977') // 浮動小数点誤差考慮
+    })
+
+    it('1未満の値', () => {
+      expect(formatForFormula(0.1)).toBe('100.000000000000000×10^-3')
+      expect(formatForFormula(0.0001)).toBe('100.000000000000014×10^-6') // 浮動小数点誤差考慮
+    })
+  })
+
+  describe('evaluateFormulaExpression', () => {
+    it('改行を含む式を評価する', () => {
+      const context: CalculationContext = {
+        variables: { var1: 10, var2: 20 },
+        variableSlots: [],
+      }
+
+      const expression = `[var1] + 
+        [var2] * 2`
+      const result = evaluateFormulaExpression(expression, context)
+      expect(result.value).toBe(50)
+      expect(result.error).toBe(null)
+      expect(result.formattedValue).toBe('50.000000000000000')
+    })
+
+    it('変数参照を実際の値で解決する', () => {
+      const context: CalculationContext = {
+        variables: { x: 3.14159, y: 2.71828 },
+        variableSlots: [],
+      }
+
+      const result = evaluateFormulaExpression('[x] * [y]', context)
+      expect(result.value).toBeCloseTo(8.539721, 5) // 実際の計算結果に合わせて調整
+      expect(result.error).toBe(null)
+      expect(result.formattedValue).toBe('8.539721265199999') // 実際の結果に合わせて調整
+    })
+
+    it('未定義変数でエラーを返す', () => {
+      const context: CalculationContext = {
+        variables: {},
+        variableSlots: [],
+      }
+
+      const result = evaluateFormulaExpression('[undefined_var] + 1', context)
+      expect(result.value).toBe(null)
+      expect(result.error).toBe('Error')
+    })
+
+    it('構文エラーでエラーを返す', () => {
+      const context: CalculationContext = {
+        variables: {},
+        variableSlots: [],
+      }
+
+      // math.jsでは "1 + + 2" は有効な式として評価される（+は単項演算子として扱われる）
+      // より明確な構文エラーを使用
+      const result = evaluateFormulaExpression('1 + / 2', context)
+      expect(result.value).toBe(null)
+      expect(result.error).toBe('Error')
+    })
+
+    it('ゼロ除算でエラーを返す', () => {
+      const context: CalculationContext = {
+        variables: {},
+        variableSlots: [],
+      }
+
+      const result = evaluateFormulaExpression('1 / 0', context)
+      expect(result.value).toBe(null)
+      expect(result.error).toBe('Error')
+    })
+
+    it('空文字列の場合はnullを返す', () => {
+      const context: CalculationContext = {
+        variables: {},
+        variableSlots: [],
+      }
+
+      const result = evaluateFormulaExpression('', context)
+      expect(result.value).toBe(null)
+      expect(result.error).toBe(null)
+    })
+
+    it('空白のみの場合はnullを返す', () => {
+      const context: CalculationContext = {
+        variables: {},
+        variableSlots: [],
+      }
+
+      const result = evaluateFormulaExpression('   \n  \n  ', context)
+      expect(result.value).toBe(null)
+      expect(result.error).toBe(null)
+    })
+
+    it('複雑な数式を評価する', () => {
+      const context: CalculationContext = {
+        variables: { radius: 5, height: 10 },
+        variableSlots: [],
+      }
+
+      const expression = `pi() * [radius]^2 * [height]`
+      const result = evaluateFormulaExpression(expression, context)
+      const expected = Math.PI * 25 * 10
+      expect(result.value).toBeCloseTo(expected, 10)
+      expect(result.error).toBe(null)
     })
   })
 })
