@@ -59,10 +59,9 @@ export function FormulaTab() {
   }
 
   return (
-    <>
+    <div className="h-full" onClick={handleOutsideClick}>
       <div
         className="p-4 pb-safe h-full overflow-y-auto"
-        onClick={handleOutsideClick}
         style={{
           paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
         }}
@@ -72,6 +71,6 @@ export function FormulaTab() {
       </div>
 
       <CustomKeyboard visible={keyboardState.visible} />
-    </>
+    </div>
   )
 }
