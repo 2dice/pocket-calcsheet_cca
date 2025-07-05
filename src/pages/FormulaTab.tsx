@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { FormulaInput } from '@/components/calculator/FormulaInput'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
@@ -11,6 +11,8 @@ export function FormulaTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateFormulaData, initializeSheet } = useSheetsStore()
   const { keyboardState, hideKeyboard } = useUIStore()
+  const formulaInputRef = useRef<HTMLDivElement>(null)
+  const keyboardRef = useRef<HTMLDivElement>(null)
 
   const sheet = entities[id || '']
 
@@ -35,16 +37,24 @@ export function FormulaTab() {
     }
   }, [keyboardState, id, updateFormulaData])
 
-  const handleOutsideClick = (e: React.MouseEvent) => {
-    const target = e.target
-    if (target instanceof HTMLElement && target.tagName !== 'TEXTAREA') {
-      hideKeyboard()
+  const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as Node
+
+    // クリックされた場所が入力エリア、キーボード、またはダイアログの内側であれば何もしない
+    if (
+      (formulaInputRef.current && formulaInputRef.current.contains(target)) ||
+      (keyboardRef.current && keyboardRef.current.contains(target)) ||
+      // ダイアログはPortalで描画されるため、別途DOMを検索して判定
+      document.querySelector('[role="dialog"]')?.contains(target)
+    ) {
+      return
     }
+    hideKeyboard()
   }
 
   if (!sheet) {
     return (
-      <div className="p-4">
+      <div className="min-h-screen p-4">
         <div className="text-gray-600">シートが見つかりません。</div>
       </div>
     )
@@ -52,26 +62,28 @@ export function FormulaTab() {
 
   if (!sheet.formulaData) {
     return (
-      <div className="p-4">
+      <div className="min-h-screen p-4">
         <div className="text-gray-600">読み込み中...</div>
       </div>
     )
   }
 
   return (
-    <>
+    <div className="min-h-screen" onClick={handleOutsideClick}>
       <div
         className="p-4 pb-safe h-full overflow-y-auto"
-        onClick={handleOutsideClick}
         style={{
           paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
         }}
       >
-        <FormulaInput value={sheet.formulaData.inputExpr} />
+        <FormulaInput
+          ref={formulaInputRef}
+          value={sheet.formulaData.inputExpr}
+        />
         {/* Result表示は次のステップで実装 */}
       </div>
 
-      <CustomKeyboard visible={keyboardState.visible} />
-    </>
+      <CustomKeyboard ref={keyboardRef} visible={keyboardState.visible} />
+    </div>
   )
 }
