@@ -408,6 +408,10 @@ test.describe('アプリケーション基本動作確認', () => {
     await textarea.click()
     await expect(page.locator('[data-testid="custom-keyboard"]')).toBeVisible()
 
+    // NOTE: アプリ側でdocumentにイベントリスナを登録する際のレースコンディションを
+    // 回避するため、意図的に短い待機を入れる
+    await page.waitForTimeout(50)
+
     // 数式入力
     await page.locator('button:has-text("2")').click()
     await page.locator('button:has-text("+")').click()
@@ -462,6 +466,10 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('[data-testid="tab-formula"]').click()
     const textarea = page.locator('textarea')
     await textarea.click()
+
+    // NOTE: アプリ側でdocumentにイベントリスナを登録する際のレースコンディションを
+    // 回避するため、意図的に短い待機を入れる
+    await page.waitForTimeout(50)
 
     // 変数参照を含む数式を入力
     await page
