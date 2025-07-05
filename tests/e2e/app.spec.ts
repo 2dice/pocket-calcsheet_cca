@@ -467,9 +467,6 @@ test.describe('アプリケーション基本動作確認', () => {
     await page
       .locator('[data-testid="custom-keyboard"] button:has-text("var")')
       .click()
-
-    // ダイアログが表示されるまで短時間待機
-    await page.waitForSelector('[role="dialog"]', { timeout: 10000 })
     await page.locator('[role="dialog"] >> text=x').click() // 変数選択
     await page.locator('button:has-text("*")').click()
     await page.locator('button:has-text("2")').click()
@@ -479,10 +476,10 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 別エリアクリックで確定（FormulaInput外の余白エリアをクリック）
     await page.locator('body').click({ position: { x: 50, y: 50 } })
-
+    
     // 保存待ち
     await page.waitForTimeout(100)
-
+    
     // ページリロード
     await page.reload()
 

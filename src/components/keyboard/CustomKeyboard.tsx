@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
 import { Portal } from '@/components/common/Portal'
 import { FunctionPicker } from './FunctionPicker'
 import { VariablePicker } from './VariablePicker'
@@ -11,7 +10,6 @@ interface Props {
 }
 
 export function CustomKeyboard({ visible }: Props) {
-  const { id } = useParams<{ id: string }>()
   const { insertText, handleBackspace, moveCursor, handleEnter, target } =
     useCustomKeyboard()
 
@@ -537,7 +535,7 @@ export function CustomKeyboard({ visible }: Props) {
         />
 
         {/* Variable Picker Dialog */}
-        {(target?.sheetId || id) && (
+        {target && (
           <VariablePicker
             open={showVariablePicker}
             onSelect={variableText => {
@@ -545,7 +543,7 @@ export function CustomKeyboard({ visible }: Props) {
               setShowVariablePicker(false)
             }}
             onClose={() => setShowVariablePicker(false)}
-            sheetId={target?.sheetId || id!}
+            sheetId={target.sheetId}
           />
         )}
       </div>
