@@ -35,11 +35,16 @@ export function FormulaTab() {
     }
   }, [keyboardState, id, updateFormulaData])
 
-  const handleOutsideClick = () => hideKeyboard()
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    const target = e.target
+    if (target instanceof HTMLElement && target.tagName !== 'TEXTAREA') {
+      hideKeyboard()
+    }
+  }
 
   if (!sheet) {
     return (
-      <div className="min-h-screen p-4">
+      <div className="p-4">
         <div className="text-gray-600">シートが見つかりません。</div>
       </div>
     )
@@ -47,16 +52,17 @@ export function FormulaTab() {
 
   if (!sheet.formulaData) {
     return (
-      <div className="min-h-screen p-4">
+      <div className="p-4">
         <div className="text-gray-600">読み込み中...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen" onClick={handleOutsideClick}>
+    <>
       <div
         className="p-4 pb-safe h-full overflow-y-auto"
+        onClick={handleOutsideClick}
         style={{
           paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
         }}
@@ -66,6 +72,6 @@ export function FormulaTab() {
       </div>
 
       <CustomKeyboard visible={keyboardState.visible} />
-    </div>
+    </>
   )
 }

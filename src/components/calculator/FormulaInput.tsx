@@ -80,7 +80,7 @@ export function FormulaInput({ value }: Props) {
   // キーボードが非表示になった時にonChangeが呼ばれる
 
   return (
-    <div onClick={e => e.stopPropagation()}>
+    <div>
       <label className="text-sm font-medium">Formula</label>
       <Textarea
         ref={textareaRef}
