@@ -35,17 +35,7 @@ export function FormulaTab() {
     }
   }, [keyboardState, id, updateFormulaData])
 
-  const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement
-    // クリックされた要素がキーボード内、またはダイアログ内であれば何もしない
-    if (
-      target.closest('[data-testid="custom-keyboard"]') ||
-      target.closest('[role="dialog"]')
-    ) {
-      return
-    }
-    hideKeyboard()
-  }
+  const handleOutsideClick = () => hideKeyboard()
 
   if (!sheet) {
     return (
