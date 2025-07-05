@@ -35,39 +35,12 @@ export function FormulaTab() {
     }
   }, [keyboardState, id, updateFormulaData])
 
-  // Document level click event monitoring
-  useEffect(() => {
-    if (!keyboardState.visible || keyboardState.target?.type !== 'formula') {
-      return
-    }
-
-    const handleDocumentClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-
-      // TEXTAREA内のクリックは無視
-      if (target.tagName === 'TEXTAREA' || target.closest('textarea')) {
-        return
-      }
-
-      // カスタムキーボード内のクリックは無視
-      const keyboard = document.querySelector('[data-testid="custom-keyboard"]')
-      if (keyboard && keyboard.contains(target)) {
-        return
-      }
-
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    const target = e.target
+    if (target instanceof HTMLElement && target.tagName !== 'TEXTAREA') {
       hideKeyboard()
     }
-
-    // 少し遅延させてから登録（現在のクリックイベントと競合しないように）
-    const timer = setTimeout(() => {
-      document.addEventListener('click', handleDocumentClick)
-    }, 0)
-
-    return () => {
-      clearTimeout(timer)
-      document.removeEventListener('click', handleDocumentClick)
-    }
-  }, [keyboardState, hideKeyboard])
+  }
 
   if (!sheet) {
     return (
@@ -89,6 +62,7 @@ export function FormulaTab() {
     <>
       <div
         className="p-4 pb-safe h-full overflow-y-auto"
+        onClick={handleOutsideClick}
         style={{
           paddingBottom: `calc(${KEYBOARD_HEIGHT}px + env(safe-area-inset-bottom))`,
         }}
