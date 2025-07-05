@@ -23,7 +23,6 @@ export function CustomKeyboard({ visible }: Props) {
       <div
         data-testid="custom-keyboard"
         role="toolbar"
-        onClick={e => e.stopPropagation()}
         aria-hidden={!visible}
         className={cn(
           'fixed bottom-0 left-0 right-0 z-50 bg-gray-100',
