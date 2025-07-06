@@ -655,4 +655,113 @@ test.describe('アプリケーション基本動作確認', () => {
       page.locator('text=Result').locator('..').locator('text=/6\\.28/')
     ).toBeVisible()
   })
+
+  test('Overviewタブでテキスト入力ができる @step6-1', async ({ page }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('概要テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=概要テスト').click()
+
+    // Overviewタブへ遷移
+    await page.locator('[data-testid="tab-overview"]').click()
+
+    // Overviewラベルが表示される（label要素を特定）
+    await expect(page.locator('label:has-text("Overview")')).toBeVisible()
+
+    // textareaが表示される
+    const textarea = page.locator('textarea')
+    await expect(textarea).toBeVisible()
+
+    // 複数行テキストを入力
+    const testText = '計算シートの概要です\nこれは複数行の\n説明文です'
+    await textarea.click()
+    await textarea.fill(testText)
+
+    // 内容が正しく入力されている
+    expect(await textarea.inputValue()).toBe(testText)
+
+    // 別の場所をクリック（onBlur発火）
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // 入力内容が保持される
+    expect(await textarea.inputValue()).toBe(testText)
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('Overview保存と復元が動作する @step6-1', async ({ page }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('保存テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=保存テスト').click()
+
+    // Overviewタブで説明を入力
+    await page.locator('[data-testid="tab-overview"]').click()
+    const textarea = page.locator('textarea')
+    const testDescription =
+      'このシートは\n保存と復元を\nテストするためのものです'
+    await textarea.click()
+    await textarea.fill(testDescription)
+
+    // onBlurで保存実行
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // ページリロード
+    await page.reload()
+
+    // 同じシートのOverviewタブに遷移
+    await page.locator('text=保存テスト').click()
+    await page.locator('[data-testid="tab-overview"]').click()
+
+    // データが復元される
+    const restoredTextarea = page.locator('textarea')
+    await expect(restoredTextarea).toHaveValue(testDescription)
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('Overviewタブのプレースホルダー表示確認 @step6-1', async ({ page }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page
+      .locator('[data-testid="new-sheet-input"]')
+      .fill('プレースホルダーテスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=プレースホルダーテスト').click()
+
+    // Overviewタブへ遷移
+    await page.locator('[data-testid="tab-overview"]').click()
+
+    // textareaにプレースホルダーが設定されている
+    const textarea = page.locator('textarea')
+    await expect(textarea).toHaveAttribute('placeholder')
+
+    // 初期値は空
+    expect(await textarea.inputValue()).toBe('')
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
 })

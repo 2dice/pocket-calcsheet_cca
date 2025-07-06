@@ -270,11 +270,11 @@ describe('App - React Router導入 (Step3-2)', () => {
     expect(screen.getByText('テストシート')).toBeInTheDocument()
 
     // Overviewタブのコンテンツが表示される
-    expect(
-      screen.getByText(
-        '概要タブのプレースホルダーです。実装は後のステップで行います。'
-      )
-    ).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'この計算表の説明を入力してください...'
+    )
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()
@@ -298,11 +298,11 @@ describe('App - React Router導入 (Step3-2)', () => {
     renderWithRouter(<App />, { initialEntries: [`/${sheet.id}/invalid-tab`] })
 
     // Overviewタブのコンテンツが表示される（リダイレクト先）
-    expect(
-      screen.getByText(
-        '概要タブのプレースホルダーです。実装は後のステップで行います。'
-      )
-    ).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'この計算表の説明を入力してください...'
+    )
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()

@@ -32,3 +32,8 @@ export interface FormulaData {
   result: number | null // 計算結果（本ステップでは未使用）
   error: FormulaError | null // エラー内容（本ステップでは未使用）
 }
+
+// 概要データの型定義
+export interface OverviewData {
+  description: string // 自由記述テキスト（複数行）
+}

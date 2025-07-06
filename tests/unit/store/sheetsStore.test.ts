@@ -1256,4 +1256,201 @@ describe('SheetsStore', () => {
       vi.useRealTimers()
     })
   })
+
+  describe('Overview機能', () => {
+    beforeEach(() => {
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('Overviewテストシート')
+    })
+
+    it('updateOverviewDataアクションが存在する', () => {
+      const { updateOverviewData } = useSheetsStore.getState()
+      expect(typeof updateOverviewData).toBe('function')
+    })
+
+    it('新規シート作成時にoverviewDataが初期化される', () => {
+      const { addSheet } = useSheetsStore.getState()
+      addSheet('新規Overviewシート')
+
+      const { sheets, entities } = useSheetsStore.getState()
+      const newSheet = sheets[sheets.length - 1]
+      const entity = entities[newSheet.id]
+
+      expect(entity.overviewData).toBeDefined()
+      expect(entity.overviewData.description).toBe('')
+    })
+
+    it('updateOverviewDataで概要データが更新される', () => {
+      const { updateOverviewData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+
+      const testDescription =
+        'これはテスト用の説明です\n複数行の\n内容を含みます'
+      updateOverviewData(sheetId, { description: testDescription })
+
+      const { entities } = useSheetsStore.getState()
+      const updatedSheet = entities[sheetId]
+
+      expect(updatedSheet.overviewData.description).toBe(testDescription)
+    })
+
+    it('updateOverviewDataで部分的な更新が可能', () => {
+      const { updateOverviewData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+
+      // 初期データを設定
+      updateOverviewData(sheetId, { description: '初期説明' })
+
+      // 部分的に更新
+      updateOverviewData(sheetId, { description: '更新された説明' })
+
+      const { entities } = useSheetsStore.getState()
+      const updatedSheet = entities[sheetId]
+
+      expect(updatedSheet.overviewData.description).toBe('更新された説明')
+    })
+
+    it('updateOverviewData実行時にupdatedAtが更新される', () => {
+      vi.useFakeTimers()
+
+      const { updateOverviewData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+      const initialUpdatedAt =
+        useSheetsStore.getState().entities[sheetId].updatedAt
+
+      // 時間を進める
+      vi.advanceTimersByTime(1000)
+
+      updateOverviewData(sheetId, { description: 'テスト説明' })
+
+      const { entities } = useSheetsStore.getState()
+      const updatedSheet = entities[sheetId]
+
+      expect(updatedSheet.updatedAt).not.toBe(initialUpdatedAt)
+      expect(updatedSheet.updatedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      vi.useRealTimers()
+    })
+
+    it('updateOverviewData実行時にsavedAtが更新される', () => {
+      vi.useFakeTimers()
+
+      const { updateOverviewData } = useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+      const initialSavedAt = useSheetsStore.getState().savedAt
+
+      // 時間を進める
+      vi.advanceTimersByTime(1000)
+
+      updateOverviewData(sheetId, { description: 'テスト説明' })
+
+      const updatedSavedAt = useSheetsStore.getState().savedAt
+
+      expect(updatedSavedAt).not.toBe(initialSavedAt)
+      expect(updatedSavedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+
+      vi.useRealTimers()
+    })
+
+    it('存在しないシートIDでupdateOverviewDataを実行してもエラーにならない', () => {
+      const { updateOverviewData } = useSheetsStore.getState()
+
+      expect(() => {
+        updateOverviewData('non-existent-id', { description: 'テスト' })
+      }).not.toThrow()
+
+      // 元のデータが変更されていないことを確認
+      const { sheets } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(1)
+    })
+
+    it('initializeSheetでoverviewDataが初期化される', () => {
+      const { initializeSheet } = useSheetsStore.getState()
+      const { addSheet } = useSheetsStore.getState()
+
+      // overviewDataなしのシートを作成（通常のaddSheetは自動でoverviewDataを追加するため、手動で削除）
+      addSheet('初期化テストシート')
+      const { sheets, entities } = useSheetsStore.getState()
+      const newSheetId = sheets[sheets.length - 1].id
+
+      // overviewDataを削除してinitializeSheetをテスト
+      const sheetWithoutOverview = { ...entities[newSheetId] }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      delete (sheetWithoutOverview as any).overviewData
+      useSheetsStore.setState(state => ({
+        ...state,
+        entities: {
+          ...state.entities,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+          [newSheetId]: sheetWithoutOverview as any,
+        },
+      }))
+
+      // initializeSheetを実行
+      initializeSheet(newSheetId)
+
+      const { entities: updatedEntities } = useSheetsStore.getState()
+      const initializedSheet = updatedEntities[newSheetId]
+
+      expect(initializedSheet.overviewData).toBeDefined()
+      expect(initializedSheet.overviewData.description).toBe('')
+    })
+
+    it('localStorage保存時にvariableSlots+formulaData+overviewDataが同時保存される', () => {
+      vi.useFakeTimers()
+
+      const { updateOverviewData, updateFormulaData, updateVariableSlot } =
+        useSheetsStore.getState()
+      const { sheets } = useSheetsStore.getState()
+      const sheetId = sheets[0].id
+
+      // 変数、formula、overview全てを更新
+      updateVariableSlot(sheetId, 1, { varName: 'x', expression: '10' })
+      updateFormulaData(sheetId, { inputExpr: '[x] * 2 + 5' })
+      updateOverviewData(sheetId, { description: 'この計算シートの説明です' })
+
+      // persistミドルウェアの非同期処理を即座に実行
+      vi.runAllTimers()
+
+      const key = 'pocket-calcsheet/1'
+      const saved = localStorage.getItem(key)
+      expect(saved).toBeTruthy()
+
+      if (saved) {
+        const parsedData = JSON.parse(saved) as {
+          state: {
+            entities: Record<
+              string,
+              {
+                variableSlots: Array<{ varName: string; expression: string }>
+                formulaData: { inputExpr: string }
+                overviewData: { description: string }
+              }
+            >
+          }
+        }
+        const savedEntity = parsedData.state.entities[sheetId]
+
+        expect(savedEntity.variableSlots).toBeDefined()
+        expect(savedEntity.variableSlots[0].varName).toBe('x')
+        expect(savedEntity.variableSlots[0].expression).toBe('10')
+        expect(savedEntity.formulaData).toBeDefined()
+        expect(savedEntity.formulaData.inputExpr).toBe('[x] * 2 + 5')
+        expect(savedEntity.overviewData).toBeDefined()
+        expect(savedEntity.overviewData.description).toBe(
+          'この計算シートの説明です'
+        )
+      }
+
+      vi.useRealTimers()
+    })
+  })
 })
