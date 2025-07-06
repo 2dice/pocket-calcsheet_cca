@@ -149,7 +149,18 @@ describe('TabNavigation', () => {
   describe('Tab Pages', () => {
     it('OverviewTabが正常にレンダリングされる', () => {
       render(<OverviewTab />)
-      expect(screen.getByText('Overview')).toBeInTheDocument()
+      // パラメータがない場合は「シートが見つかりません」が表示される
+      expect(screen.getByText('シートが見つかりません。')).toBeInTheDocument()
+    })
+
+    describe('OverviewTab機能', () => {
+      // Note: これらのテストは実際のstoreを使用するため、
+      // 個別のコンポーネントテストは後で追加する予定
+      it('基本的なOverviewタブ表示テスト（将来実装）', () => {
+        // このテストは将来的にOverviewTabの詳細機能をテストするための
+        // プレースホルダーです。現在は基本的なレンダリングテストのみ実行
+        expect(true).toBe(true)
+      })
     })
 
     it('VariablesTabが正常にレンダリングされる', () => {

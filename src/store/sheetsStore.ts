@@ -6,6 +6,7 @@ import type {
   ValidatedSheetName,
   VariableSlot,
   FormulaData,
+  OverviewData,
 } from '@/types/sheet'
 import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
@@ -32,6 +33,10 @@ interface SheetsStore extends RootModel {
   updateFormulaData: (
     sheetId: string,
     formulaData: Partial<FormulaData>
+  ) => void
+  updateOverviewData: (
+    sheetId: string,
+    overviewData: Partial<OverviewData>
   ) => void
   initializeSheet: (sheetId: string) => void
   reset: () => void
@@ -63,6 +68,10 @@ const createInitialFormulaData = (): FormulaData => ({
   error: null,
 })
 
+const createInitialOverviewData = (): OverviewData => ({
+  description: '',
+})
+
 const getInitialState = (): Omit<
   SheetsStore,
   | 'addSheet'
@@ -71,6 +80,7 @@ const getInitialState = (): Omit<
   | 'updateSheet'
   | 'updateVariableSlot'
   | 'updateFormulaData'
+  | 'updateOverviewData'
   | 'initializeSheet'
   | 'reset'
   | 'setStorageError'
@@ -104,6 +114,7 @@ export const useSheetsStore = create<SheetsStore>()(
           ...newSheet,
           variableSlots: createInitialVariableSlots(),
           formulaData: createInitialFormulaData(),
+          overviewData: createInitialOverviewData(),
         }
 
         // 容量チェック用のnewState作成
@@ -285,6 +296,27 @@ export const useSheetsStore = create<SheetsStore>()(
             savedAt: new Date().toISOString(),
           }
         }),
+      updateOverviewData: (sheetId, overviewData) =>
+        set(state => {
+          const sheet = state.entities[sheetId]
+          if (!sheet) return state
+
+          return {
+            ...state,
+            entities: {
+              ...state.entities,
+              [sheetId]: {
+                ...sheet,
+                overviewData: {
+                  ...sheet.overviewData,
+                  ...overviewData,
+                },
+                updatedAt: new Date().toISOString(),
+              },
+            },
+            savedAt: new Date().toISOString(),
+          }
+        }),
       initializeSheet: sheetId =>
         set(state => {
           const sheet = state.entities[sheetId]
@@ -292,8 +324,10 @@ export const useSheetsStore = create<SheetsStore>()(
 
           const needsVariableSlots = !sheet.variableSlots
           const needsFormulaData = !sheet.formulaData
+          const needsOverviewData = !sheet.overviewData
 
-          if (!needsVariableSlots && !needsFormulaData) return state
+          if (!needsVariableSlots && !needsFormulaData && !needsOverviewData)
+            return state
 
           const updatedSheet: Sheet = {
             ...sheet,
@@ -306,6 +340,10 @@ export const useSheetsStore = create<SheetsStore>()(
 
           if (needsFormulaData) {
             updatedSheet.formulaData = createInitialFormulaData()
+          }
+
+          if (needsOverviewData) {
+            updatedSheet.overviewData = createInitialOverviewData()
           }
 
           return {
