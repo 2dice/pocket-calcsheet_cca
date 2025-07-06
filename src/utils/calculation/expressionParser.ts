@@ -37,3 +37,28 @@ export function preprocessExpression(
 
   return processed
 }
+
+// 変数参照が隣接していないかチェック
+export function hasAdjacentVariables(expression: string): boolean {
+  // 変数参照パターン（[var]形式）
+  const varPattern = /\[[^\]]+\]/g
+
+  // 変数参照を一時的なマーカーに置換
+  let tempExpr = expression
+  let index = 0
+  const markers: string[] = []
+
+  tempExpr = tempExpr.replace(varPattern, () => {
+    const marker = `__VAR${index}__`
+    markers.push(marker)
+    index++
+    return marker
+  })
+
+  // 隣接パターンをチェック
+  // 1. 変数同士の隣接: __VAR0____VAR1__
+  // 2. 変数と数字の隣接: __VAR0__123 または 123__VAR0__
+  const adjacentPattern = /__VAR\d+__(?:__VAR\d+__|[\d])|[\d]__VAR\d+__/
+
+  return adjacentPattern.test(tempExpr)
+}

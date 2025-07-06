@@ -1105,7 +1105,7 @@ describe('SheetsStore', () => {
       updateFormulaData(sheetId, {
         inputExpr: '初期式',
         result: 42,
-        error: '初期エラー',
+        error: 'Error',
       })
 
       // inputExprのみ更新
@@ -1116,7 +1116,7 @@ describe('SheetsStore', () => {
 
       expect(updatedSheet.formulaData.inputExpr).toBe('更新された式')
       expect(updatedSheet.formulaData.result).toBe(42) // 変更されない
-      expect(updatedSheet.formulaData.error).toBe('初期エラー') // 変更されない
+      expect(updatedSheet.formulaData.error).toBe('Error') // 変更されない
     })
 
     it('updateFormulaData実行時にupdatedAtが更新される', () => {
