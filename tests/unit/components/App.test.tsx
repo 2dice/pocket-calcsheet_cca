@@ -271,9 +271,10 @@ describe('App - React Router導入 (Step3-2)', () => {
 
     // Overviewタブのコンテンツが表示される
     expect(screen.getByRole('textbox')).toBeInTheDocument()
-    expect(
-      screen.getByPlaceholderText(/数式の用途や変数の説明など/)
-    ).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'この計算表の説明を入力してください...'
+    )
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()
@@ -298,9 +299,10 @@ describe('App - React Router導入 (Step3-2)', () => {
 
     // Overviewタブのコンテンツが表示される（リダイレクト先）
     expect(screen.getByRole('textbox')).toBeInTheDocument()
-    expect(
-      screen.getByPlaceholderText(/数式の用途や変数の説明など/)
-    ).toBeInTheDocument()
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'この計算表の説明を入力してください...'
+    )
 
     await waitFor(() => {
       expect(mockRequestPersistentStorage).toHaveBeenCalled()

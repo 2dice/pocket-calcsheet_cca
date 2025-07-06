@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Textarea } from '@/components/ui/textarea'
 import { useSheetsStore } from '@/store'
@@ -8,7 +8,7 @@ export function OverviewTab() {
   const { entities, updateOverviewData, initializeSheet } = useSheetsStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const sheet = entities[id || '']
+  const sheet = useMemo(() => entities[id || ''], [entities, id])
 
   useEffect(() => {
     if (id && sheet && !sheet.overviewData) {
@@ -44,10 +44,12 @@ export function OverviewTab() {
         <label className="text-sm font-medium">Overview</label>
         <Textarea
           ref={textareaRef}
+          data-testid="overview-textarea"
+          aria-label="この計算表の説明を入力してください"
           defaultValue={sheet.overviewData.description}
           onBlur={handleBlur}
           className="mt-1 min-h-[200px] resize-none"
-          placeholder="数式の用途や変数の説明など、このシートの概要を記入してください..."
+          placeholder="この計算表の説明を入力してください..."
         />
       </div>
     </div>
