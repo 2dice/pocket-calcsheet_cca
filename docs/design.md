@@ -175,7 +175,7 @@ https://2dice.tech/category/ios-app/calcsheet/
     - 1行目にFormulaタブで入力した数式をそのまま記述(改行含む)
     - 2行目に関数名以外の数式をKaTeXで自然な数式に変換した式を記述(改行削除、LaTeX)
       - 例:atan関数はatan表記のまま。tan^{-1}の形式に変換しない
-      - 関数を使用していない場合はこの行は不要(3行目がこの位置に来る)
+      - 関数を使用していない場合(random(,),pi(),e()を除く)はこの行は不要(3行目がこの位置に来る)
         - 関数一覧は`docs/design_others.md`に記載
       - 変数は"[var]"の形式(大括弧を使用)
       - 例："atan(2\*[var1]/[var2])"は"atan(2\times\frac{[var1]}{[var2]})"に変換
