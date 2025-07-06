@@ -17,11 +17,11 @@ import type { VariableSlot } from '@/types/sheet'
 describe('numberFormatter', () => {
   describe('formatWithSIPrefix', () => {
     it('小さい数値を正しくフォーマットする', () => {
-      expect(formatWithSIPrefix(0.0003)).toBe('300.00×10^-6')
+      expect(formatWithSIPrefix(0.0003)).toBe('300.00 × 10^-6')
     })
 
     it('大きい数値を正しくフォーマットする', () => {
-      expect(formatWithSIPrefix(2000000)).toBe('2.00×10^6')
+      expect(formatWithSIPrefix(2000000)).toBe('2.00 × 10^6')
     })
 
     it('1以上1000未満の数値は指数なし', () => {
@@ -33,34 +33,34 @@ describe('numberFormatter', () => {
     })
 
     it('負の数も正しくフォーマット', () => {
-      expect(formatWithSIPrefix(-0.0003)).toBe('-300.00×10^-6')
+      expect(formatWithSIPrefix(-0.0003)).toBe('-300.00 × 10^-6')
     })
 
     it('非常に小さい数値', () => {
-      expect(formatWithSIPrefix(0.000000123)).toBe('123.00×10^-9')
+      expect(formatWithSIPrefix(0.000000123)).toBe('123.00 × 10^-9')
     })
 
     it('非常に大きい数値', () => {
-      expect(formatWithSIPrefix(1234567890)).toBe('1.23×10^9') // 四捨五入で.23
+      expect(formatWithSIPrefix(1234567890)).toBe('1.23 × 10^9') // 四捨五入で.23
     })
 
     it('1000の場合', () => {
-      expect(formatWithSIPrefix(1000)).toBe('1.00×10^3')
+      expect(formatWithSIPrefix(1000)).toBe('1.00 × 10^3')
     })
 
     it('0.999の場合', () => {
-      expect(formatWithSIPrefix(0.999)).toBe('999.00×10^-3')
+      expect(formatWithSIPrefix(0.999)).toBe('999.00 × 10^-3')
     })
 
     // 四捨五入の境界値テスト追加
     it('四捨五入の境界値（切り上げ）', () => {
       expect(formatWithSIPrefix(123.455)).toBe('123.46')
-      expect(formatWithSIPrefix(0.0009995)).toBe('999.50×10^-6')
+      expect(formatWithSIPrefix(0.0009995)).toBe('999.50 × 10^-6')
     })
 
     it('四捨五入の境界値（切り捨て）', () => {
       expect(formatWithSIPrefix(123.454)).toBe('123.45')
-      expect(formatWithSIPrefix(0.0009994)).toBe('999.40×10^-6')
+      expect(formatWithSIPrefix(0.0009994)).toBe('999.40 × 10^-6')
     })
   })
 })
@@ -230,7 +230,7 @@ describe('mathEngine', () => {
 
       const result = evaluateExpression('log(8)', context)
       expect(result.value).toBeCloseTo(0.903089, 5)
-      expect(result.formattedValue).toBe('903.09×10^-3')
+      expect(result.formattedValue).toBe('903.09 × 10^-3')
     })
 
     it('自然対数（ln）を計算する', () => {
@@ -241,7 +241,7 @@ describe('mathEngine', () => {
 
       const result = evaluateExpression('ln(2)', context)
       expect(result.value).toBeCloseTo(0.693147, 5)
-      expect(result.formattedValue).toBe('693.15×10^-3')
+      expect(result.formattedValue).toBe('693.15 × 10^-3')
     })
 
     it('円周率（pi）を取得する', () => {
@@ -299,8 +299,8 @@ describe('mathEngine', () => {
     })
 
     it('SI接頭語を適用する', () => {
-      expect(formatForFormula(1234567.89)).toBe('1.234567890000000×10^6')
-      expect(formatForFormula(0.000123)).toBe('123.000000000000014×10^-6') // 浮動小数点誤差考慮
+      expect(formatForFormula(1234567.89)).toBe('1.234567890000000 × 10^6')
+      expect(formatForFormula(0.000123)).toBe('123.000000000000014 × 10^-6') // 浮動小数点誤差考慮
     })
 
     it('ゼロは特別な形式で表示', () => {
@@ -309,17 +309,17 @@ describe('mathEngine', () => {
 
     it('負の数値を正しくフォーマット', () => {
       expect(formatForFormula(-1.5)).toBe('-1.500000000000000')
-      expect(formatForFormula(-1234567.89)).toBe('-1.234567890000000×10^6')
+      expect(formatForFormula(-1234567.89)).toBe('-1.234567890000000 × 10^6')
     })
 
     it('1000の境界値', () => {
-      expect(formatForFormula(1000)).toBe('1.000000000000000×10^3')
+      expect(formatForFormula(1000)).toBe('1.000000000000000 × 10^3')
       expect(formatForFormula(999.999999999999)).toBe('999.999999999998977') // 浮動小数点誤差考慮
     })
 
     it('1未満の値', () => {
-      expect(formatForFormula(0.1)).toBe('100.000000000000000×10^-3')
-      expect(formatForFormula(0.0001)).toBe('100.000000000000014×10^-6') // 浮動小数点誤差考慮
+      expect(formatForFormula(0.1)).toBe('100.000000000000000 × 10^-3')
+      expect(formatForFormula(0.0001)).toBe('100.000000000000014 × 10^-6') // 浮動小数点誤差考慮
     })
   })
 

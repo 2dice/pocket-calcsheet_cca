@@ -4,7 +4,7 @@ import type {
   CalculationResult,
   FormulaError,
 } from '@/types/calculation'
-import { preprocessExpression } from './expressionParser'
+import { preprocessExpression, hasAdjacentVariables } from './expressionParser'
 import { formatWithSIPrefix, formatForFormula } from './numberFormatter'
 
 const mathInstance = math.create(math.all)
@@ -101,6 +101,14 @@ export function evaluateFormulaExpression(
 
     // 改行・余分な空白を除去
     const cleanedExpression = expression.replace(/\s+/g, ' ').trim()
+
+    // 変数隣接チェック
+    if (hasAdjacentVariables(cleanedExpression)) {
+      return {
+        value: null,
+        error: 'Syntax error' as FormulaError,
+      }
+    }
 
     // 変数参照を実際の値に置換
     const processed = preprocessExpression(

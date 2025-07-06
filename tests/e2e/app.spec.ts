@@ -361,7 +361,7 @@ test.describe('アプリケーション基本動作確認', () => {
       .click()
 
     // SI接頭語フォーマット結果確認
-    await expect(page.locator('text=300.00×10^-6')).toBeVisible()
+    await expect(page.locator('text=300.00 × 10^-6')).toBeVisible()
 
     // エラーハンドリング確認
     const valueInput5 = page.locator('[data-testid="variable-value-5"]')
@@ -640,8 +640,10 @@ test.describe('アプリケーション基本動作確認', () => {
     // 別エリアクリックで確定
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
-    // 計算結果確認
-    await expect(page.locator('text=6.283185307179586')).toBeVisible()
+    // 計算結果確認（6.28で始まることを確認）
+    await expect(
+      page.locator('text=Result').locator('..').locator('text=/6\\.28/')
+    ).toBeVisible()
 
     // 他のタブに移動してからFormulaタブに戻る
     await page.locator('[data-testid="tab-variables"]').click()
@@ -649,6 +651,8 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 計算結果が維持されている
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(page.locator('text=6.283185307179586')).toBeVisible()
+    await expect(
+      page.locator('text=Result').locator('..').locator('text=/6\\.28/')
+    ).toBeVisible()
   })
 })

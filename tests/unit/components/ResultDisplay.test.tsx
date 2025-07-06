@@ -74,7 +74,7 @@ describe('ResultDisplay', () => {
     render(<ResultDisplay result={1234567.89} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('1.23×10^6')).toBeInTheDocument()
+    expect(screen.getByText('1.23 × 10^6')).toBeInTheDocument()
   })
 
   it('カスタムフォーマッター（SI接頭語15桁）で表示', () => {
@@ -87,7 +87,7 @@ describe('ResultDisplay', () => {
     )
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('1.234567890000000×10^6')).toBeInTheDocument()
+    expect(screen.getByText('1.234567890000000 × 10^6')).toBeInTheDocument()
   })
 
   it('カスタムクラス名を適用できる', () => {
@@ -115,7 +115,7 @@ describe('ResultDisplay', () => {
     render(<ResultDisplay result={0.000123} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('123.00×10^-6')).toBeInTheDocument()
+    expect(screen.getByText('123.00 × 10^-6')).toBeInTheDocument()
   })
 
   it('フォントスタイル（等幅フォント）が適用されている', () => {
