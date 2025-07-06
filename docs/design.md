@@ -159,9 +159,10 @@ https://2dice.tech/category/ios-app/calcsheet/
       - ただし小数点以下の表示桁数だけは15桁まで表示する
     - variablesタブの変数は計算後のラベルでは無く計算式の計算結果を使用(ラベルは値を丸めているため)
     - formulaタブに遷移したときと、入力確定時に自動演算
-    - 計算エラー発生時は"Error"表示
+    - 計算エラー発生時はError表示
       - 式のエラー,ゼロ割
       - variablesの変数名が変更されていた場合など
+      - Undefined variable, Division by zero, Syntax error
 - overviewタブ
   - Overview(step6-1)
     - Overviewラベルを左上に配置
@@ -171,17 +172,17 @@ https://2dice.tech/category/ios-app/calcsheet/
       - タブ表示時に読み出し、入力完了時に保存
   - Formula表示(step6-2)
     - Formulaラベルをoverviewテキストボックス左下に配置
-    - 1行目にFormulaタブで入力した数式をそのまま記述(改行・空白含む)
-    - 2行目に関数名以外の数式をKaTeXで自然な数式に変換した式を記述(改行・空白削除、LaTeX)
+    - 1行目にFormulaタブで入力した数式をそのまま記述(改行含む)
+    - 2行目に関数名以外の数式をKaTeXで自然な数式に変換した式を記述(改行削除、LaTeX)
       - 例:atan関数はatan表記のまま。tan^{-1}の形式に変換しない
       - 関数を使用していない場合はこの行は不要(3行目がこの位置に来る)
-        - 関数一覧は別ファイルに記載
+        - 関数一覧は`docs/design_others.md`に記載
       - 変数は"[var]"の形式(大括弧を使用)
       - 例："atan(2\*[var1]/[var2])"は"atan(2\times\frac{[var1]}{[var2]})"に変換
       - 変換エラー時は生テキスト表示
       - 長い場合は折り返し表示
     - 3行目に関数名も含めてKaTeXで自然な数式に変換した式を記述(LaTeX)
-      - 例："atan(2\*[var1]/[var2])"は"tan^{-1}(2\times\frac{[var1]}{[var2]})"に変換
+      - 例："atan(2\*[var1]/[var2])"は"tan^{-1}(2\times\frac{[var1]}{[var2]})"に変換(`docs/design_others.md`に全関数記載)
       - 変換エラー時は生テキスト表示
       - 長い場合は折り返し表示
     - LaTeX形式への変換テストケースは別ファイルに記載
