@@ -39,6 +39,7 @@ describe('latexConverter', () => {
       expect(convertToLatexWithoutFunctionNames('2 * 3')).toBe('2\\times 3')
       expect(convertToLatexWithoutFunctionNames('4 / 2')).toBe('\\frac{4}{2}')
       expect(convertToLatexWithoutFunctionNames('2^3')).toBe('2^{3}')
+      expect(convertToLatexWithoutFunctionNames('2^(4+1)')).toBe('2^{(4+1)}')
     })
 
     it('変数参照を保持する', () => {

@@ -917,6 +917,9 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('button:has-text("4")').click()
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
+    // データの保存を待つ
+    await page.waitForTimeout(100)
+
     // Overviewタブに遷移
     await page.locator('[data-testid="tab-overview"]').click()
 
@@ -938,7 +941,8 @@ test.describe('アプリケーション基本動作確認', () => {
     // 関数がないため2行目はスキップされ、2行のみの表示になる
     const formulaSection = page.locator('[data-testid="formula-display"]')
     if (await formulaSection.isVisible()) {
-      const displayLines = formulaSection.locator('> div')
+      // ExpressionRendererの子要素（1行目と3行目）をチェック
+      const displayLines = formulaSection.locator('> div > div')
       await expect(displayLines).toHaveCount(2) // 1行目と3行目のみ
     }
 
