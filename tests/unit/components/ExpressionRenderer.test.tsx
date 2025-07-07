@@ -31,7 +31,7 @@ describe('ExpressionRenderer', () => {
 
     // 3行目：関数名変換版（KaTeX）
     expect(
-      screen.getByText('KATEX[\\tan^{-1}(\\frac{2\\times [var1]}{[var2]})°]')
+      screen.getByText('KATEX[\\tan^{-1}\\left(\\frac{2\\times [var1]}{[var2]}\\right)°]')
     ).toBeInTheDocument()
   })
 
@@ -70,7 +70,8 @@ describe('ExpressionRenderer', () => {
   })
 
   it('KaTeXでレンダリングされる', async () => {
-    const katex = vi.mocked((await import('katex')).default)
+    const katexModule = await import('katex')
+    const katex = vi.mocked(katexModule.default)
 
     render(<ExpressionRenderer expression="sin(30)" />)
 
@@ -89,7 +90,11 @@ describe('ExpressionRenderer', () => {
   })
 
   it('LaTeXエラー時に生テキストを表示する', async () => {
-    const katex = vi.mocked((await import('katex')).default)
+    // コンソール警告をモック
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    
+    const katexModule = await import('katex')
+    const katex = vi.mocked(katexModule.default)
 
     // KaTeXのrenderでエラーを発生させる
     katex.render.mockImplementationOnce(() => {
@@ -101,6 +106,12 @@ describe('ExpressionRenderer', () => {
     // エラー時は元のLaTeX文字列が表示される（複数箇所に表示される）
     const elements = screen.getAllByText('sin(30)')
     expect(elements).toHaveLength(2) // 1行目と2行目（エラーフォールバック）
+    
+    // 警告が呼ばれたことを確認
+    expect(consoleSpy).toHaveBeenCalledWith('KaTeX rendering failed:', expect.any(Error))
+    
+    // クリーンアップ
+    consoleSpy.mockRestore()
   })
 
   it('カスタムclassNameが適用される', () => {

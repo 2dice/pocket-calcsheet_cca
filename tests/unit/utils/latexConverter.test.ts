@@ -153,6 +153,103 @@ describe('latexConverter', () => {
         '(\\sin([x]°))^{2} + (\\cos([x]°))^{2}'
       )
     })
+
+    it('acos([x]/sqrt([x]^2+[y]^2))を正しく変換する', () => {
+      const input = 'acos([x]/sqrt([x]^2+[y]^2))'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        'acos(\\frac{[x]}{sqrt([x]^{2}+[y]^{2})})'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        '\\cos^{-1}\\left(\\frac{[x]}{\\sqrt{[x]^{2}+[y]^{2}}}\\right)°'
+      )
+    })
+
+    it('random(0, 1) * ([max] - [min]) + [min]を正しく変換する', () => {
+      const input = 'random(0, 1) * ([max] - [min]) + [min]'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        'random(0, 1)\\times ([max] - [min]) + [min]'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        'random(0, 1)\\times ([max] - [min]) + [min]'
+      )
+    })
+
+    it('sqrt([a]^2 + [b]^2 - 2*[a]*[b]*cos([c]))を正しく変換する', () => {
+      const input = 'sqrt([a]^2 + [b]^2 - 2*[a]*[b]*cos([c]))'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        'sqrt([a]^{2} + [b]^{2} - 2\\times [a]\\times [b]\\times cos([c]))'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        '\\sqrt{[a]^{2} + [b]^{2} - 2\\times [a]\\times [b]\\times \\cos([c]°)}'
+      )
+    })
+
+    it('ln(([var1]+1)/([var1]-1)) / 2を正しく変換する', () => {
+      const input = 'ln(([var1]+1)/([var1]-1)) / 2'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        '\\frac{ln(\\frac{([var1]+1)}{([var1]-1)})}{2}'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        '\\frac{\\log_{e}\\left(\\frac{[var1]+1}{[var1]-1}\\right)}{2}'
+      )
+    })
+
+    it('([x]^2 + [y]^2)^0.5 / (1 + [z]^-2)を正しく変換する', () => {
+      const input = '([x]^2 + [y]^2)^0.5 / (1 + [z]^-2)'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        '\\frac{([x]^{2} + [y]^{2})^{0.5}}{1 + [z]^{-2}}'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        '\\frac{([x]^{2} + [y]^{2})^{0.5}}{1 + [z]^{-2}}'
+      )
+    })
+
+    it('atan([y]/[x]) + atan([y2]/[x2])を正しく変換する', () => {
+      const input = 'atan([y]/[x]) + atan([y2]/[x2])'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        'atan(\\frac{[y]}{[x]}) + atan(\\frac{[y2]}{[x2]})'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        '\\tan^{-1}\\left(\\frac{[y]}{[x]}\\right)° + \\tan^{-1}\\left(\\frac{[y2]}{[x2]}\\right)°'
+      )
+    })
+
+    it('exp(1) * sin(rtod(pi()/6)) - log(10)を正しく変換する', () => {
+      const input = 'exp(1) * sin(rtod(pi()/6)) - log(10)'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        'exp(1)\\times sin(rtod(\\frac{\\pi}{6})) - log(10)'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        'e^{1}\\times \\sin(rtod(\\frac{\\pi}{6})°) - \\log_{10}(10)'
+      )
+    })
+
+    it('(e()^[var1] - e()^-[var1])/(e()^[var1] + e()^-[var1]) + tan(asin([var2]))を正しく変換する', () => {
+      const input =
+        '(e()^[var1] - e()^-[var1])/(e()^[var1] + e()^-[var1]) + tan(asin([var2]))'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        '\\frac{(e^{[var1]} - e^{-[var1]})}{(e^{[var1]} + e^{-[var1]})} + tan(asin([var2]))'
+      )
+
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        '\\frac{e^{[var1]} - e^{-[var1]}}{e^{[var1]} + e^{-[var1]}} + \\tan(\\sin^{-1}([var2])°)'
+      )
+    })
   })
 
   describe('演算子の優先順位と式のグループ化', () => {

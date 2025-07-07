@@ -28,7 +28,8 @@ export function ExpressionRenderer({ expression, className }: Props) {
           throwOnError: false,
           displayMode: false,
         })
-      } catch {
+      } catch (error) {
+        console.warn('KaTeX rendering failed:', error)
         line2Ref.current.textContent = latexWithoutFn
       }
     }
@@ -39,7 +40,8 @@ export function ExpressionRenderer({ expression, className }: Props) {
           throwOnError: false,
           displayMode: false,
         })
-      } catch {
+      } catch (error) {
+        console.warn('KaTeX rendering failed:', error)
         line3Ref.current.textContent = latexWithFn
       }
     }

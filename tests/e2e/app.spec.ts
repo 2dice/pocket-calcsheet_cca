@@ -790,10 +790,19 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('[data-testid="tab-overview"]').click()
 
     // Formula表示エリアが表示される
-    await expect(page.locator('[data-testid="formula-display"]').locator('..').locator('label:has-text("Formula")')).toBeVisible()
+    await expect(
+      page
+        .locator('[data-testid="formula-display"]')
+        .locator('..')
+        .locator('label:has-text("Formula")')
+    ).toBeVisible()
 
     // 元の式が表示される（最初のdivで確認）
-    await expect(page.locator('[data-testid="formula-display"] div.font-mono:has-text("2+3")')).toBeVisible()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("2+3")'
+      )
+    ).toBeVisible()
 
     // コンソールエラーがないことを確認
     const errors = monitor.getAllErrors()
@@ -840,10 +849,14 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('text=atan - アークタンジェント(度)').click()
     await page.locator('button:has-text("2")').click()
     await page.locator('button:has-text("*")').click()
-    await page.locator('[data-testid="custom-keyboard"] button:has-text("var")').click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
     await page.locator('[role="dialog"] >> text=var1').click()
     await page.locator('button:has-text("/")').click()
-    await page.locator('[data-testid="custom-keyboard"] button:has-text("var")').click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
     await page.locator('[role="dialog"] >> text=var2').click()
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
@@ -851,10 +864,19 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('[data-testid="tab-overview"]').click()
 
     // Formula表示エリアが表示される
-    await expect(page.locator('[data-testid="formula-display"]').locator('..').locator('label:has-text("Formula")')).toBeVisible()
+    await expect(
+      page
+        .locator('[data-testid="formula-display"]')
+        .locator('..')
+        .locator('label:has-text("Formula")')
+    ).toBeVisible()
 
     // 1行目：元の式
-    await expect(page.locator('[data-testid="formula-display"] div.font-mono:has-text("atan(2*[var1]/[var2])")')).toBeVisible()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("atan(2*[var1]/[var2])")'
+      )
+    ).toBeVisible()
 
     // 3行のLaTeX表示が確認できる（関数を含むため）
     const formulaSection = page.locator('[data-testid="formula-display"]')
@@ -899,10 +921,19 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('[data-testid="tab-overview"]').click()
 
     // Formula表示エリアが表示される
-    await expect(page.locator('[data-testid="formula-display"]').locator('..').locator('label:has-text("Formula")')).toBeVisible()
+    await expect(
+      page
+        .locator('[data-testid="formula-display"]')
+        .locator('..')
+        .locator('label:has-text("Formula")')
+    ).toBeVisible()
 
     // 1行目：元の式
-    await expect(page.locator('[data-testid="formula-display"] div.font-mono:has-text("2+3*4")')).toBeVisible()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("2+3*4")'
+      )
+    ).toBeVisible()
 
     // 関数がないため2行目はスキップされ、2行のみの表示になる
     const formulaSection = page.locator('[data-testid="formula-display"]')
@@ -939,7 +970,11 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // Overviewタブで表示確認
     await page.locator('[data-testid="tab-overview"]').click()
-    await expect(page.locator('[data-testid="formula-display"] div.font-mono:has-text("1+2")')).toBeVisible()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("1+2")'
+      )
+    ).toBeVisible()
 
     // 数式を関数ありに変更
     await page.locator('[data-testid="tab-formula"]').click()
@@ -953,7 +988,11 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // Overviewタブで更新確認
     await page.locator('[data-testid="tab-overview"]').click()
-    await expect(page.locator('[data-testid="formula-display"] div.font-mono:has-text("sin(30)")')).toBeVisible()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("sin(30)")'
+      )
+    ).toBeVisible()
 
     // LaTeX表示も更新される（関数ありなので3行表示）
     const formulaSection = page.locator('[data-testid="formula-display"]')
