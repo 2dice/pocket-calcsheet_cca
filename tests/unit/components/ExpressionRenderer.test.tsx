@@ -31,9 +31,7 @@ describe('ExpressionRenderer', () => {
 
     // 3行目：関数名変換版（KaTeX）
     expect(
-      screen.getByText(
-        'KATEX[\\tan^{-1}\\left(2\\times \\frac{[var1]}{[var2]}\\right)°]'
-      )
+      screen.getByText('KATEX[\\tan^{-1}(2\\times \\frac{[var1]}{[var2]})°]')
     ).toBeInTheDocument()
   })
 

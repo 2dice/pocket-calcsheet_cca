@@ -342,10 +342,16 @@ function replaceFunctionArgsWithFractions(
         // まず \times を * に戻して統一的に処理
         convertedArgs = convertedArgs.replace(/\\times/g, '*')
 
-        // パターン1: 乗算チェーン * 変数 / 単項 （例: 2*[var1]/[var2] → \frac{2*[var1]}{[var2]}）
-        // 変数 [var1] を含む場合にも対応
+        // パターン1: 乗算チェーン * 変数 / 単項 の特別処理
+        // 例: 2*[var1]/[var2] → 2*\frac{[var1]}{[var2]} (先頭の係数を外に出す)
         convertedArgs = convertedArgs.replace(
-          /([^\s/()]+(?:\s*\*\s*[^\s/()[\]]+|\s*\*\s*\[[^\]]+\])+)\s*\/\s*([^\s/()]+)/g,
+          /^([^\s/()]+)\s*\*\s*([^\s/()[\]]+|\[[^\]]+\])\s*\/\s*([^\s/()]+)/g,
+          '$1*\\frac{$2}{$3}'
+        )
+
+        // パターン1b: その他の乗算チェーン / 単項 （例: a*b*c/d → \frac{a*b*c}{d}）
+        convertedArgs = convertedArgs.replace(
+          /([^\s/()]+(?:\s*\*\s*[^\s/()[\]]+|\s*\*\s*\[[^\]]+\]){2,})\s*\/\s*([^\s/()]+)/g,
           '\\frac{$1}{$2}'
         )
 

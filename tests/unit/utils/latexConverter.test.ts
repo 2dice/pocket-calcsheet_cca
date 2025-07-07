@@ -86,11 +86,11 @@ describe('latexConverter', () => {
       const input = 'atan(2*[var1]/[var2])'
 
       expect(convertToLatexWithoutFunctionNames(input)).toBe(
-        'atan(\\frac{2\\times [var1]}{[var2]})'
+        'atan(2\\times \\frac{[var1]}{[var2]})'
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '\\tan^{-1}(\\frac{2\\times [var1]}{[var2]})°'
+        '\\tan^{-1}(2\\times \\frac{[var1]}{[var2]})°'
       )
     })
 
