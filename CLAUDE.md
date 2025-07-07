@@ -58,7 +58,8 @@ pocket-calcsheet_cca/
 │   │   ├── calculator/               # 計算機能コンポーネント
 │   │   │   ├── VariableSlot.tsx      # 変数スロット(名前+式+値)
 │   │   │   ├── FormulaInput.tsx      # 数式入力コンポーネント
-│   │   │   └── ResultDisplay.tsx     # 計算結果表示
+│   │   │   ├── ResultDisplay.tsx     # 計算結果表示
+│   │   │   └── ExpressionRenderer.tsx # LaTeX式表示コンポーネント
 │   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
 │   │   │   ├── CustomKeyboard.tsx    # カスタムキーボード本体
 │   │   │   ├── FunctionPicker.tsx    # 関数選択ドラムロールUI
@@ -89,7 +90,8 @@ pocket-calcsheet_cca/
 │   │   ├── calculation/              # 計算関連ユーティリティ
 │   │   │   ├── mathEngine.ts         # math.js ラッパー・計算エンジン
 │   │   │   ├── expressionParser.ts   # 数式パース・変数抽出
-│   │   │   └── numberFormatter.ts    # 数値フォーマット(SI接頭語等)
+│   │   │   ├── numberFormatter.ts    # 数値フォーマット(SI接頭語等)
+│   │   │   └── latexConverter.ts     # LaTeX変換・数式レンダリング用
 │   │   ├── constants/                # 定数定義
 │   │   │   ├── routes.ts             # ルート定義・タブバリデーション
 │   │   │   └── functions.ts          # 対応関数一覧定義
@@ -119,12 +121,14 @@ pocket-calcsheet_cca/
 │   │   │   ├── TabNavigation.test.tsx # タブナビゲーション関連テスト
 │   │   │   ├── VariableSlot.test.tsx # 変数スロットテスト
 │   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
-│   │   │   └── ResultDisplay.test.tsx # 計算結果表示テスト
+│   │   │   ├── ResultDisplay.test.tsx # 計算結果表示テスト
+│   │   │   └── ExpressionRenderer.test.tsx # LaTeX式表示テスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   ├── utils/
 │   │   │   ├── validation.test.ts    # バリデーションテスト
-│   │   │   └── mathEngine.test.ts    # 計算エンジンユニットテスト
+│   │   │   ├── mathEngine.test.ts    # 計算エンジンユニットテスト
+│   │   │   └── latexConverter.test.ts # LaTeX変換ユニットテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
 │   │       └── storageManager.test.ts # StorageManager + MigrationManagerテスト
@@ -214,7 +218,7 @@ pocket-calcsheet_cca/
 ### Specialized Libraries
 
 - math.js: 数式処理・計算エンジン
-- KaTeX: LaTeX数式レンダリング
+- KaTeX: LaTeX数式レンダリング (Step6-2で追加)
 - dnd-kit: ドラッグ&ドロップ (リスト並び替え)
 - React Router + HashRouter: ルーティング
 
