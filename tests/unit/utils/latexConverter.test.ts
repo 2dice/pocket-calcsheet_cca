@@ -155,6 +155,50 @@ describe('latexConverter', () => {
     })
   })
 
+  describe('演算子の優先順位と式のグループ化', () => {
+    it('乗除算の左結合性を正しく処理する', () => {
+      // 6/2*4 は (6/2)*4 と解釈され、\frac{6}{2} \times 4 となるべき
+      expect(convertToLatexWithoutFunctionNames('6/2*4')).toBe(
+        '\\frac{6}{2}\\times 4'
+      )
+      expect(convertToLatexWithFunctionNames('6/2*4')).toBe(
+        '\\frac{6}{2}\\times 4'
+      )
+
+      // 8/4/2 は (8/4)/2 と解釈され、\frac{8/4}{2} ではなく \frac{8}{4}/2 となるべき
+      expect(convertToLatexWithoutFunctionNames('8/4/2')).toBe('\\frac{8}{4}/2')
+      expect(convertToLatexWithFunctionNames('8/4/2')).toBe('\\frac{8}{4}/2')
+    })
+
+    it('括弧で囲まれた式の除算でグループ化を維持する', () => {
+      // (1+1)/(1+1) は \frac{({1+1})}{({1+1})} となるべき
+      expect(convertToLatexWithoutFunctionNames('(1+1)/(1+1)')).toBe(
+        '\\frac{({1+1})}{({1+1})}'
+      )
+      expect(convertToLatexWithFunctionNames('(1+1)/(1+1)')).toBe(
+        '\\frac{({1+1})}{({1+1})}'
+      )
+
+      // (a+b)/(c+d) の場合も同様
+      expect(convertToLatexWithoutFunctionNames('([a]+[b])/([c]+[d])')).toBe(
+        '\\frac{({[a]+[b]})}{({[c]+[d]})}'
+      )
+      expect(convertToLatexWithFunctionNames('([a]+[b])/([c]+[d])')).toBe(
+        '\\frac{({[a]+[b]})}{({[c]+[d]})}'
+      )
+    })
+
+    it('複雑な混合式を正しく処理する', () => {
+      // 6/2*4 + 8/4*2 のような複雑な式
+      expect(convertToLatexWithoutFunctionNames('6/2*4 + 8/4*2')).toBe(
+        '\\frac{6}{2}\\times 4 + \\frac{8}{4}\\times 2'
+      )
+      expect(convertToLatexWithFunctionNames('6/2*4 + 8/4*2')).toBe(
+        '\\frac{6}{2}\\times 4 + \\frac{8}{4}\\times 2'
+      )
+    })
+  })
+
   describe('エラーハンドリング', () => {
     it('無効な式の場合は元の式を返す', () => {
       const invalidInput = 'invalid((('

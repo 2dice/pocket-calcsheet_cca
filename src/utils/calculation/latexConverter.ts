@@ -151,15 +151,20 @@ function convertFractions(expression: string): string {
     }
   )
 
-  // 括弧で囲まれた分数
-  result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{$1}{$2}')
+  // 修正点1: 括弧で囲まれた分数のグループ化を維持する
+  result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{({$1})}{({$2})}')
 
-  // 乗算チェーンを含む分数（関数の外側）
-  // 例: 2 * [var1] / [var2] -> \frac{2 * [var1]}{[var2]}
-  result = result.replace(
-    /([^/\s]+(?:\s*\*\s*[^/\s]+)*)\s*\/\s*([^/\s]+)/g,
-    '\\frac{$1}{$2}'
+  // 修正点2: 一般的な分数の正規表現を修正し、演算子の優先順位を考慮する
+  // 分母は「括弧で囲まれたグループ」か「スペースや四則演算子を含まない単一の項」に限定
+  const denominator = /(?:\([^)]+\)|[^\s*/+-]+)/
+  // 分子は乗算を考慮しつつも、除算の左側にあるもの
+  const numerator = /[^\s/()]+(?:\s*\*\s*[^\s/()]+)*/
+
+  const fractionRegex = new RegExp(
+    `(${numerator.source})\\s*\\/\\s*(${denominator.source})`,
+    'g'
   )
+  result = result.replace(fractionRegex, '\\frac{$1}{$2}')
 
   return result
 }
