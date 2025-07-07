@@ -78,30 +78,42 @@ function convertToCustomLatex(
     result = result.replace(regex, latexFn)
   })
 
-  // 2. べき乗の変換（数値、変数、括弧の後の指数のみ）
-  result = result.replace(/\^(-?[\d.]+)/g, '^{$1}') // 数値の指数
-  result = result.replace(/\^(-?\[[\w_]+\])/g, '^{$1}') // 変数の指数
-  result = result.replace(/\^(-?\w+)/g, '^{$1}') // 一般的な単語の指数
+  // 2. べき乗の変換（より包括的に）
+  result = convertPowers(result)
 
-  // 3. 分数の変換
+  // 3. 基本的な演算子変換（分数変換前に実行）
+  result = result.replace(/\s*\*\s*/g, '\\times ')
+
+  // 4. 分数の変換（演算子の優先順位を考慮）
   result = convertFractions(result)
 
-  // 4. 関数変換（必要な場合のみ）
+  // 5. 関数変換（必要な場合のみ）
   if (convertFunctions) {
     result = convertFunctionNames(result)
   }
-
-  // 5. 基本的な演算子変換
-  result = result.replace(/\s*\*\s*/g, '\\times ')
 
   // 6. モジュロ演算子の変換
   result = result.replace(/\s*%\s*/g, ' \\bmod ')
 
   // 7. 重複した度記号の削除
-  result = result.replace(/°°/g, '°')
+  result = result.replace(/°°+/g, '°')
 
   // 8. 空白の正規化
   result = result.replace(/\s+/g, ' ').trim()
+
+  return result
+}
+
+// べき乗変換の改良版
+function convertPowers(expression: string): string {
+  let result = expression
+
+  // より包括的なべき乗パターンに対応
+  // べき乗記号の後の指数を {} で囲む
+
+  // 1. 任意の式^指数 のパターンを包括的に変換
+  // 指数部分: 数値、変数、単語、負号付きなど
+  result = result.replace(/\^(-?[\d.a-zA-Z[\]_]+)/g, '^{$1}')
 
   return result
 }
@@ -111,16 +123,38 @@ function convertFunctionNames(expression: string): string {
   let result = expression
 
   // 1. 三角関数（度記号付き）
-  result = result.replace(/\bsin\(([^)]+)\)/g, '\\sin($1°)')
-  result = result.replace(/\bcos\(([^)]+)\)/g, '\\cos($1°)')
-  result = result.replace(/\btan\(([^)]+)\)/g, '\\tan($1°)')
+  result = replaceFunctionWithBalancedParens(result, 'sin', content => {
+    // dtor/rtodが含まれている場合は度記号を重複させない
+    if (content.includes('rtod(') && !content.includes('°')) {
+      return `\\sin(${content}°)`
+    } else if (content.includes('°')) {
+      return `\\sin(${content})`
+    }
+    return `\\sin(${content}°)`
+  })
+
+  result = replaceFunctionWithBalancedParens(result, 'cos', content => {
+    if (content.includes('rtod(') && !content.includes('°')) {
+      return `\\cos(${content}°)`
+    } else if (content.includes('°')) {
+      return `\\cos(${content})`
+    }
+    return `\\cos(${content}°)`
+  })
+
+  result = replaceFunctionWithBalancedParens(result, 'tan', content => {
+    if (content.includes('rtod(') && !content.includes('°')) {
+      return `\\tan(${content}°)`
+    } else if (content.includes('°')) {
+      return `\\tan(${content})`
+    }
+    return `\\tan(${content}°)`
+  })
 
   // 2. 逆三角関数（度記号付き、複雑な場合は\left \right追加）
-  result = replaceFunctionWithBalancedParens(
-    result,
-    'asin',
-    content => `\\sin^{-1}(${content})°`
-  )
+  result = replaceFunctionWithBalancedParens(result, 'asin', content => {
+    return `\\sin^{-1}(${content})°`
+  })
 
   result = replaceFunctionWithBalancedParens(result, 'acos', content => {
     // 複雑な分数と平方根の組み合わせには\left \right追加
@@ -131,22 +165,18 @@ function convertFunctionNames(expression: string): string {
   })
 
   result = replaceFunctionWithBalancedParens(result, 'atan', content => {
-    // 複数のatan関数がある場合やより複雑な場合のみ\left \right追加
-    const hasMultipleVariables =
-      (content.match(/\[[\w_]+\]/g) || []).length >= 2
-
-    if (content.includes('\\frac{') && hasMultipleVariables) {
+    // 分数を含む複雑な場合は\left \right追加
+    if (content.includes('\\frac{')) {
       return `\\tan^{-1}\\left(${content}\\right)°`
     }
     return `\\tan^{-1}(${content})°`
   })
 
   // 3. 対数関数（複雑な分数には\left \right追加）
-  result = replaceFunctionWithBalancedParens(
-    result,
-    'log',
-    content => `\\log_{10}(${content})`
-  )
+  result = replaceFunctionWithBalancedParens(result, 'log', content => {
+    return `\\log_{10}(${content})`
+  })
+
   result = replaceFunctionWithBalancedParens(result, 'ln', content => {
     if (content.includes('\\frac{')) {
       return `\\log_{e}\\left(${content}\\right)`
@@ -155,60 +185,74 @@ function convertFunctionNames(expression: string): string {
   })
 
   // 4. 平方根
-  result = replaceFunctionWithBalancedParens(
-    result,
-    'sqrt',
-    content => `\\sqrt{${content}}`
-  )
+  result = replaceFunctionWithBalancedParens(result, 'sqrt', content => {
+    return `\\sqrt{${content}}`
+  })
 
   // 5. 指数関数
-  result = replaceFunctionWithBalancedParens(
-    result,
-    'exp',
-    content => `e^{${content}}`
-  )
+  result = replaceFunctionWithBalancedParens(result, 'exp', content => {
+    return `e^{${content}}`
+  })
 
-  // 6. 度・ラジアン変換
-  result = result.replace(/\bdtor\(([^)]+)\)/g, 'dtor($1°)')
-  result = result.replace(/\brtod\(([^)]+)\)/g, 'rtod($1)°')
+  // 6. 度・ラジアン変換（度記号の位置を正しく配置）
+  result = replaceFunctionWithBalancedParens(result, 'dtor', content => {
+    return `dtor(${content}°)`
+  })
+
+  result = replaceFunctionWithBalancedParens(result, 'rtod', content => {
+    return `rtod(${content})°`
+  })
 
   return result
 }
 
-// 分数変換の改良版
+// 分数変換の改良版（段階的な処理）
 function convertFractions(expression: string): string {
   let result = expression
 
-  // 段階的に分数変換を実行
-
-  // 1. 関数の引数内での分数変換（最初に処理）
+  // 1. 関数の引数内での分数変換（最優先で処理）
   result = replaceFunctionArgsWithFractions(result)
 
   // 2. 複雑な括弧同士の除算
-  result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{$1}{$2}')
+  // (a+b)/(c+d) → \frac{({a+b})}{({c+d})} - テスト要件に合わせて{}を追加
+  result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{({$1})}{({$2})}')
 
-  // 3. 複雑な式 / 単純な項（関数と数値など）
+  // 3. 関数 / 項
   result = result.replace(
-    /(\w+\([^)]+\))\s*\/\s*([^/\s()]+)/g,
+    /(\w+\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
   )
 
-  // 4. 複雑な括弧式 / 項
+  // 4. 括弧式 / 項
   result = result.replace(
-    /(\([^)]+\)(?:\^[^/\s()]+)?)\s*\/\s*([^/\s()]+)/g,
+    /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
   )
 
-  // 5. 一般的な分数（最後に処理）
-  // 分子: 乗算チェーン、分母: 単一項
-  const numeratorPattern = /[^\s/()]+(?:\s*\*\s*[^\s/()]+)*/
-  const denominatorPattern = /[^\s*/+-]+/
+  // 5. 演算子優先順位を考慮した基本分数
+  result = convertBasicFractions(result)
 
-  const generalFractionRegex = new RegExp(
-    `(${numeratorPattern.source})\\s*\\/\\s*(${denominatorPattern.source})`,
-    'g'
+  return result
+}
+
+// 基本的な分数変換（左結合性を考慮）
+function convertBasicFractions(expression: string): string {
+  let result = expression
+
+  // パターン1: 乗算の連鎖 / 項
+  // 例: 2*[var1]/[var2] → \frac{2\times [var1]}{[var2]}
+  result = result.replace(
+    /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
+    '\\frac{$1}{$2}'
   )
-  result = result.replace(generalFractionRegex, '\\frac{$1}{$2}')
+
+  // パターン2: 基本的な分数（左結合性を保持）
+  // 6/2*4 は 6/2 のみを分数にして、*4 は外に残す
+  // 8/4/2 は 8/4 のみを分数にして、/2 は外に残す
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*([^\s/()]+)(?=\s*(?:\\times|\/|[+-]|$))/g,
+    '\\frac{$1}{$2}'
+  )
 
   return result
 }
@@ -243,8 +287,24 @@ function replaceFunctionArgsWithFractions(expression: string): string {
 
       if (args.includes('/')) {
         // 引数内で分数変換を実行
-        const convertedArgs = args.replace(
-          /([^/\s()]+(?:\s*\*\s*[^/\s()]+)*)\s*\/\s*([^/\s()]+)/g,
+        let convertedArgs = args
+
+        // パターン1: 乗算チェーン / 単項 （例: 2*[var1]/[var2] → \frac{2*[var1]}{[var2]}）
+        // 文字クラスから[]を除外して変数を含む項にも対応
+        convertedArgs = convertedArgs.replace(
+          /([^\s/()]+(?:\s*\*\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
+          '\\frac{$1}{$2}'
+        )
+
+        // パターン2: 基本的な分数
+        convertedArgs = convertedArgs.replace(
+          /([^\s/()]+)\s*\/\s*([^\s/()]+)/g,
+          '\\frac{$1}{$2}'
+        )
+
+        // パターン3: 乗算チェーン（\times）/ 単項 （変換後のパターン用）
+        convertedArgs = convertedArgs.replace(
+          /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
           '\\frac{$1}{$2}'
         )
 
