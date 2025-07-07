@@ -169,8 +169,10 @@ function convertFunctionNames(expression: string): string {
   })
 
   result = replaceFunctionWithBalancedParens(result, 'atan', content => {
-    // 分数を含む複雑な場合は\left \right追加
-    if (content.includes('\\frac{')) {
+    // \left \right を追加する条件：
+    // 1. 分数を含む場合
+    // 2. ただし、乗算演算子 (\times) を含む場合は除外
+    if (content.includes('\\frac{') && !content.includes('\\times')) {
       return `\\tan^{-1}\\left(${content}\\right)°`
     }
     return `\\tan^{-1}(${content})°`
@@ -217,23 +219,27 @@ function convertFractions(expression: string): string {
   // 1. 関数の引数内での分数変換（最優先で処理）
   result = replaceFunctionArgsWithFractions(result)
 
-  // 2. 複雑な括弧同士の除算
+  // 2. 複雑な関数全体 / 項 (例: ln(([var1]+1)/([var1]-1)) / 2)
+  // バランスした括弧を考慮した関数全体の分数変換
+  result = replaceFunctionCallFractions(result)
+
+  // 3. 複雑な括弧同士の除算
   // (a+b)/(c+d) → \frac{({a+b})}{({c+d})} - テスト要件に合わせて{}を追加
   result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{({$1})}{({$2})}')
 
-  // 3. 関数 / 項
+  // 4. 関数 / 項
   result = result.replace(
     /(\w+\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
   )
 
-  // 4. 括弧式 / 項
+  // 5. 括弧式 / 項
   result = result.replace(
     /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
   )
 
-  // 5. 演算子優先順位を考慮した基本分数
+  // 6. 演算子優先順位を考慮した基本分数
   result = convertBasicFractions(result)
 
   return result
@@ -307,10 +313,13 @@ function replaceFunctionArgsWithFractions(expression: string): string {
         // 引数内で分数変換を実行
         let convertedArgs = args
 
-        // パターン1: 乗算チェーン / 単項 （例: 2*[var1]/[var2] → \frac{2*[var1]}{[var2]}）
-        // 文字クラスから[]を除外して変数を含む項にも対応
+        // まず \times を * に戻して統一的に処理
+        convertedArgs = convertedArgs.replace(/\\times/g, '*')
+
+        // パターン1: 乗算チェーン * 変数 / 単項 （例: 2*[var1]/[var2] → \frac{2*[var1]}{[var2]}）
+        // 変数 [var1] を含む場合にも対応
         convertedArgs = convertedArgs.replace(
-          /([^\s/()]+(?:\s*\*\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
+          /([^\s/()]+(?:\s*\*\s*[^\s/()[\]]+|\s*\*\s*\[[^\]]+\])+)\s*\/\s*([^\s/()]+)/g,
           '\\frac{$1}{$2}'
         )
 
@@ -326,11 +335,8 @@ function replaceFunctionArgsWithFractions(expression: string): string {
           '\\frac{$1}{$2}'
         )
 
-        // パターン4: 乗算チェーン（\times）/ 単項 （変換後のパターン用）
-        convertedArgs = convertedArgs.replace(
-          /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
-          '\\frac{$1}{$2}'
-        )
+        // 最後に * を \times に戻す
+        convertedArgs = convertedArgs.replace(/\*/g, '\\times ')
 
         // 置換
         result =
@@ -341,6 +347,61 @@ function replaceFunctionArgsWithFractions(expression: string): string {
         // 検索位置をリセット
         functionRegex.lastIndex =
           startIndex + `${funcName}(${convertedArgs})`.length
+      }
+    }
+  }
+
+  return result
+}
+
+// 複雑な関数呼び出し全体の分数変換
+function replaceFunctionCallFractions(expression: string): string {
+  let result = expression
+  const functionRegex = /(\w+)\(/g
+  let match
+
+  while ((match = functionRegex.exec(result)) !== null) {
+    const startIndex = match.index
+    const openParenIndex = match.index + match[0].length - 1
+
+    // バランスした括弧の終了位置を見つける
+    let parenCount = 1
+    let endIndex = openParenIndex + 1
+
+    while (endIndex < result.length && parenCount > 0) {
+      if (result[endIndex] === '(') {
+        parenCount++
+      } else if (result[endIndex] === ')') {
+        parenCount--
+      }
+      endIndex++
+    }
+
+    if (parenCount === 0) {
+      // 関数呼び出しの終了位置の後に / があるかチェック
+      const afterFunction = result.substring(endIndex).trim()
+
+      // パターン: function(...) / term
+      const fractionMatch = afterFunction.match(/^\s*\/\s*([^\s/()]+)/)
+
+      if (fractionMatch) {
+        const functionCall = result.substring(startIndex, endIndex)
+        const denominator = fractionMatch[1]
+        const wholeMatchEnd = endIndex + fractionMatch[0].length
+
+        // 関数呼び出し全体を分子とする分数に変換
+        const replacement = `\\frac{${functionCall}}{${denominator}}`
+
+        result =
+          result.substring(0, startIndex) +
+          replacement +
+          result.substring(wholeMatchEnd)
+
+        // 検索位置をリセット
+        functionRegex.lastIndex = startIndex + replacement.length
+      } else {
+        // このマッチをスキップして次の関数に進む
+        functionRegex.lastIndex = endIndex
       }
     }
   }
