@@ -85,7 +85,7 @@ function convertToCustomLatex(
   result = result.replace(/\s*\*\s*/g, '\\times ')
 
   // 4. 分数の変換（演算子の優先順位を考慮）
-  result = convertFractions(result)
+  result = convertFractions(result, convertFunctions)
 
   // 5. 関数変換（必要な場合のみ）
   if (convertFunctions) {
@@ -213,19 +213,42 @@ function convertFunctionNames(expression: string): string {
 }
 
 // 分数変換の改良版（段階的な処理）
-function convertFractions(expression: string): string {
+function convertFractions(
+  expression: string,
+  convertFunctions: boolean = false
+): string {
   let result = expression
 
   // 1. 関数の引数内での分数変換（最優先で処理）
-  result = replaceFunctionArgsWithFractions(result)
+  result = replaceFunctionArgsWithFractions(result, convertFunctions)
 
   // 2. 複雑な関数全体 / 項 (例: ln(([var1]+1)/([var1]-1)) / 2)
   // バランスした括弧を考慮した関数全体の分数変換
   result = replaceFunctionCallFractions(result)
 
   // 3. 複雑な括弧同士の除算
-  // (a+b)/(c+d) → \frac{({a+b})}{({c+d})} - テスト要件に合わせて{}を追加
-  result = result.replace(/\(([^)]+)\)\/\(([^)]+)\)/g, '\\frac{({$1})}{({$2})}')
+  // パターンA: 複雑な式（LaTeX記号や関数呼び出しを含む）の処理
+  if (convertFunctions) {
+    // 関数名変換時：複雑な式は括弧を除去、単純な式は二重括弧を保持
+    result = result.replace(
+      /\(([^)]*[\^{}\\][^)]*)\)\/\(([^)]*[\^{}\\][^)]*)\)/g,
+      '\\frac{$1}{$2}'
+    )
+    result = result.replace(
+      /\(([^)]+)\)\/\(([^)]+)\)/g,
+      '\\frac{({$1})}{({$2})}'
+    )
+  } else {
+    // 関数名非変換時：複雑な式は単一括弧、単純な式は二重括弧
+    result = result.replace(
+      /\(([^)]*[\^{}\\][^)]*)\)\/\(([^)]*[\^{}\\][^)]*)\)/g,
+      '\\frac{($1)}{($2)}'
+    )
+    result = result.replace(
+      /\(([^)]+)\)\/\(([^)]+)\)/g,
+      '\\frac{({$1})}{({$2})}'
+    )
+  }
 
   // 4. 関数 / 項
   result = result.replace(
@@ -282,7 +305,10 @@ function convertBasicFractions(expression: string): string {
 }
 
 // 関数の引数内で分数変換を実行（バランスした括弧を考慮）
-function replaceFunctionArgsWithFractions(expression: string): string {
+function replaceFunctionArgsWithFractions(
+  expression: string,
+  convertFunctions: boolean = false
+): string {
   let result = expression
   const functionRegex = /(\w+)\(/g
   let match
@@ -329,7 +355,22 @@ function replaceFunctionArgsWithFractions(expression: string): string {
           '\\frac{$1}{$2}'
         )
 
-        // パターン3: 基本的な分数（関数呼び出し以外）
+        // パターン3: 括弧で囲まれた複雑な式の分数
+        if (convertFunctions) {
+          // 関数名変換時は括弧を除去
+          convertedArgs = convertedArgs.replace(
+            /\(([^)]+)\)\/\(([^)]+)\)/g,
+            '\\frac{$1}{$2}'
+          )
+        } else {
+          // 関数名非変換時は括弧を保持
+          convertedArgs = convertedArgs.replace(
+            /(\([^)]+\))\/(\([^)]+\))/g,
+            '\\frac{$1}{$2}'
+          )
+        }
+
+        // パターン4: 基本的な分数（関数呼び出し以外）
         convertedArgs = convertedArgs.replace(
           /([^\s/()]+)\s*\/\s*([^\s/()]+)/g,
           '\\frac{$1}{$2}'
@@ -379,7 +420,7 @@ function replaceFunctionCallFractions(expression: string): string {
 
     if (parenCount === 0) {
       // 関数呼び出しの終了位置の後に / があるかチェック
-      const afterFunction = result.substring(endIndex).trim()
+      const afterFunction = result.substring(endIndex)
 
       // パターン: function(...) / term
       const fractionMatch = afterFunction.match(/^\s*\/\s*([^\s/()]+)/)
