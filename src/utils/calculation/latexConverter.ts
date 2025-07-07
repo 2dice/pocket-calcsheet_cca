@@ -158,7 +158,11 @@ function convertFunctionNames(expression: string): string {
 
   result = replaceFunctionWithBalancedParens(result, 'acos', content => {
     // 複雑な分数と平方根の組み合わせには\left \right追加
-    if (content.includes('\\frac{') && content.includes('\\sqrt{')) {
+    // 分数を含み、かつ平方根を含む場合、または複雑な関数呼び出しを含む場合
+    if (
+      content.includes('\\frac{') &&
+      (content.includes('\\sqrt{') || /\w+\([^)]*\)/.test(content))
+    ) {
       return `\\cos^{-1}\\left(${content}\\right)°`
     }
     return `\\cos^{-1}(${content})°`
@@ -239,14 +243,28 @@ function convertFractions(expression: string): string {
 function convertBasicFractions(expression: string): string {
   let result = expression
 
-  // パターン1: 乗算の連鎖 / 項
+  // パターン1: 複雑な括弧式の分数化
+  // 例: ([x]^2 + [y]^2)^0.5 / (1 + [z]^-2) → \frac{([x]^{2} + [y]^{2})^{0.5}}{1 + [z]^{-2}}
+  result = result.replace(
+    /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*\(([^)]+)\)/g,
+    '\\frac{$1}{$2}'
+  )
+
+  // パターン2: 乗算の連鎖 / 項
   // 例: 2*[var1]/[var2] → \frac{2\times [var1]}{[var2]}
   result = result.replace(
     /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
   )
 
-  // パターン2: 基本的な分数（左結合性を保持）
+  // パターン3: 関数呼び出しの分数（完全な関数を分母として扱う）
+  // 例: [x]/sqrt([x]^2+[y]^2) → \frac{[x]}{sqrt([x]^{2}+[y]^{2})}
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*(\w+\([^)]*\))(?=\s*(?:\\times|\/|[+-]|$))/g,
+    '\\frac{$1}{$2}'
+  )
+
+  // パターン4: 基本的な分数（左結合性を保持）
   // 6/2*4 は 6/2 のみを分数にして、*4 は外に残す
   // 8/4/2 は 8/4 のみを分数にして、/2 は外に残す
   result = result.replace(
@@ -296,13 +314,19 @@ function replaceFunctionArgsWithFractions(expression: string): string {
           '\\frac{$1}{$2}'
         )
 
-        // パターン2: 基本的な分数
+        // パターン2: 項 / 関数呼び出し （例: [x]/sqrt([x]^2+[y]^2) → \frac{[x]}{sqrt([x]^{2}+[y]^{2})}）
+        convertedArgs = convertedArgs.replace(
+          /([^\s/()]+)\s*\/\s*(\w+\([^)]*\))/g,
+          '\\frac{$1}{$2}'
+        )
+
+        // パターン3: 基本的な分数（関数呼び出し以外）
         convertedArgs = convertedArgs.replace(
           /([^\s/()]+)\s*\/\s*([^\s/()]+)/g,
           '\\frac{$1}{$2}'
         )
 
-        // パターン3: 乗算チェーン（\times）/ 単項 （変換後のパターン用）
+        // パターン4: 乗算チェーン（\times）/ 単項 （変換後のパターン用）
         convertedArgs = convertedArgs.replace(
           /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
           '\\frac{$1}{$2}'
