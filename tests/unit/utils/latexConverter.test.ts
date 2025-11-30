@@ -47,7 +47,7 @@ describe('latexConverter', () => {
         '[var1]\\times [var2]'
       )
       expect(convertToLatexWithoutFunctionNames('2 * [var1] / [var2]')).toBe(
-        '\\frac{2\\times [var1]}{[var2]}'
+        '2\\times \\frac{[var1]}{[var2]}'
       )
     })
 

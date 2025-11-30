@@ -282,8 +282,13 @@ function convertBasicFractions(expression: string): string {
     '\\frac{$1}{$2}'
   )
 
-  // パターン2: 乗算の連鎖 / 項
-  // 例: 2*[var1]/[var2] → \frac{2\times [var1]}{[var2]}
+  // パターン2: 単一の乗算 / 項 (例: 2*[var1]/[var2] → 2\times \frac{[var1]}{[var2]})
+  result = result.replace(
+    /^([^\s/()]+)\s*\\times\s*([^\s/()]+)\s*\/\s*([^\s/()]+)$/,
+    '$1\\times \\frac{$2}{$3}'
+  )
+
+  // パターン2b: 乗算の連鎖 / 項 (例: 2*[var1]*[var2]/[var3] → \frac{2\times [var1]\times [var2]}{[var3]})
   result = result.replace(
     /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
