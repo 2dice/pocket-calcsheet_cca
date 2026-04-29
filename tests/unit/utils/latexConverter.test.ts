@@ -295,6 +295,26 @@ describe('latexConverter', () => {
         '\\frac{6}{2}\\times 4 + \\frac{8}{4}\\times 2'
       )
     })
+
+    it('issue #94 の分数変換ケースを正しく処理する', () => {
+      expect(convertToLatexWithFunctionNames('5/4*3/2')).toBe(
+        '\\frac{5}{4}\\times \\frac{3}{2}'
+      )
+      expect(convertToLatexWithFunctionNames('9/(sqrt(3))')).toBe(
+        '\\frac{9}{(\\sqrt{3})}'
+      )
+      expect(convertToLatexWithFunctionNames('9/sqrt(3)^2')).toBe(
+        '\\frac{9}{\\sqrt{3}^{2}}'
+      )
+      expect(convertToLatexWithFunctionNames('(9/sqrt(3))/3')).toBe(
+        '\\frac{\\frac{9}{\\sqrt{3}}}{3}'
+      )
+      expect(convertToLatexWithFunctionNames('(9-1)/log(8)')).toBe(
+        '\\frac{(9-1)}{\\log_{10}(8)}'
+      )
+      expect(convertToLatexWithFunctionNames('4/28+4')).toBe('\\frac{4}{28}+4')
+      expect(convertToLatexWithFunctionNames('6-4/2')).toBe('6-\\frac{4}{2}')
+    })
   })
 
   describe('エラーハンドリング', () => {

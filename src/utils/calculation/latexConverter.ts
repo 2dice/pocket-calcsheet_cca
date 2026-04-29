@@ -261,7 +261,7 @@ function convertFractions(
 
   // 5. 括弧式 / 項
   result = result.replace(
-    /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*([^\s/()]+)/g,
+    /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*(\w+\([^)]*\)(?:\^\{[^}]+\})?|[^\s/()+\-*]+)/g,
     '\\frac{$1}{$2}'
   )
 
@@ -275,10 +275,27 @@ function convertFractions(
 function convertBasicFractions(expression: string): string {
   let result = expression
 
+  // パターン0: a/b*c/d の連鎖を左結合で分数化
+  // 例: 5/4*3/2 → \frac{5}{4}\times \frac{3}{2}
+  result = result.replace(
+    /(^|[\s(])([^\s/()*+-]+)\s*\/\s*([^\s/()*+-]+)\s*\\times\s*([^\s/()*+-]+)\s*\/\s*([^\s/()*+-]+)(?=$|[\s)])/g,
+    '$1\\frac{$2}{$3}\\times \\frac{$4}{$5}'
+  )
+  // パターン0b: (a/b)/c の二重分数化
+  result = result.replace(
+    /\(([^()/]+)\s*\/\s*(\w+\([^)]*\)(?:\^\{[^}]+\})?)\)\s*\/\s*([^\s/()]+)/g,
+    '\\frac{\\frac{$1}{$2}}{$3}'
+  )
+
   // パターン1: 複雑な括弧式の分数化
   // 例: ([x]^2 + [y]^2)^0.5 / (1 + [z]^-2) → \frac{([x]^{2} + [y]^{2})^{0.5}}{1 + [z]^{-2}}
   result = result.replace(
     /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*\(([^)]+)\)/g,
+    '\\frac{$1}{$2}'
+  )
+  // パターン1b: 単項 / ((関数呼び出し)) の分数化
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*(\(\w+\([^)]*\)\))/g,
     '\\frac{$1}{$2}'
   )
 
@@ -292,7 +309,7 @@ function convertBasicFractions(expression: string): string {
   // パターン3: 関数呼び出しの分数（完全な関数を分母として扱う）
   // 例: [x]/sqrt([x]^2+[y]^2) → \frac{[x]}{sqrt([x]^{2}+[y]^{2})}
   result = result.replace(
-    /([^\s/()]+)\s*\/\s*(\w+\([^)]*\))(?=\s*(?:\\times|\/|[+-]|$))/g,
+    /([^\s/()]+)\s*\/\s*(\w+\([^)]*\)(?:\^\{[^}]+\})?)(?=\s*(?:\\times|\/|[+-]|$))/g,
     '\\frac{$1}{$2}'
   )
 
@@ -300,7 +317,7 @@ function convertBasicFractions(expression: string): string {
   // 6/2*4 は 6/2 のみを分数にして、*4 は外に残す
   // 8/4/2 は 8/4 のみを分数にして、/2 は外に残す
   result = result.replace(
-    /([^\s/()]+)\s*\/\s*([^\s/()]+)(?=\s*(?:\\times|\/|[+-]|$))/g,
+    /([^\s/()+*-]+)\s*\/\s*([^\s/()+*-]+)(?=\s*(?:\\times|\/|[+-]|$))/g,
     '\\frac{$1}{$2}'
   )
 
