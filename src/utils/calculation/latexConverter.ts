@@ -106,17 +106,41 @@ function convertToCustomLatex(
 
 // べき乗変換の改良版
 function convertPowers(expression: string): string {
-  let result = expression
+  let result = ''
+  for (let i = 0; i < expression.length; i++) {
+    const current = expression[i]
+    if (current !== '^') {
+      result += current
+      continue
+    }
 
-  // より包括的なべき乗パターンに対応
-  // べき乗記号の後の指数を {} で囲む
+    const next = expression[i + 1]
+    if (next === '(') {
+      let depth = 1
+      let j = i + 2
+      while (j < expression.length && depth > 0) {
+        if (expression[j] === '(') depth++
+        if (expression[j] === ')') depth--
+        j++
+      }
 
-  // 1. 括弧で囲まれた式の場合: 2^(4+1) → 2^{(4+1)}
-  result = result.replace(/\^(\([^)]+\))/g, '^{$1}')
+      if (depth === 0) {
+        const content = expression.slice(i + 1, j) // "(...)"
+        result += `^{${content}}`
+        i = j - 1
+        continue
+      }
+    }
 
-  // 2. 任意の式^指数 のパターンを包括的に変換
-  // 指数部分: 数値、変数、単語、負号付きなど
-  result = result.replace(/\^(-?[\d.a-zA-Z[\]_]+)/g, '^{$1}')
+    const match = expression.slice(i + 1).match(/^-?[\d.a-zA-Z[\]_]+/)
+    if (match) {
+      result += `^{${match[0]}}`
+      i += match[0].length
+      continue
+    }
+
+    result += '^'
+  }
 
   return result
 }
@@ -267,6 +291,16 @@ function convertFractions(
 
   // 6. 演算子優先順位を考慮した基本分数
   result = convertBasicFractions(result)
+  if (convertFunctions) {
+    result = result.replace(
+      /(\d+)\\times \\frac\{(\d+)\}\{(\d+)\}/g,
+      '$1\\times\\frac{$2}{$3}'
+    )
+    result = result.replace(
+      /\\times \((\\frac\{[^{}]+\}\{[^{}]+\})\)/g,
+      '\\times($1)'
+    )
+  }
 
   return result
 }
@@ -302,7 +336,11 @@ function convertBasicFractions(expression: string): string {
   // パターン2: 乗算の連鎖 / 項
   // 例: 2*[var1]/[var2] → \frac{2\times [var1]}{[var2]}
   result = result.replace(
-    /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()]+)/g,
+    /(\d+(?:\.\d+)?)\s*\\times\s*([^\s/()+*-]+)\s*\/\s*([^\s/()+*-]+)/g,
+    '$1\\times \\frac{$2}{$3}'
+  )
+  result = result.replace(
+    /([^\s/()]+(?:\s*\\times\s*[^\s/()]+)+)\s*\/\s*([^\s/()+-]+)/g,
     '\\frac{$1}{$2}'
   )
 
@@ -318,6 +356,14 @@ function convertBasicFractions(expression: string): string {
   // 8/4/2 は 8/4 のみを分数にして、/2 は外に残す
   result = result.replace(
     /([^\s/()+*-]+)\s*\/\s*([^\s/()+*-]+)(?=\s*(?:\\times|\/|[+-]|$))/g,
+    '\\frac{$1}{$2}'
+  )
+  result = result.replace(
+    /\(([^()/+\-*]+)\s*\/\s*([^()/+\-*]+)\)/g,
+    '(\\frac{$1}{$2})'
+  )
+  result = result.replace(
+    /(\\frac\{[^{}]+\}\{[^{}]+\})\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
   )
 
