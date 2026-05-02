@@ -12,6 +12,14 @@ interface Props {
   className?: string
 }
 
+type KatexRender = (
+  expression: string,
+  element: HTMLElement,
+  options: { throwOnError: boolean; displayMode: boolean }
+) => void
+
+const renderKatex = (katex as { render: KatexRender }).render
+
 export function ExpressionRenderer({ expression, className }: Props) {
   const line2Ref = useRef<HTMLDivElement>(null)
   const line3Ref = useRef<HTMLDivElement>(null)
@@ -24,7 +32,7 @@ export function ExpressionRenderer({ expression, className }: Props) {
   useEffect(() => {
     if (hasFunction && line2Ref.current) {
       try {
-        katex.render(latexWithoutFn, line2Ref.current, {
+        renderKatex(latexWithoutFn, line2Ref.current, {
           throwOnError: false,
           displayMode: false,
         })
@@ -36,7 +44,7 @@ export function ExpressionRenderer({ expression, className }: Props) {
 
     if (line3Ref.current) {
       try {
-        katex.render(latexWithFn, line3Ref.current, {
+        renderKatex(latexWithFn, line3Ref.current, {
           throwOnError: false,
           displayMode: false,
         })

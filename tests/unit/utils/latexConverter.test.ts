@@ -47,7 +47,7 @@ describe('latexConverter', () => {
         '[var1]\\times [var2]'
       )
       expect(convertToLatexWithoutFunctionNames('2 * [var1] / [var2]')).toBe(
-        '\\frac{2\\times [var1]}{[var2]}'
+        '2\\times \\frac{[var1]}{[var2]}'
       )
     })
 
@@ -263,9 +263,13 @@ describe('latexConverter', () => {
         '\\frac{6}{2}\\times 4'
       )
 
-      // 8/4/2 は (8/4)/2 と解釈され、\frac{8/4}{2} ではなく \frac{8}{4}/2 となるべき
-      expect(convertToLatexWithoutFunctionNames('8/4/2')).toBe('\\frac{8}{4}/2')
-      expect(convertToLatexWithFunctionNames('8/4/2')).toBe('\\frac{8}{4}/2')
+      // 8/4/2 は (8/4)/2 と解釈され、二重分数として表示する
+      expect(convertToLatexWithoutFunctionNames('8/4/2')).toBe(
+        '\\frac{\\frac{8}{4}}{2}'
+      )
+      expect(convertToLatexWithFunctionNames('8/4/2')).toBe(
+        '\\frac{\\frac{8}{4}}{2}'
+      )
     })
 
     it('括弧で囲まれた式の除算でグループ化を維持する', () => {
@@ -293,6 +297,41 @@ describe('latexConverter', () => {
       )
       expect(convertToLatexWithFunctionNames('6/2*4 + 8/4*2')).toBe(
         '\\frac{6}{2}\\times 4 + \\frac{8}{4}\\times 2'
+      )
+    })
+
+    it('issue #94 の分数変換ケースを正しく処理する', () => {
+      expect(convertToLatexWithFunctionNames('5/4*3/2')).toBe(
+        '\\frac{5}{4}\\times \\frac{3}{2}'
+      )
+      expect(convertToLatexWithFunctionNames('9/(sqrt(3))')).toBe(
+        '\\frac{9}{(\\sqrt{3})}'
+      )
+      expect(convertToLatexWithFunctionNames('9/sqrt(3)^2')).toBe(
+        '\\frac{9}{\\sqrt{3}^{2}}'
+      )
+      expect(convertToLatexWithFunctionNames('(9/sqrt(3))/3')).toBe(
+        '\\frac{\\frac{9}{\\sqrt{3}}}{3}'
+      )
+      expect(convertToLatexWithFunctionNames('(9-1)/log(8)')).toBe(
+        '\\frac{(9-1)}{\\log_{10}(8)}'
+      )
+      expect(convertToLatexWithFunctionNames('4/28+4')).toBe('\\frac{4}{28}+4')
+      expect(convertToLatexWithFunctionNames('6-4/2')).toBe('6-\\frac{4}{2}')
+    })
+
+    it('原因A〜Eの再発防止ケースを正しく処理する', () => {
+      expect(convertToLatexWithFunctionNames('(2^(3*(2+1)))')).toBe(
+        '(2^{(3\\times (2+1))})'
+      )
+      expect(convertToLatexWithFunctionNames('8/4/2')).toBe(
+        '\\frac{\\frac{8}{4}}{2}'
+      )
+      expect(convertToLatexWithFunctionNames('2*1/3-4')).toBe(
+        '2\\times\\frac{1}{3}-4'
+      )
+      expect(convertToLatexWithFunctionNames('2*(1/3)-4')).toBe(
+        '2\\times(\\frac{1}{3})-4'
       )
     })
   })

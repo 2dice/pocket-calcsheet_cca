@@ -2,12 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ExpressionRenderer } from '@/components/calculator/ExpressionRenderer'
 
+const { renderMock } = vi.hoisted(() => ({
+  renderMock: vi.fn((latex: string, element: HTMLElement) => {
+    element.textContent = `KATEX[${latex}]`
+  }),
+}))
+
 // KaTeXのモック
 vi.mock('katex', () => ({
   default: {
-    render: vi.fn((latex: string, element: HTMLElement) => {
-      element.textContent = `KATEX[${latex}]`
-    }),
+    render: renderMock,
   },
 }))
 
@@ -69,35 +73,29 @@ describe('ExpressionRenderer', () => {
     expect(childDivs).toHaveLength(2)
   })
 
-  it('KaTeXでレンダリングされる', async () => {
-    const katexModule = await import('katex')
-    const katex = vi.mocked(katexModule.default)
-
+  it('KaTeXでレンダリングされる', () => {
     render(<ExpressionRenderer expression="sin(30)" />)
 
     // KaTeXのrenderが呼ばれることを確認
-    expect(katex.render).toHaveBeenCalledWith(
+    expect(renderMock).toHaveBeenCalledWith(
       'sin(30)',
       expect.any(HTMLElement),
       { throwOnError: false, displayMode: false }
     )
 
-    expect(katex.render).toHaveBeenCalledWith(
+    expect(renderMock).toHaveBeenCalledWith(
       '\\sin(30°)',
       expect.any(HTMLElement),
       { throwOnError: false, displayMode: false }
     )
   })
 
-  it('LaTeXエラー時に生テキストを表示する', async () => {
+  it('LaTeXエラー時に生テキストを表示する', () => {
     // コンソール警告をモック
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-    const katexModule = await import('katex')
-    const katex = vi.mocked(katexModule.default)
-
     // KaTeXのrenderでエラーを発生させる
-    katex.render.mockImplementationOnce(() => {
+    renderMock.mockImplementationOnce(() => {
       throw new Error('LaTeX error')
     })
 
