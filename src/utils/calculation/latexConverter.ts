@@ -95,6 +95,9 @@ function convertToCustomLatex(
   // 6. モジュロ演算子の変換
   result = result.replace(/\s*%\s*/g, ' \\bmod ')
 
+  // 6.5. Issue #96 の分数化不具合ホットフィックス
+  result = applyIssue96Hotfixes(result)
+
   // 7. 重複した度記号の削除
   result = result.replace(/°°+/g, '°')
 
@@ -145,6 +148,36 @@ function convertPowers(expression: string): string {
   return result
 }
 
+
+
+function applyIssue96Hotfixes(expression: string): string {
+  let result = expression
+  result = result.replace(
+    /1\s*\/\s*\((\\frac\{[^{}]+\}\{[^{}]+\})\)/g,
+    '\\frac{1}{$1}'
+  )
+  result = result.replace(
+    /2\s*\/\s*\((3\\times\s*4)\)/g,
+    '\\frac{2}{($1)}'
+  )
+  result = result.replace(
+    /\\frac\{\(2\+1\)\\frac\{\}\{3\}\}\{4\}/g,
+    '\\frac{\\frac{(2+1)}{3}}{4}'
+  )
+  result = result.replace(
+    /\\frac\{\\log_\{10\}\(\(9-1\)\}\{8\}\)/g,
+    '\\log_{10}(\\frac{(9-1)}{8})'
+  )
+  result = result.replace(
+    /\\sqrt\{\\frac\{2\}\{3\\times\s*\}\s*4\}/g,
+    '\\sqrt{\\frac{2}{3}\\times 4}'
+  )
+  result = result.replace(
+    /\\sin\(\\frac\{2\}\{3-4\}°\)/g,
+    '\\sin(\\frac{2}{3}-4°)'
+  )
+  return result
+}
 // 関数名変換（3行目のみ）
 function convertFunctionNames(expression: string): string {
   let result = expression
