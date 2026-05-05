@@ -35,12 +35,12 @@ export function ResultDisplay({
       >
         {error ? (
           <span className="text-red-500" role="alert">
-            {errorMessages[error] || 'Error'}
+            = {errorMessages[error] || 'Error'}
           </span>
         ) : result !== null ? (
-          <span>{formatter(result)}</span>
+          <span>= {formatter(result)}</span>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-gray-400">= -</span>
         )}
       </div>
     </div>

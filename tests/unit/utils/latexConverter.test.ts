@@ -352,4 +352,31 @@ describe('latexConverter', () => {
       expect(convertToLatexWithFunctionNames('')).toBe('')
     })
   })
+
+
+  describe('Issue #96 追加ケース', () => {
+    it('sin(2/3-4) を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('sin(2/3-4)')).toBe('\sin(\frac{2}{3}-4°)')
+    })
+
+    it('1/(2/3) を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('1/(2/3)')).toBe('\frac{1}{\frac{2}{3}}')
+    })
+
+    it('2/(3*4) を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('2/(3*4)')).toBe('\frac{2}{(3\times4)}')
+    })
+
+    it('(2+1)/3/4 を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('(2+1)/3/4')).toBe('\frac{\frac{(2+1)}{3}}{4}')
+    })
+
+    it('log((9-1)/8) を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('log((9-1)/8)')).toBe('\log_{10}(\frac{(9-1)}{8})')
+    })
+
+    it('sqrt(2/3*4) を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('sqrt(2/3*4)')).toBe('\sqrt{\frac{2}{3}\times 4}')
+    })
+  })
 })
