@@ -26,16 +26,16 @@ describe('ExpressionRenderer', () => {
     render(<ExpressionRenderer expression={expression} />)
 
     // 1行目：元の式
-    expect(screen.getByText(expression)).toBeInTheDocument()
+    expect(screen.getByText(`= ${expression}`)).toBeInTheDocument()
 
     // 2行目：関数名そのまま版（KaTeX）
     expect(
-      screen.getByText('KATEX[atan(2\\times \\frac{[var1]}{[var2]})]')
+      screen.getByText('KATEX[= atan(2\\times \\frac{[var1]}{[var2]})]')
     ).toBeInTheDocument()
 
     // 3行目：関数名変換版（KaTeX）
     expect(
-      screen.getByText('KATEX[\\tan^{-1}(2\\times \\frac{[var1]}{[var2]})°]')
+      screen.getByText('KATEX[= \\tan^{-1}(2\\times \\frac{[var1]}{[var2]})°]')
     ).toBeInTheDocument()
   })
 
@@ -45,10 +45,10 @@ describe('ExpressionRenderer', () => {
     const { container } = render(<ExpressionRenderer expression={expression} />)
 
     // 1行目：元の式
-    expect(screen.getByText(expression)).toBeInTheDocument()
+    expect(screen.getByText(`= ${expression}`)).toBeInTheDocument()
 
     // 3行目：関数名変換版のみ表示（加算はそのまま）
-    expect(screen.getByText('KATEX[2 + 3]')).toBeInTheDocument()
+    expect(screen.getByText('KATEX[= 2 + 3]')).toBeInTheDocument()
 
     // 2行目は表示されない（divが2つのみ）
     const childDivs = container.children[0].children
@@ -61,11 +61,11 @@ describe('ExpressionRenderer', () => {
     const { container } = render(<ExpressionRenderer expression={expression} />)
 
     // 1行目：元の式
-    expect(screen.getByText(expression)).toBeInTheDocument()
+    expect(screen.getByText(`= ${expression}`)).toBeInTheDocument()
 
     // 3行目のみ表示（関数なしと判定される）
     expect(
-      screen.getByText('KATEX[random(1,10) + \\pi\\times e]')
+      screen.getByText('KATEX[= random(1,10) + \\pi\\times e]')
     ).toBeInTheDocument()
 
     // 2行目は表示されない
@@ -78,13 +78,13 @@ describe('ExpressionRenderer', () => {
 
     // KaTeXのrenderが呼ばれることを確認
     expect(renderMock).toHaveBeenCalledWith(
-      'sin(30)',
+      '= sin(30)',
       expect.any(HTMLElement),
       { throwOnError: false, displayMode: false }
     )
 
     expect(renderMock).toHaveBeenCalledWith(
-      '\\sin(30°)',
+      '= \\sin(30°)',
       expect.any(HTMLElement),
       { throwOnError: false, displayMode: false }
     )
@@ -102,7 +102,7 @@ describe('ExpressionRenderer', () => {
     render(<ExpressionRenderer expression="sin(30)" />)
 
     // エラー時は元のLaTeX文字列が表示される（複数箇所に表示される）
-    const elements = screen.getAllByText('sin(30)')
+    const elements = screen.getAllByText('= sin(30)')
     expect(elements).toHaveLength(2) // 1行目と2行目（エラーフォールバック）
 
     // 警告が呼ばれたことを確認
@@ -137,16 +137,16 @@ describe('ExpressionRenderer', () => {
     render(<ExpressionRenderer expression={expression} />)
 
     // 1行目：元の式
-    expect(screen.getByText(expression)).toBeInTheDocument()
+    expect(screen.getByText(`= ${expression}`)).toBeInTheDocument()
 
     // 2行目：関数名そのまま版
     expect(
-      screen.getByText('KATEX[sqrt(log(100\\times [var1]))]')
+      screen.getByText('KATEX[= sqrt(log(100\\times [var1]))]')
     ).toBeInTheDocument()
 
     // 3行目：関数名変換版
     expect(
-      screen.getByText('KATEX[\\sqrt{\\log_{10}(100\\times [var1])}]')
+      screen.getByText('KATEX[= \\sqrt{\\log_{10}(100\\times [var1])}]')
     ).toBeInTheDocument()
   })
 })

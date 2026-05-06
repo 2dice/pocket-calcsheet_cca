@@ -95,8 +95,11 @@ function convertToCustomLatex(
   // 6. モジュロ演算子の変換
   result = result.replace(/\s*%\s*/g, ' \\bmod ')
 
-  // 6.5. Issue #96 の分数化不具合ホットフィックス
-  result = applyIssue96Hotfixes(result)
+  // 6.5. 基本分数の正規化（a/(\frac{b}{c})）
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*\((\\frac\{[^{}]+\}\{[^{}]+\})\)/g,
+    '\\frac{$1}{$2}'
+  )
 
   // 7. 重複した度記号の削除
   result = result.replace(/°°+/g, '°')
@@ -145,37 +148,6 @@ function convertPowers(expression: string): string {
     result += '^'
   }
 
-  return result
-}
-
-
-
-function applyIssue96Hotfixes(expression: string): string {
-  let result = expression
-  result = result.replace(
-    /1\s*\/\s*\((\\frac\{[^{}]+\}\{[^{}]+\})\)/g,
-    '\\frac{1}{$1}'
-  )
-  result = result.replace(
-    /2\s*\/\s*\((3\\times\s*4)\)/g,
-    '\\frac{2}{($1)}'
-  )
-  result = result.replace(
-    /\\frac\{\(2\+1\)\\frac\{\}\{3\}\}\{4\}/g,
-    '\\frac{\\frac{(2+1)}{3}}{4}'
-  )
-  result = result.replace(
-    /\\frac\{\\log_\{10\}\(\(9-1\)\}\{8\}\)/g,
-    '\\log_{10}(\\frac{(9-1)}{8})'
-  )
-  result = result.replace(
-    /\\sqrt\{\\frac\{2\}\{3\\times\s*\}\s*4\}/g,
-    '\\sqrt{\\frac{2}{3}\\times 4}'
-  )
-  result = result.replace(
-    /\\sin\(\\frac\{2\}\{3-4\}°\)/g,
-    '\\sin(\\frac{2}{3}-4°)'
-  )
   return result
 }
 // 関数名変換（3行目のみ）
@@ -310,19 +282,13 @@ function convertFractions(
     )
   }
 
-  // 4. 関数 / 項
-  result = result.replace(
-    /(\w+\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*([^\s/()]+)/g,
-    '\\frac{$1}{$2}'
-  )
-
-  // 5. 括弧式 / 項
+  // 4. 括弧式 / 項
   result = result.replace(
     /(\([^)]+\)(?:\^{[^}]+})?)\s*\/\s*(\w+\([^)]*\)(?:\^\{[^}]+\})?|[^\s/()+\-*]+)/g,
     '\\frac{$1}{$2}'
   )
 
-  // 6. 演算子優先順位を考慮した基本分数
+  // 5. 演算子優先順位を考慮した基本分数
   result = convertBasicFractions(result)
   if (convertFunctions) {
     result = result.replace(
@@ -341,6 +307,17 @@ function convertFractions(
 // 基本的な分数変換（左結合性を考慮）
 function convertBasicFractions(expression: string): string {
   let result = expression
+
+  // パターン-1: (a)/b/c の左結合
+  result = result.replace(
+    /\(([^()]+)\)\s*\/\s*([^\s/()]+)\s*\/\s*([^\s/()]+)/g,
+    '\\frac{\\frac{($1)}{$2}}{$3}'
+  )
+  // パターン-1b: a/(b/c) の左結合
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*\((\\frac\{.+?\}\{.+?\})\)/g,
+    '\\frac{$1}{$2}'
+  )
 
   // パターン0: a/b*c/d の連鎖を左結合で分数化
   // 例: 5/4*3/2 → \frac{5}{4}\times \frac{3}{2}
@@ -384,6 +361,16 @@ function convertBasicFractions(expression: string): string {
     '\\frac{$1}{$2}'
   )
 
+  // パターン3b: 項 / (複合式)
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*(\([^()]*\\times[^()]*\))/g,
+    '\\frac{$1}{$2}'
+  )
+  result = result.replace(
+    /([^\s/()]+)\s*\/\s*(\(\\frac\{[^{}]+\}\{[^{}]+\}\))/g,
+    '\\frac{$1}{$2}'
+  )
+
   // パターン4: 基本的な分数（左結合性を保持）
   // 6/2*4 は 6/2 のみを分数にして、*4 は外に残す
   // 8/4/2 は 8/4 のみを分数にして、/2 は外に残す
@@ -398,6 +385,11 @@ function convertBasicFractions(expression: string): string {
   result = result.replace(
     /(\\frac\{[^{}]+\}\{[^{}]+\})\s*\/\s*([^\s/()]+)/g,
     '\\frac{$1}{$2}'
+  )
+  // パターン5: 変換途中で崩れた入れ子分数の正規化
+  result = result.replace(
+    /\\frac\{\(([^)]+)\)\\frac\{\}\{([^}]+)\}\}\{([^}]+)\}/g,
+    '\\frac{\\frac{($1)}{$2}}{$3}'
   )
 
   return result
@@ -441,6 +433,12 @@ function replaceFunctionArgsWithFractions(
         // まず \times を * に戻して統一的に処理
         convertedArgs = convertedArgs.replace(/\\times/g, '*')
 
+        // パターン0: (式)/項
+        convertedArgs = convertedArgs.replace(
+          /^\((.+)\)\s*\/\s*([^\s/()]+)$/g,
+          '\\frac{($1)}{$2}'
+        )
+
         // パターン1: 乗算チェーン * 変数 / 単項 の特別処理
         // 例: 2*[var1]/[var2] → 2*\frac{[var1]}{[var2]} (先頭の係数を外に出す)
         convertedArgs = convertedArgs.replace(
@@ -477,7 +475,7 @@ function replaceFunctionArgsWithFractions(
 
         // パターン4: 基本的な分数（関数呼び出し以外）
         convertedArgs = convertedArgs.replace(
-          /([^\s/()]+)\s*\/\s*([^\s/()]+)/g,
+          /([^\s/()+*-]+)\s*\/\s*([^\s/()+*-]+)/g,
           '\\frac{$1}{$2}'
         )
 

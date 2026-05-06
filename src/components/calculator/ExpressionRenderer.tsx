@@ -25,8 +25,8 @@ export function ExpressionRenderer({ expression, className }: Props) {
   const line3Ref = useRef<HTMLDivElement>(null)
 
   const hasFunction = usesFunctions(expression)
-  const latexWithoutFn = convertToLatexWithoutFunctionNames(expression)
-  const latexWithFn = convertToLatexWithFunctionNames(expression)
+  const latexWithoutFn = `= ${convertToLatexWithoutFunctionNames(expression)}`
+  const latexWithFn = `= ${convertToLatexWithFunctionNames(expression)}`
 
   // KaTeXでレンダリング
   useEffect(() => {
@@ -59,7 +59,7 @@ export function ExpressionRenderer({ expression, className }: Props) {
     <div className={className}>
       {/* 1行目：元の式 */}
       <div className="font-mono text-sm whitespace-pre-wrap break-all">
-        {expression}
+        {`= ${expression}`}
       </div>
 
       {/* 2行目：関数名そのまま（関数使用時のみ） */}
