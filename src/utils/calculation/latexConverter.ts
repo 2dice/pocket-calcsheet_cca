@@ -249,6 +249,11 @@ function convertFractions(
   expression: string,
   convertFunctions: boolean = false
 ): string {
+  const structuralResult = convertFractionsStructurally(expression)
+  if (structuralResult !== null) {
+    return structuralResult
+  }
+
   let result = expression
 
   // 1. 関数の引数内での分数変換（最優先で処理）
@@ -302,6 +307,306 @@ function convertFractions(
   }
 
   return result
+}
+
+type FractionAstNode =
+  | { type: 'raw'; value: string }
+  | { type: 'unary'; operator: '-'; value: FractionAstNode }
+  | {
+      type: 'binary'
+      operator: '+' | '-' | '*' | '/'
+      left: FractionAstNode
+      right: FractionAstNode
+    }
+  | { type: 'paren'; value: FractionAstNode }
+  | { type: 'function'; name: string; args: FractionAstNode[] }
+
+type FractionToken =
+  | { type: 'raw'; value: string }
+  | { type: 'operator'; value: '+' | '-' | '*' | '/' }
+  | { type: 'paren'; value: '(' | ')' }
+  | { type: 'comma'; value: ',' }
+
+function convertFractionsStructurally(expression: string): string | null {
+  if (!shouldUseStructuralFractionConverter(expression)) {
+    return null
+  }
+
+  const tokens = tokenizeFractionExpression(expression)
+  if (tokens === null) {
+    return null
+  }
+
+  const parser = new FractionExpressionParser(tokens)
+  const ast = parser.parse()
+  if (ast === null || !parser.isAtEnd()) {
+    return null
+  }
+
+  return formatFractionAst(ast)
+}
+
+function shouldUseStructuralFractionConverter(expression: string): boolean {
+  if (!expression.includes('/') || expression.includes('[')) {
+    return false
+  }
+
+  if (expression.includes('pi')) {
+    return false
+  }
+
+  return (
+    expression.startsWith('((') ||
+    /\/\s*\(\(/.test(expression) ||
+    /\/\s*\([^()]*\/[^()]*\)/.test(expression) ||
+    /\b(?:sin|cos|tan|asin|acos|atan|sqrt|log|ln|exp|dtor|rtod)\([^)]*\)\s*[+-]/.test(
+      expression
+    )
+  )
+}
+
+function tokenizeFractionExpression(
+  expression: string
+): FractionToken[] | null {
+  const tokens: FractionToken[] = []
+  let index = 0
+
+  while (index < expression.length) {
+    const current = expression[index]
+
+    if (/\s/.test(current)) {
+      index++
+      continue
+    }
+
+    if (current === '\\' && expression.startsWith('\\times', index)) {
+      tokens.push({ type: 'operator', value: '*' })
+      index += '\\times'.length
+      continue
+    }
+
+    if (
+      current === '+' ||
+      current === '-' ||
+      current === '*' ||
+      current === '/'
+    ) {
+      tokens.push({ type: 'operator', value: current })
+      index++
+      continue
+    }
+
+    if (current === '(' || current === ')') {
+      tokens.push({ type: 'paren', value: current })
+      index++
+      continue
+    }
+
+    if (current === ',') {
+      tokens.push({ type: 'comma', value: current })
+      index++
+      continue
+    }
+
+    let endIndex = index
+    while (endIndex < expression.length) {
+      const char = expression[endIndex]
+      if (
+        /\s/.test(char) ||
+        char === '(' ||
+        char === ')' ||
+        char === ',' ||
+        char === '/' ||
+        char === '*'
+      ) {
+        break
+      }
+
+      if ((char === '+' || char === '-') && endIndex > index) {
+        const previous = expression[endIndex - 1]
+        if (previous !== '^') {
+          break
+        }
+      }
+
+      endIndex++
+    }
+
+    if (endIndex === index) {
+      return null
+    }
+
+    tokens.push({ type: 'raw', value: expression.slice(index, endIndex) })
+    index = endIndex
+  }
+
+  return tokens
+}
+
+class FractionExpressionParser {
+  private current = 0
+  private readonly tokens: FractionToken[]
+
+  constructor(tokens: FractionToken[]) {
+    this.tokens = tokens
+  }
+
+  parse(): FractionAstNode | null {
+    return this.parseAdditive()
+  }
+
+  isAtEnd(): boolean {
+    return this.current >= this.tokens.length
+  }
+
+  private parseAdditive(): FractionAstNode | null {
+    let node = this.parseMultiplicative()
+    if (node === null) return null
+
+    while (this.matchOperator('+') || this.matchOperator('-')) {
+      const operator = this.previous().value as '+' | '-'
+      const right = this.parseMultiplicative()
+      if (right === null) return null
+      node = { type: 'binary', operator, left: node, right }
+    }
+
+    return node
+  }
+
+  private parseMultiplicative(): FractionAstNode | null {
+    let node = this.parseUnary()
+    if (node === null) return null
+
+    while (this.matchOperator('*') || this.matchOperator('/')) {
+      const operator = this.previous().value as '*' | '/'
+      const right = this.parseUnary()
+      if (right === null) return null
+      node = { type: 'binary', operator, left: node, right }
+    }
+
+    return node
+  }
+
+  private parseUnary(): FractionAstNode | null {
+    if (this.matchOperator('-')) {
+      const value = this.parseUnary()
+      if (value === null) return null
+      return { type: 'unary', operator: '-', value }
+    }
+
+    return this.parsePrimary()
+  }
+
+  private parsePrimary(): FractionAstNode | null {
+    if (this.matchRaw()) {
+      const rawToken = this.previous()
+      if (rawToken.type !== 'raw') return null
+
+      if (this.matchParen('(')) {
+        const args = this.parseFunctionArgs()
+        if (args === null) return null
+        return { type: 'function', name: rawToken.value, args }
+      }
+
+      return { type: 'raw', value: rawToken.value }
+    }
+
+    if (this.matchParen('(')) {
+      const value = this.parseAdditive()
+      if (value === null || !this.matchParen(')')) {
+        return null
+      }
+      return { type: 'paren', value }
+    }
+
+    return null
+  }
+
+  private parseFunctionArgs(): FractionAstNode[] | null {
+    const args: FractionAstNode[] = []
+    if (this.matchParen(')')) {
+      return args
+    }
+
+    do {
+      const arg = this.parseAdditive()
+      if (arg === null) return null
+      args.push(arg)
+    } while (this.matchComma())
+
+    if (!this.matchParen(')')) {
+      return null
+    }
+
+    return args
+  }
+
+  private matchOperator(operator: FractionToken['value']): boolean {
+    const token = this.peek()
+    if (token?.type !== 'operator' || token.value !== operator) {
+      return false
+    }
+    this.current++
+    return true
+  }
+
+  private matchParen(paren: '(' | ')'): boolean {
+    const token = this.peek()
+    if (token?.type !== 'paren' || token.value !== paren) {
+      return false
+    }
+    this.current++
+    return true
+  }
+
+  private matchRaw(): boolean {
+    if (this.peek()?.type !== 'raw') {
+      return false
+    }
+    this.current++
+    return true
+  }
+
+  private matchComma(): boolean {
+    if (this.peek()?.type !== 'comma') {
+      return false
+    }
+    this.current++
+    return true
+  }
+
+  private peek(): FractionToken | undefined {
+    return this.tokens[this.current]
+  }
+
+  private previous(): FractionToken {
+    return this.tokens[this.current - 1]
+  }
+}
+
+function formatFractionAst(node: FractionAstNode): string {
+  switch (node.type) {
+    case 'raw':
+      return node.value
+    case 'unary':
+      return `-${formatFractionAst(node.value)}`
+    case 'paren':
+      return `(${formatFractionAst(node.value)})`
+    case 'function':
+      return `${node.name}(${node.args.map(formatFractionAst).join(', ')})`
+    case 'binary':
+      if (node.operator === '/') {
+        return `\\frac{${formatFractionAst(node.left)}}{${formatFractionAst(node.right)}}`
+      }
+      return `${formatFractionAst(node.left)}${formatFractionOperator(node.operator)}${formatFractionAst(node.right)}`
+  }
+}
+
+function formatFractionOperator(operator: '+' | '-' | '*'): string {
+  if (operator === '*') {
+    return '\\times '
+  }
+  return operator
 }
 
 // 基本的な分数変換（左結合性を考慮）
