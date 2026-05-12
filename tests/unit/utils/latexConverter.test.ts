@@ -362,7 +362,7 @@ describe('latexConverter', () => {
 
     it('1/(2/3) を正しく変換する', () => {
       expect(convertToLatexWithFunctionNames('1/(2/3)')).toBe(
-        '\\frac{1}{\\frac{2}{3}}'
+        '\\frac{1}{(\\frac{2}{3})}'
       )
     })
 
@@ -393,6 +393,56 @@ describe('latexConverter', () => {
     it('sqrt(2/3*4) の2行目用変換を正しく処理する', () => {
       expect(convertToLatexWithoutFunctionNames('sqrt(2/3*4)')).toBe(
         'sqrt(\\frac{2}{3}\\times 4)'
+      )
+    })
+  })
+
+  describe('Issue #100 追加ケース', () => {
+    it('ネスト括弧を含む分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('((1+2)/(3+4))/5')).toBe(
+        '\\frac{(\\frac{(1+2)}{(3+4)})}{5}'
+      )
+    })
+
+    it('二重括弧と乗算を含む複合分母を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('1/((2+3)*4)')).toBe(
+        '\\frac{1}{((2+3)\\times 4)}'
+      )
+    })
+
+    it('関数を含む和差どうしの除算を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('(sin(12)+1)/(cos(34)+1)')).toBe(
+        '\\frac{(\\sin(12°)+1)}{(\\cos(34°)+1)}'
+      )
+    })
+
+    it('括弧付き左結合多段除算を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('((2+1)/3)/4')).toBe(
+        '\\frac{(\\frac{(2+1)}{3})}{4}'
+      )
+    })
+
+    it('入れ子分数を分母に持つ一般形を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('1/(2/3/4)')).toBe(
+        '\\frac{1}{(\\frac{\\frac{2}{3}}{4})}'
+      )
+    })
+
+    it('変数を含むネスト括弧の分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('(([var1]+1)/([var2]+2))/5')).toBe(
+        '\\frac{(\\frac{([var1]+1)}{([var2]+2)})}{5}'
+      )
+    })
+
+    it('pi定数を含むネスト括弧の分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('((pi()+1)/(3+4))/5')).toBe(
+        '\\frac{(\\frac{(\\pi+1)}{(3+4)})}{5}'
+      )
+    })
+
+    it('負の指数を含むネスト括弧の分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('(([x]^-2+1)/([y]^-3+2))/5')).toBe(
+        '\\frac{(\\frac{([x]^{-2}+1)}{([y]^{-3}+2)})}{5}'
       )
     })
   })
