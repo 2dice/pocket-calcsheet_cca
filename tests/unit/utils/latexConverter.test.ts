@@ -427,5 +427,23 @@ describe('latexConverter', () => {
         '\\frac{1}{(\\frac{\\frac{2}{3}}{4})}'
       )
     })
+
+    it('変数を含むネスト括弧の分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('(([var1]+1)/([var2]+2))/5')).toBe(
+        '\\frac{(\\frac{([var1]+1)}{([var2]+2)})}{5}'
+      )
+    })
+
+    it('pi定数を含むネスト括弧の分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('((pi()+1)/(3+4))/5')).toBe(
+        '\\frac{(\\frac{(\\pi+1)}{(3+4)})}{5}'
+      )
+    })
+
+    it('負の指数を含むネスト括弧の分数を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('(([x]^-2+1)/([y]^-3+2))/5')).toBe(
+        '\\frac{(\\frac{([x]^{-2}+1)}{([y]^{-3}+2)})}{5}'
+      )
+    })
   })
 })

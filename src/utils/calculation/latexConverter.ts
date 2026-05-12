@@ -347,11 +347,7 @@ function convertFractionsStructurally(expression: string): string | null {
 }
 
 function shouldUseStructuralFractionConverter(expression: string): boolean {
-  if (!expression.includes('/') || expression.includes('[')) {
-    return false
-  }
-
-  if (expression.includes('pi')) {
+  if (!expression.includes('/')) {
     return false
   }
 
@@ -359,7 +355,7 @@ function shouldUseStructuralFractionConverter(expression: string): boolean {
     expression.startsWith('((') ||
     /\/\s*\(\(/.test(expression) ||
     /\/\s*\([^()]*\/[^()]*\)/.test(expression) ||
-    /\b(?:sin|cos|tan|asin|acos|atan|sqrt|log|ln|exp|dtor|rtod)\([^)]*\)\s*[+-]/.test(
+    /\([^)]*\b(?:sin|cos|tan|asin|acos|atan|sqrt|log|ln|exp|dtor|rtod)\([^)]*\)[^)]*[+-][^)]*\)\s*\//.test(
       expression
     )
   )
@@ -424,7 +420,7 @@ function tokenizeFractionExpression(
 
       if ((char === '+' || char === '-') && endIndex > index) {
         const previous = expression[endIndex - 1]
-        if (previous !== '^') {
+        if (previous !== '^' && previous !== '{') {
           break
         }
       }
