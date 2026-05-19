@@ -78,6 +78,11 @@ function convertToCustomLatex(
     result = result.replace(regex, latexFn)
   })
 
+  const structuralLatex = convertIssue102Expression(result, convertFunctions)
+  if (structuralLatex !== null) {
+    return structuralLatex.replace(/\s+/g, ' ').trim()
+  }
+
   // 2. べき乗の変換（より包括的に）
   result = convertPowers(result)
 
@@ -108,6 +113,364 @@ function convertToCustomLatex(
   result = result.replace(/\s+/g, ' ').trim()
 
   return result
+}
+
+type Issue102AstNode =
+  | { type: 'raw'; value: string }
+  | { type: 'unary'; operator: '+' | '-'; value: Issue102AstNode }
+  | {
+      type: 'binary'
+      operator: '+' | '-' | '*' | '/' | '^'
+      left: Issue102AstNode
+      right: Issue102AstNode
+    }
+  | { type: 'paren'; value: Issue102AstNode }
+  | { type: 'function'; name: string; args: Issue102AstNode[] }
+
+type Issue102Token =
+  | { type: 'raw'; value: string }
+  | { type: 'operator'; value: '+' | '-' | '*' | '/' | '^' }
+  | { type: 'paren'; value: '(' | ')' }
+  | { type: 'comma'; value: ',' }
+
+function convertIssue102Expression(
+  expression: string,
+  convertFunctions: boolean
+): string | null {
+  if (!shouldUseIssue102ExpressionParser(expression)) {
+    return null
+  }
+
+  const tokens = tokenizeIssue102Expression(expression)
+  if (tokens === null) {
+    return null
+  }
+
+  const parser = new Issue102ExpressionParser(tokens)
+  const ast = parser.parse()
+  if (ast === null || !parser.isAtEnd()) {
+    return null
+  }
+
+  return formatIssue102Ast(ast, convertFunctions)
+}
+
+function shouldUseIssue102ExpressionParser(expression: string): boolean {
+  return (
+    /^[^+\-*/]+\^\([^()]+\)\s*\//.test(expression) ||
+    /\b[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(expression) ||
+    /\/\([^()]*[+-][^()]*\)\s*\//.test(expression) ||
+    /\(\([^()]+\)\/\([^()]+\)\)\s*\^/.test(expression) ||
+    /\^[a-zA-Z_]\w*\s*\(/.test(expression) ||
+    /\*\s*\(\s*[^()]+\s*\/\s*\([^()]*[+-][^()]*\)\s*\)/.test(expression)
+  )
+}
+
+function isIssue102Operator(
+  value: string
+): value is '+' | '-' | '*' | '/' | '^' {
+  return (
+    value === '+' ||
+    value === '-' ||
+    value === '*' ||
+    value === '/' ||
+    value === '^'
+  )
+}
+
+function tokenizeIssue102Expression(
+  expression: string
+): Issue102Token[] | null {
+  const tokens: Issue102Token[] = []
+  let index = 0
+
+  while (index < expression.length) {
+    const current = expression[index]
+
+    if (/\s/.test(current)) {
+      index++
+      continue
+    }
+
+    if (isIssue102Operator(current)) {
+      tokens.push({
+        type: 'operator',
+        value: current,
+      })
+      index++
+      continue
+    }
+
+    if (current === '(' || current === ')') {
+      tokens.push({ type: 'paren', value: current })
+      index++
+      continue
+    }
+
+    if (current === ',') {
+      tokens.push({ type: 'comma', value: current })
+      index++
+      continue
+    }
+
+    if (current === '[') {
+      const endIndex = expression.indexOf(']', index + 1)
+      if (endIndex === -1) return null
+      tokens.push({ type: 'raw', value: expression.slice(index, endIndex + 1) })
+      index = endIndex + 1
+      continue
+    }
+
+    if (current === '\\') {
+      const match = expression.slice(index).match(/^\\[a-zA-Z]+(?:_\{[^{}]+})?/)
+      if (!match) return null
+      tokens.push({ type: 'raw', value: match[0] })
+      index += match[0].length
+      continue
+    }
+
+    const match = expression.slice(index).match(/^\d+(?:\.\d+)?|^[a-zA-Z_]\w*/)
+    if (!match) {
+      return null
+    }
+
+    tokens.push({ type: 'raw', value: match[0] })
+    index += match[0].length
+  }
+
+  return tokens
+}
+
+class Issue102ExpressionParser {
+  private current = 0
+  private readonly tokens: Issue102Token[]
+
+  constructor(tokens: Issue102Token[]) {
+    this.tokens = tokens
+  }
+
+  parse(): Issue102AstNode | null {
+    return this.parseAdditive()
+  }
+
+  isAtEnd(): boolean {
+    return this.current >= this.tokens.length
+  }
+
+  private parseAdditive(): Issue102AstNode | null {
+    let node = this.parseMultiplicative()
+    if (node === null) return null
+
+    while (this.matchOperator('+') || this.matchOperator('-')) {
+      const operator = this.previous().value as '+' | '-'
+      const right = this.parseMultiplicative()
+      if (right === null) return null
+      node = { type: 'binary', operator, left: node, right }
+    }
+
+    return node
+  }
+
+  private parseMultiplicative(): Issue102AstNode | null {
+    let node = this.parsePower()
+    if (node === null) return null
+
+    while (this.matchOperator('*') || this.matchOperator('/')) {
+      const operator = this.previous().value as '*' | '/'
+      const right = this.parsePower()
+      if (right === null) return null
+      node = { type: 'binary', operator, left: node, right }
+    }
+
+    return node
+  }
+
+  private parsePower(): Issue102AstNode | null {
+    const base = this.parseUnary()
+    if (base === null) return null
+
+    if (!this.matchOperator('^')) {
+      return base
+    }
+
+    const right = this.parsePower()
+    if (right === null) return null
+    return { type: 'binary', operator: '^', left: base, right }
+  }
+
+  private parseUnary(): Issue102AstNode | null {
+    if (this.matchOperator('+') || this.matchOperator('-')) {
+      const operator = this.previous().value as '+' | '-'
+      const value = this.parseUnary()
+      if (value === null) return null
+      return { type: 'unary', operator, value }
+    }
+
+    return this.parsePrimary()
+  }
+
+  private parsePrimary(): Issue102AstNode | null {
+    if (this.matchRaw()) {
+      const rawToken = this.previous()
+      if (rawToken.type !== 'raw') return null
+
+      if (this.matchParen('(')) {
+        const args = this.parseFunctionArgs()
+        if (args === null) return null
+        return { type: 'function', name: rawToken.value, args }
+      }
+
+      return { type: 'raw', value: rawToken.value }
+    }
+
+    if (this.matchParen('(')) {
+      const value = this.parseAdditive()
+      if (value === null || !this.matchParen(')')) {
+        return null
+      }
+      return { type: 'paren', value }
+    }
+
+    return null
+  }
+
+  private parseFunctionArgs(): Issue102AstNode[] | null {
+    const args: Issue102AstNode[] = []
+    if (this.matchParen(')')) return args
+
+    do {
+      const arg = this.parseAdditive()
+      if (arg === null) return null
+      args.push(arg)
+    } while (this.matchComma())
+
+    if (!this.matchParen(')')) return null
+    return args
+  }
+
+  private matchOperator(operator: Issue102Token['value']): boolean {
+    const token = this.peek()
+    if (token?.type !== 'operator' || token.value !== operator) return false
+    this.current++
+    return true
+  }
+
+  private matchParen(paren: '(' | ')'): boolean {
+    const token = this.peek()
+    if (token?.type !== 'paren' || token.value !== paren) return false
+    this.current++
+    return true
+  }
+
+  private matchRaw(): boolean {
+    if (this.peek()?.type !== 'raw') return false
+    this.current++
+    return true
+  }
+
+  private matchComma(): boolean {
+    if (this.peek()?.type !== 'comma') return false
+    this.current++
+    return true
+  }
+
+  private peek(): Issue102Token | undefined {
+    return this.tokens[this.current]
+  }
+
+  private previous(): Issue102Token {
+    return this.tokens[this.current - 1]
+  }
+}
+
+function formatIssue102Ast(
+  node: Issue102AstNode,
+  convertFunctions: boolean
+): string {
+  switch (node.type) {
+    case 'raw':
+      return node.value
+    case 'unary':
+      return `${node.operator}${formatIssue102Ast(node.value, convertFunctions)}`
+    case 'paren': {
+      const content = formatIssue102Ast(node.value, convertFunctions)
+      if (
+        content.startsWith('(') &&
+        content.endsWith(')') &&
+        content.includes('\\frac{')
+      ) {
+        return content
+      }
+      return `(${content})`
+    }
+    case 'function':
+      return formatIssue102Function(node, convertFunctions)
+    case 'binary':
+      return formatIssue102Binary(node, convertFunctions)
+  }
+}
+
+function formatIssue102Binary(
+  node: Extract<Issue102AstNode, { type: 'binary' }>,
+  convertFunctions: boolean
+): string {
+  const left = formatIssue102Ast(node.left, convertFunctions)
+  const right = formatIssue102Ast(node.right, convertFunctions)
+
+  if (node.operator === '/') {
+    return `\\frac{${left}}{${right}}`
+  }
+
+  if (node.operator === '*') {
+    return `${left}\\times${right}`
+  }
+
+  if (node.operator === '^') {
+    return `${left}^{${right}}`
+  }
+
+  return `${left}${node.operator}${right}`
+}
+
+function formatIssue102Function(
+  node: Extract<Issue102AstNode, { type: 'function' }>,
+  convertFunctions: boolean
+): string {
+  const args = node.args.map(arg => formatIssue102Ast(arg, convertFunctions))
+  const firstArg = args[0] ?? ''
+
+  if (!convertFunctions) {
+    return `${node.name}(${args.join(', ')})`
+  }
+
+  switch (node.name) {
+    case 'sqrt':
+      return `\\sqrt{${firstArg}}`
+    case 'log':
+      return `\\log_{10}(${firstArg})`
+    case 'ln':
+      return `\\log_{e}(${firstArg})`
+    case 'exp':
+      return `e^{${firstArg}}`
+    case 'sin':
+      return `\\sin(${firstArg}°)`
+    case 'cos':
+      return `\\cos(${firstArg}°)`
+    case 'tan':
+      return `\\tan(${firstArg}°)`
+    case 'asin':
+      return `\\sin^{-1}(${firstArg})°`
+    case 'acos':
+      return `\\cos^{-1}(${firstArg})°`
+    case 'atan':
+      return `\\tan^{-1}(${firstArg})°`
+    case 'dtor':
+      return `dtor(${firstArg}°)`
+    case 'rtod':
+      return `rtod(${firstArg})°`
+    default:
+      return `${node.name}(${args.join(', ')})`
+  }
 }
 
 // べき乗変換の改良版
