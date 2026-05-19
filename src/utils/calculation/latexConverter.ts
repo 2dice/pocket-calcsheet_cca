@@ -78,7 +78,10 @@ function convertToCustomLatex(
     result = result.replace(regex, latexFn)
   })
 
-  const structuralLatex = convertIssue102Expression(result, convertFunctions)
+  const structuralLatex = convertStructuralLatexExpression(
+    result,
+    convertFunctions
+  )
   if (structuralLatex !== null) {
     return structuralLatex.replace(/\s+/g, ' ').trim()
   }
@@ -115,47 +118,47 @@ function convertToCustomLatex(
   return result
 }
 
-type Issue102AstNode =
+type StructuralLatexAstNode =
   | { type: 'raw'; value: string }
-  | { type: 'unary'; operator: '+' | '-'; value: Issue102AstNode }
+  | { type: 'unary'; operator: '+' | '-'; value: StructuralLatexAstNode }
   | {
       type: 'binary'
       operator: '+' | '-' | '*' | '/' | '^'
-      left: Issue102AstNode
-      right: Issue102AstNode
+      left: StructuralLatexAstNode
+      right: StructuralLatexAstNode
     }
-  | { type: 'paren'; value: Issue102AstNode }
-  | { type: 'function'; name: string; args: Issue102AstNode[] }
+  | { type: 'paren'; value: StructuralLatexAstNode }
+  | { type: 'function'; name: string; args: StructuralLatexAstNode[] }
 
-type Issue102Token =
+type StructuralLatexToken =
   | { type: 'raw'; value: string }
   | { type: 'operator'; value: '+' | '-' | '*' | '/' | '^' }
   | { type: 'paren'; value: '(' | ')' }
   | { type: 'comma'; value: ',' }
 
-function convertIssue102Expression(
+function convertStructuralLatexExpression(
   expression: string,
   convertFunctions: boolean
 ): string | null {
-  if (!shouldUseIssue102ExpressionParser(expression)) {
+  if (!shouldUseStructuralLatexParser(expression)) {
     return null
   }
 
-  const tokens = tokenizeIssue102Expression(expression)
+  const tokens = tokenizeStructuralLatexExpression(expression)
   if (tokens === null) {
     return null
   }
 
-  const parser = new Issue102ExpressionParser(tokens)
+  const parser = new StructuralLatexExpressionParser(tokens)
   const ast = parser.parse()
   if (ast === null || !parser.isAtEnd()) {
     return null
   }
 
-  return formatIssue102Ast(ast, convertFunctions)
+  return formatStructuralLatexAst(ast, convertFunctions)
 }
 
-function shouldUseIssue102ExpressionParser(expression: string): boolean {
+function shouldUseStructuralLatexParser(expression: string): boolean {
   return (
     /^[^+\-*/]+\^\([^()]+\)\s*\//.test(expression) ||
     /\b[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(expression) ||
@@ -166,7 +169,7 @@ function shouldUseIssue102ExpressionParser(expression: string): boolean {
   )
 }
 
-function isIssue102Operator(
+function isStructuralLatexOperator(
   value: string
 ): value is '+' | '-' | '*' | '/' | '^' {
   return (
@@ -178,10 +181,10 @@ function isIssue102Operator(
   )
 }
 
-function tokenizeIssue102Expression(
+function tokenizeStructuralLatexExpression(
   expression: string
-): Issue102Token[] | null {
-  const tokens: Issue102Token[] = []
+): StructuralLatexToken[] | null {
+  const tokens: StructuralLatexToken[] = []
   let index = 0
 
   while (index < expression.length) {
@@ -192,7 +195,7 @@ function tokenizeIssue102Expression(
       continue
     }
 
-    if (isIssue102Operator(current)) {
+    if (isStructuralLatexOperator(current)) {
       tokens.push({
         type: 'operator',
         value: current,
@@ -241,15 +244,15 @@ function tokenizeIssue102Expression(
   return tokens
 }
 
-class Issue102ExpressionParser {
+class StructuralLatexExpressionParser {
   private current = 0
-  private readonly tokens: Issue102Token[]
+  private readonly tokens: StructuralLatexToken[]
 
-  constructor(tokens: Issue102Token[]) {
+  constructor(tokens: StructuralLatexToken[]) {
     this.tokens = tokens
   }
 
-  parse(): Issue102AstNode | null {
+  parse(): StructuralLatexAstNode | null {
     return this.parseAdditive()
   }
 
@@ -257,7 +260,7 @@ class Issue102ExpressionParser {
     return this.current >= this.tokens.length
   }
 
-  private parseAdditive(): Issue102AstNode | null {
+  private parseAdditive(): StructuralLatexAstNode | null {
     let node = this.parseMultiplicative()
     if (node === null) return null
 
@@ -271,7 +274,7 @@ class Issue102ExpressionParser {
     return node
   }
 
-  private parseMultiplicative(): Issue102AstNode | null {
+  private parseMultiplicative(): StructuralLatexAstNode | null {
     let node = this.parsePower()
     if (node === null) return null
 
@@ -285,7 +288,7 @@ class Issue102ExpressionParser {
     return node
   }
 
-  private parsePower(): Issue102AstNode | null {
+  private parsePower(): StructuralLatexAstNode | null {
     const base = this.parseUnary()
     if (base === null) return null
 
@@ -298,7 +301,7 @@ class Issue102ExpressionParser {
     return { type: 'binary', operator: '^', left: base, right }
   }
 
-  private parseUnary(): Issue102AstNode | null {
+  private parseUnary(): StructuralLatexAstNode | null {
     if (this.matchOperator('+') || this.matchOperator('-')) {
       const operator = this.previous().value as '+' | '-'
       const value = this.parseUnary()
@@ -309,7 +312,7 @@ class Issue102ExpressionParser {
     return this.parsePrimary()
   }
 
-  private parsePrimary(): Issue102AstNode | null {
+  private parsePrimary(): StructuralLatexAstNode | null {
     if (this.matchRaw()) {
       const rawToken = this.previous()
       if (rawToken.type !== 'raw') return null
@@ -334,8 +337,8 @@ class Issue102ExpressionParser {
     return null
   }
 
-  private parseFunctionArgs(): Issue102AstNode[] | null {
-    const args: Issue102AstNode[] = []
+  private parseFunctionArgs(): StructuralLatexAstNode[] | null {
+    const args: StructuralLatexAstNode[] = []
     if (this.matchParen(')')) return args
 
     do {
@@ -348,7 +351,7 @@ class Issue102ExpressionParser {
     return args
   }
 
-  private matchOperator(operator: Issue102Token['value']): boolean {
+  private matchOperator(operator: StructuralLatexToken['value']): boolean {
     const token = this.peek()
     if (token?.type !== 'operator' || token.value !== operator) return false
     this.current++
@@ -374,26 +377,26 @@ class Issue102ExpressionParser {
     return true
   }
 
-  private peek(): Issue102Token | undefined {
+  private peek(): StructuralLatexToken | undefined {
     return this.tokens[this.current]
   }
 
-  private previous(): Issue102Token {
+  private previous(): StructuralLatexToken {
     return this.tokens[this.current - 1]
   }
 }
 
-function formatIssue102Ast(
-  node: Issue102AstNode,
+function formatStructuralLatexAst(
+  node: StructuralLatexAstNode,
   convertFunctions: boolean
 ): string {
   switch (node.type) {
     case 'raw':
       return node.value
     case 'unary':
-      return `${node.operator}${formatIssue102Ast(node.value, convertFunctions)}`
+      return `${node.operator}${formatStructuralLatexAst(node.value, convertFunctions)}`
     case 'paren': {
-      const content = formatIssue102Ast(node.value, convertFunctions)
+      const content = formatStructuralLatexAst(node.value, convertFunctions)
       if (
         content.startsWith('(') &&
         content.endsWith(')') &&
@@ -404,25 +407,25 @@ function formatIssue102Ast(
       return `(${content})`
     }
     case 'function':
-      return formatIssue102Function(node, convertFunctions)
+      return formatStructuralLatexFunction(node, convertFunctions)
     case 'binary':
-      return formatIssue102Binary(node, convertFunctions)
+      return formatStructuralLatexBinary(node, convertFunctions)
   }
 }
 
-function formatIssue102Binary(
-  node: Extract<Issue102AstNode, { type: 'binary' }>,
+function formatStructuralLatexBinary(
+  node: Extract<StructuralLatexAstNode, { type: 'binary' }>,
   convertFunctions: boolean
 ): string {
-  const left = formatIssue102Ast(node.left, convertFunctions)
-  const right = formatIssue102Ast(node.right, convertFunctions)
+  const left = formatStructuralLatexAst(node.left, convertFunctions)
+  const right = formatStructuralLatexAst(node.right, convertFunctions)
 
   if (node.operator === '/') {
     return `\\frac{${left}}{${right}}`
   }
 
   if (node.operator === '*') {
-    return `${left}\\times${right}`
+    return `${left}\\times ${right}`
   }
 
   if (node.operator === '^') {
@@ -432,12 +435,17 @@ function formatIssue102Binary(
   return `${left}${node.operator}${right}`
 }
 
-function formatIssue102Function(
-  node: Extract<Issue102AstNode, { type: 'function' }>,
+function formatStructuralLatexFunction(
+  node: Extract<StructuralLatexAstNode, { type: 'function' }>,
   convertFunctions: boolean
 ): string {
-  const args = node.args.map(arg => formatIssue102Ast(arg, convertFunctions))
+  const args = node.args.map(arg =>
+    formatStructuralLatexAst(arg, convertFunctions)
+  )
   const firstArg = args[0] ?? ''
+  const useScaledParens = firstArg.includes('\\frac{')
+  const wrapParens = (content: string): string =>
+    useScaledParens ? `\\left(${content}\\right)` : `(${content})`
 
   if (!convertFunctions) {
     return `${node.name}(${args.join(', ')})`
@@ -447,23 +455,29 @@ function formatIssue102Function(
     case 'sqrt':
       return `\\sqrt{${firstArg}}`
     case 'log':
-      return `\\log_{10}(${firstArg})`
+      return `\\log_{10}${wrapParens(firstArg)}`
     case 'ln':
-      return `\\log_{e}(${firstArg})`
+      return `\\log_{e}${wrapParens(firstArg)}`
     case 'exp':
       return `e^{${firstArg}}`
     case 'sin':
-      return `\\sin(${firstArg}°)`
+      return `\\sin${wrapParens(`${firstArg}°`)}`
     case 'cos':
-      return `\\cos(${firstArg}°)`
+      return `\\cos${wrapParens(`${firstArg}°`)}`
     case 'tan':
-      return `\\tan(${firstArg}°)`
+      return `\\tan${wrapParens(`${firstArg}°`)}`
     case 'asin':
-      return `\\sin^{-1}(${firstArg})°`
+      return useScaledParens
+        ? `\\sin^{-1}\\left(${firstArg}\\right)°`
+        : `\\sin^{-1}(${firstArg})°`
     case 'acos':
-      return `\\cos^{-1}(${firstArg})°`
+      return useScaledParens
+        ? `\\cos^{-1}\\left(${firstArg}\\right)°`
+        : `\\cos^{-1}(${firstArg})°`
     case 'atan':
-      return `\\tan^{-1}(${firstArg})°`
+      return useScaledParens
+        ? `\\tan^{-1}\\left(${firstArg}\\right)°`
+        : `\\tan^{-1}(${firstArg})°`
     case 'dtor':
       return `dtor(${firstArg}°)`
     case 'rtod':

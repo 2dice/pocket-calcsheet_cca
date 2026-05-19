@@ -478,7 +478,7 @@ describe('latexConverter', () => {
 
     it('乗算内の括弧付き分母を正しく分数化する', () => {
       expect(convertToLatexWithFunctionNames('2*(1/(3+4))-5')).toBe(
-        '2\\times(\\frac{1}{(3+4)})-5'
+        '2\\times (\\frac{1}{(3+4)})-5'
       )
     })
   })
