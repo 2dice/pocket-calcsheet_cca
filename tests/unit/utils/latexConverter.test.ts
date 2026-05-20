@@ -482,4 +482,22 @@ describe('latexConverter', () => {
       )
     })
   })
+
+  describe('Issue #104 追加ケース', () => {
+    it('一般的な 1/(a+b) 形式を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(2+3+4)')).toBe(
+        '\\frac{1}{(2+3+4)}'
+      )
+    })
+
+    it('べき乗連鎖を右結合で変換する', () => {
+      expect(convertToLatexWithFunctionNames('2^3^4')).toBe('2^{3^{4}}')
+    })
+
+    it('atan の分数引数で left/right を一貫して付与する', () => {
+      expect(convertToLatexWithFunctionNames('atan((1+2)/(3+4))')).toBe(
+        '\\tan^{-1}\\left(\\frac{1+2}{3+4}\\right)°'
+      )
+    })
+  })
 })

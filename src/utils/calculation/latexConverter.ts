@@ -489,6 +489,42 @@ function formatStructuralLatexFunction(
 
 // べき乗変換の改良版
 function convertPowers(expression: string): string {
+  const parseExponent = (
+    start: number
+  ): { value: string; end: number } | null => {
+    const next = expression[start]
+    if (!next) return null
+
+    const parseAtomic = (): { value: string; end: number } | null => {
+      if (next === '(') {
+        let depth = 1
+        let end = start + 1
+        while (end < expression.length && depth > 0) {
+          if (expression[end] === '(') depth++
+          if (expression[end] === ')') depth--
+          end++
+        }
+        if (depth !== 0) return null
+        return { value: expression.slice(start, end), end }
+      }
+
+      const tokenMatch = expression.slice(start).match(/^-?[\d.a-zA-Z[\]_]+/)
+      if (!tokenMatch) return null
+      return { value: tokenMatch[0], end: start + tokenMatch[0].length }
+    }
+
+    const atomic = parseAtomic()
+    if (atomic === null) return null
+
+    if (expression[atomic.end] !== '^') {
+      return atomic
+    }
+
+    const rhs = parseExponent(atomic.end + 1)
+    if (rhs === null) return atomic
+    return { value: `${atomic.value}^{${rhs.value}}`, end: rhs.end }
+  }
+
   let result = ''
   for (let i = 0; i < expression.length; i++) {
     const current = expression[i]
@@ -497,32 +533,14 @@ function convertPowers(expression: string): string {
       continue
     }
 
-    const next = expression[i + 1]
-    if (next === '(') {
-      let depth = 1
-      let j = i + 2
-      while (j < expression.length && depth > 0) {
-        if (expression[j] === '(') depth++
-        if (expression[j] === ')') depth--
-        j++
-      }
-
-      if (depth === 0) {
-        const content = expression.slice(i + 1, j) // "(...)"
-        result += `^{${content}}`
-        i = j - 1
-        continue
-      }
-    }
-
-    const match = expression.slice(i + 1).match(/^-?[\d.a-zA-Z[\]_]+/)
-    if (match) {
-      result += `^{${match[0]}}`
-      i += match[0].length
+    const exponent = parseExponent(i + 1)
+    if (exponent === null) {
+      result += '^'
       continue
     }
 
-    result += '^'
+    result += `^{${exponent.value}}`
+    i = exponent.end - 1
   }
 
   return result
@@ -1036,6 +1054,12 @@ function convertBasicFractions(expression: string): string {
   // 例: [x]/sqrt([x]^2+[y]^2) → \frac{[x]}{sqrt([x]^{2}+[y]^{2})}
   result = result.replace(
     /([^\s/()]+)\s*\/\s*(\w+\([^)]*\)(?:\^\{[^}]+\})?)(?=\s*(?:\\times|\/|[+-]|$))/g,
+    '\\frac{$1}{$2}'
+  )
+
+  // パターン3a: 項 / (加減算を含む式)
+  result = result.replace(
+    /([^\s/()+*-]+)\s*\/\s*(\([^()]*[+-][^()]*\))/g,
     '\\frac{$1}{$2}'
   )
 
