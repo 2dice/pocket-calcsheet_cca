@@ -446,4 +446,40 @@ describe('latexConverter', () => {
       )
     })
   })
+
+  describe('Issue #102 追加ケース', () => {
+    it('べき乗後続の除算を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('2^(1+2)/3')).toBe(
+        '\\frac{2^{(1+2)}}{3}'
+      )
+    })
+
+    it('括弧分母を含む連鎖除算を左結合で変換する', () => {
+      expect(convertToLatexWithFunctionNames('1/(2+3)/4')).toBe(
+        '\\frac{\\frac{1}{(2+3)}}{4}'
+      )
+    })
+
+    it('括弧付き分数全体のべき乗を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('((1+2)/(3+4))^2')).toBe(
+        '(\\frac{(1+2)}{(3+4)})^{2}'
+      )
+    })
+
+    it('べき乗付き関数呼び出しの除算を正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('sqrt(2)^2/3')).toBe(
+        '\\frac{\\sqrt{2}^{2}}{3}'
+      )
+    })
+
+    it('関数呼び出しを指数として正しく変換する', () => {
+      expect(convertToLatexWithFunctionNames('x^sqrt(2)')).toBe('x^{\\sqrt{2}}')
+    })
+
+    it('乗算内の括弧付き分母を正しく分数化する', () => {
+      expect(convertToLatexWithFunctionNames('2*(1/(3+4))-5')).toBe(
+        '2\\times (\\frac{1}{(3+4)})-5'
+      )
+    })
+  })
 })

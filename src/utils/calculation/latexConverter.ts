@@ -78,6 +78,14 @@ function convertToCustomLatex(
     result = result.replace(regex, latexFn)
   })
 
+  const structuralLatex = convertStructuralLatexExpression(
+    result,
+    convertFunctions
+  )
+  if (structuralLatex !== null) {
+    return structuralLatex.replace(/\s+/g, ' ').trim()
+  }
+
   // 2. べき乗の変換（より包括的に）
   result = convertPowers(result)
 
@@ -108,6 +116,375 @@ function convertToCustomLatex(
   result = result.replace(/\s+/g, ' ').trim()
 
   return result
+}
+
+type StructuralLatexAstNode =
+  | { type: 'raw'; value: string }
+  | { type: 'unary'; operator: '+' | '-'; value: StructuralLatexAstNode }
+  | {
+      type: 'binary'
+      operator: '+' | '-' | '*' | '/' | '^'
+      left: StructuralLatexAstNode
+      right: StructuralLatexAstNode
+    }
+  | { type: 'paren'; value: StructuralLatexAstNode }
+  | { type: 'function'; name: string; args: StructuralLatexAstNode[] }
+
+type StructuralLatexToken =
+  | { type: 'raw'; value: string }
+  | { type: 'operator'; value: '+' | '-' | '*' | '/' | '^' }
+  | { type: 'paren'; value: '(' | ')' }
+  | { type: 'comma'; value: ',' }
+
+function convertStructuralLatexExpression(
+  expression: string,
+  convertFunctions: boolean
+): string | null {
+  if (!shouldUseStructuralLatexParser(expression)) {
+    return null
+  }
+
+  const tokens = tokenizeStructuralLatexExpression(expression)
+  if (tokens === null) {
+    return null
+  }
+
+  const parser = new StructuralLatexExpressionParser(tokens)
+  const ast = parser.parse()
+  if (ast === null || !parser.isAtEnd()) {
+    return null
+  }
+
+  return formatStructuralLatexAst(ast, convertFunctions)
+}
+
+function shouldUseStructuralLatexParser(expression: string): boolean {
+  return (
+    /^[^+\-*/]+\^\([^()]+\)\s*\//.test(expression) ||
+    /\b[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(expression) ||
+    /\/\([^()]*[+-][^()]*\)\s*\//.test(expression) ||
+    /\(\([^()]+\)\/\([^()]+\)\)\s*\^/.test(expression) ||
+    /\^[a-zA-Z_]\w*\s*\(/.test(expression) ||
+    /\*\s*\(\s*[^()]+\s*\/\s*\([^()]*[+-][^()]*\)\s*\)/.test(expression)
+  )
+}
+
+function isStructuralLatexOperator(
+  value: string
+): value is '+' | '-' | '*' | '/' | '^' {
+  return (
+    value === '+' ||
+    value === '-' ||
+    value === '*' ||
+    value === '/' ||
+    value === '^'
+  )
+}
+
+function tokenizeStructuralLatexExpression(
+  expression: string
+): StructuralLatexToken[] | null {
+  const tokens: StructuralLatexToken[] = []
+  let index = 0
+
+  while (index < expression.length) {
+    const current = expression[index]
+
+    if (/\s/.test(current)) {
+      index++
+      continue
+    }
+
+    if (isStructuralLatexOperator(current)) {
+      tokens.push({
+        type: 'operator',
+        value: current,
+      })
+      index++
+      continue
+    }
+
+    if (current === '(' || current === ')') {
+      tokens.push({ type: 'paren', value: current })
+      index++
+      continue
+    }
+
+    if (current === ',') {
+      tokens.push({ type: 'comma', value: current })
+      index++
+      continue
+    }
+
+    if (current === '[') {
+      const endIndex = expression.indexOf(']', index + 1)
+      if (endIndex === -1) return null
+      tokens.push({ type: 'raw', value: expression.slice(index, endIndex + 1) })
+      index = endIndex + 1
+      continue
+    }
+
+    if (current === '\\') {
+      const match = expression.slice(index).match(/^\\[a-zA-Z]+(?:_\{[^{}]+})?/)
+      if (!match) return null
+      tokens.push({ type: 'raw', value: match[0] })
+      index += match[0].length
+      continue
+    }
+
+    const match = expression.slice(index).match(/^\d+(?:\.\d+)?|^[a-zA-Z_]\w*/)
+    if (!match) {
+      return null
+    }
+
+    tokens.push({ type: 'raw', value: match[0] })
+    index += match[0].length
+  }
+
+  return tokens
+}
+
+class StructuralLatexExpressionParser {
+  private current = 0
+  private readonly tokens: StructuralLatexToken[]
+
+  constructor(tokens: StructuralLatexToken[]) {
+    this.tokens = tokens
+  }
+
+  parse(): StructuralLatexAstNode | null {
+    return this.parseAdditive()
+  }
+
+  isAtEnd(): boolean {
+    return this.current >= this.tokens.length
+  }
+
+  private parseAdditive(): StructuralLatexAstNode | null {
+    let node = this.parseMultiplicative()
+    if (node === null) return null
+
+    while (this.matchOperator('+') || this.matchOperator('-')) {
+      const operator = this.previous().value as '+' | '-'
+      const right = this.parseMultiplicative()
+      if (right === null) return null
+      node = { type: 'binary', operator, left: node, right }
+    }
+
+    return node
+  }
+
+  private parseMultiplicative(): StructuralLatexAstNode | null {
+    let node = this.parsePower()
+    if (node === null) return null
+
+    while (this.matchOperator('*') || this.matchOperator('/')) {
+      const operator = this.previous().value as '*' | '/'
+      const right = this.parsePower()
+      if (right === null) return null
+      node = { type: 'binary', operator, left: node, right }
+    }
+
+    return node
+  }
+
+  private parsePower(): StructuralLatexAstNode | null {
+    const base = this.parseUnary()
+    if (base === null) return null
+
+    if (!this.matchOperator('^')) {
+      return base
+    }
+
+    const right = this.parsePower()
+    if (right === null) return null
+    return { type: 'binary', operator: '^', left: base, right }
+  }
+
+  private parseUnary(): StructuralLatexAstNode | null {
+    if (this.matchOperator('+') || this.matchOperator('-')) {
+      const operator = this.previous().value as '+' | '-'
+      const value = this.parseUnary()
+      if (value === null) return null
+      return { type: 'unary', operator, value }
+    }
+
+    return this.parsePrimary()
+  }
+
+  private parsePrimary(): StructuralLatexAstNode | null {
+    if (this.matchRaw()) {
+      const rawToken = this.previous()
+      if (rawToken.type !== 'raw') return null
+
+      if (this.matchParen('(')) {
+        const args = this.parseFunctionArgs()
+        if (args === null) return null
+        return { type: 'function', name: rawToken.value, args }
+      }
+
+      return { type: 'raw', value: rawToken.value }
+    }
+
+    if (this.matchParen('(')) {
+      const value = this.parseAdditive()
+      if (value === null || !this.matchParen(')')) {
+        return null
+      }
+      return { type: 'paren', value }
+    }
+
+    return null
+  }
+
+  private parseFunctionArgs(): StructuralLatexAstNode[] | null {
+    const args: StructuralLatexAstNode[] = []
+    if (this.matchParen(')')) return args
+
+    do {
+      const arg = this.parseAdditive()
+      if (arg === null) return null
+      args.push(arg)
+    } while (this.matchComma())
+
+    if (!this.matchParen(')')) return null
+    return args
+  }
+
+  private matchOperator(operator: StructuralLatexToken['value']): boolean {
+    const token = this.peek()
+    if (token?.type !== 'operator' || token.value !== operator) return false
+    this.current++
+    return true
+  }
+
+  private matchParen(paren: '(' | ')'): boolean {
+    const token = this.peek()
+    if (token?.type !== 'paren' || token.value !== paren) return false
+    this.current++
+    return true
+  }
+
+  private matchRaw(): boolean {
+    if (this.peek()?.type !== 'raw') return false
+    this.current++
+    return true
+  }
+
+  private matchComma(): boolean {
+    if (this.peek()?.type !== 'comma') return false
+    this.current++
+    return true
+  }
+
+  private peek(): StructuralLatexToken | undefined {
+    return this.tokens[this.current]
+  }
+
+  private previous(): StructuralLatexToken {
+    return this.tokens[this.current - 1]
+  }
+}
+
+function formatStructuralLatexAst(
+  node: StructuralLatexAstNode,
+  convertFunctions: boolean
+): string {
+  switch (node.type) {
+    case 'raw':
+      return node.value
+    case 'unary':
+      return `${node.operator}${formatStructuralLatexAst(node.value, convertFunctions)}`
+    case 'paren': {
+      const content = formatStructuralLatexAst(node.value, convertFunctions)
+      if (
+        content.startsWith('(') &&
+        content.endsWith(')') &&
+        content.includes('\\frac{')
+      ) {
+        return content
+      }
+      return `(${content})`
+    }
+    case 'function':
+      return formatStructuralLatexFunction(node, convertFunctions)
+    case 'binary':
+      return formatStructuralLatexBinary(node, convertFunctions)
+  }
+}
+
+function formatStructuralLatexBinary(
+  node: Extract<StructuralLatexAstNode, { type: 'binary' }>,
+  convertFunctions: boolean
+): string {
+  const left = formatStructuralLatexAst(node.left, convertFunctions)
+  const right = formatStructuralLatexAst(node.right, convertFunctions)
+
+  if (node.operator === '/') {
+    return `\\frac{${left}}{${right}}`
+  }
+
+  if (node.operator === '*') {
+    return `${left}\\times ${right}`
+  }
+
+  if (node.operator === '^') {
+    return `${left}^{${right}}`
+  }
+
+  return `${left}${node.operator}${right}`
+}
+
+function formatStructuralLatexFunction(
+  node: Extract<StructuralLatexAstNode, { type: 'function' }>,
+  convertFunctions: boolean
+): string {
+  const args = node.args.map(arg =>
+    formatStructuralLatexAst(arg, convertFunctions)
+  )
+  const firstArg = args[0] ?? ''
+  const useScaledParens = firstArg.includes('\\frac{')
+  const wrapParens = (content: string): string =>
+    useScaledParens ? `\\left(${content}\\right)` : `(${content})`
+
+  if (!convertFunctions) {
+    return `${node.name}(${args.join(', ')})`
+  }
+
+  switch (node.name) {
+    case 'sqrt':
+      return `\\sqrt{${firstArg}}`
+    case 'log':
+      return `\\log_{10}${wrapParens(firstArg)}`
+    case 'ln':
+      return `\\log_{e}${wrapParens(firstArg)}`
+    case 'exp':
+      return `e^{${firstArg}}`
+    case 'sin':
+      return `\\sin${wrapParens(`${firstArg}°`)}`
+    case 'cos':
+      return `\\cos${wrapParens(`${firstArg}°`)}`
+    case 'tan':
+      return `\\tan${wrapParens(`${firstArg}°`)}`
+    case 'asin':
+      return useScaledParens
+        ? `\\sin^{-1}\\left(${firstArg}\\right)°`
+        : `\\sin^{-1}(${firstArg})°`
+    case 'acos':
+      return useScaledParens
+        ? `\\cos^{-1}\\left(${firstArg}\\right)°`
+        : `\\cos^{-1}(${firstArg})°`
+    case 'atan':
+      return useScaledParens
+        ? `\\tan^{-1}\\left(${firstArg}\\right)°`
+        : `\\tan^{-1}(${firstArg})°`
+    case 'dtor':
+      return `dtor(${firstArg}°)`
+    case 'rtod':
+      return `rtod(${firstArg})°`
+    default:
+      return `${node.name}(${args.join(', ')})`
+  }
 }
 
 // べき乗変換の改良版
