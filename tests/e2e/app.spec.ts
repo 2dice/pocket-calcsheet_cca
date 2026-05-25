@@ -1010,3 +1010,81 @@ test.describe('アプリケーション基本動作確認', () => {
     expect(errors).toEqual([])
   })
 })
+
+test('OverviewタブでFormula計算結果が表示される @step6-3', async ({ page }) => {
+  await page.addInitScript(() => {
+    const state = {
+      state: {
+        schemaVersion: 1,
+        savedAt: '2026-01-01T00:00:00.000Z',
+        sheets: [
+          {
+            id: 's1',
+            name: 'S1',
+            order: 0,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        entities: {
+          s1: {
+            id: 's1',
+            name: 'S1',
+            order: 0,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            overviewData: { description: '' },
+            variableSlots: [],
+            formulaData: { inputExpr: '1+2', result: 1234567, error: null },
+          },
+        },
+      },
+      version: 0,
+    }
+    localStorage.setItem('pocket-calcsheet/1', JSON.stringify(state))
+  })
+  await page.goto('/#/s1/formula')
+  await expect(page.getByText(/Result/)).toBeVisible()
+  await page.locator('[data-testid="tab-overview"]').click()
+  await expect(page.getByText(/Result/)).toBeVisible()
+})
+
+test('Overview - 計算エラーが"Error"と表示される @step6-3', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const state = {
+      state: {
+        schemaVersion: 1,
+        savedAt: '2026-01-01T00:00:00.000Z',
+        sheets: [
+          {
+            id: 's2',
+            name: 'S2',
+            order: 0,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        entities: {
+          s2: {
+            id: 's2',
+            name: 'S2',
+            order: 0,
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+            overviewData: { description: '' },
+            variableSlots: [],
+            formulaData: { inputExpr: '1/0', result: null, error: 'Error' },
+          },
+        },
+      },
+      version: 0,
+    }
+    localStorage.setItem('pocket-calcsheet/1', JSON.stringify(state))
+  })
+  await page.goto('/#/s2/overview')
+  await expect(page.locator('[role="alert"]')).toContainText(
+    /Error|Division by Zero/
+  )
+})
