@@ -582,16 +582,14 @@ function convertFunctionNames(expression: string): string {
 
   // 2. 逆三角関数（度記号付き、複雑な場合は\left \right追加）
   result = replaceFunctionWithBalancedParens(result, 'asin', content => {
+    if (content.includes('\\frac{') && !content.includes('\\times')) {
+      return `\\sin^{-1}\\left(${content}\\right)°`
+    }
     return `\\sin^{-1}(${content})°`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'acos', content => {
-    // 複雑な分数と平方根の組み合わせには\left \right追加
-    // 分数を含み、かつ平方根を含む場合、または複雑な関数呼び出しを含む場合
-    if (
-      content.includes('\\frac{') &&
-      (content.includes('\\sqrt{') || /\w+\([^)]*\)/.test(content))
-    ) {
+    if (content.includes('\\frac{') && !content.includes('\\times')) {
       return `\\cos^{-1}\\left(${content}\\right)°`
     }
     return `\\cos^{-1}(${content})°`

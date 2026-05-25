@@ -506,6 +506,21 @@ describe('latexConverter', () => {
       )
     })
 
+    it('asin/acos も分数引数の left/right 条件を atan と揃える', () => {
+      expect(convertToLatexWithFunctionNames('asin(1/(2+3))')).toBe(
+        '\\sin^{-1}\\left(\\frac{1}{(2+3)}\\right)°'
+      )
+      expect(convertToLatexWithFunctionNames('acos(1/(2+3))')).toBe(
+        '\\cos^{-1}\\left(\\frac{1}{(2+3)}\\right)°'
+      )
+      expect(convertToLatexWithFunctionNames('asin(1/(2+3)*4)')).toBe(
+        '\\sin^{-1}(\\frac{1}{(2+3)}\\times 4)°'
+      )
+      expect(convertToLatexWithFunctionNames('acos(1/(2+3)*4)')).toBe(
+        '\\cos^{-1}(\\frac{1}{(2+3)}\\times 4)°'
+      )
+    })
+
     it('指数内の LaTeX コマンドを atomic として扱う', () => {
       expect(convertToLatexWithFunctionNames('2^pi()')).toBe('2^{\\pi}')
     })
