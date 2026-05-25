@@ -1,6 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Textarea } from '@/components/ui/textarea'
+import { ExpressionRenderer } from '@/components/calculator/ExpressionRenderer'
 import { useSheetsStore } from '@/store'
 
 export function OverviewTab() {
@@ -52,6 +53,19 @@ export function OverviewTab() {
           placeholder="この計算表の説明を入力してください..."
         />
       </div>
+
+      {/* Formula表示エリア */}
+      {sheet.formulaData?.inputExpr && (
+        <div className="mt-6">
+          <label className="text-sm font-medium">Formula</label>
+          <div
+            data-testid="formula-display"
+            className="mt-1 p-3 bg-gray-50 rounded-md border"
+          >
+            <ExpressionRenderer expression={sheet.formulaData.inputExpr} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-このファイルは、このリポジトリ内のコードを操作する際に Claude Code にガイダンスを提供する。
+このファイルは、このリポジトリ内のコードを操作するガイダンスを提供する。
 
 ## コメント(Issue / Pull Request / Response / Code comment)
 
@@ -16,10 +16,7 @@
   - 明確で読みやすく、保守しやすいコード要件を慎重かつ正確に遵守する
   - 詳細な疑似コードで段階的に考える
 
-### Github Actions 上で追加インストールされているツール
-
-- ripgrep
-- node.js v22
+## プロジェクト概要
 
 ### ディレクトリ構造
 
@@ -58,8 +55,7 @@ pocket-calcsheet_cca/
 │   │   ├── calculator/               # 計算機能コンポーネント
 │   │   │   ├── VariableSlot.tsx      # 変数スロット(名前+式+値)
 │   │   │   ├── FormulaInput.tsx      # 数式入力コンポーネント
-│   │   │   ├── ResultDisplay.tsx     # 計算結果表示
-│   │   │   └── ExpressionRenderer.tsx # LaTeX式表示コンポーネント
+│   │   │   └── ResultDisplay.tsx     # 計算結果表示
 │   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
 │   │   │   ├── CustomKeyboard.tsx    # カスタムキーボード本体
 │   │   │   ├── FunctionPicker.tsx    # 関数選択ドラムロールUI
@@ -90,8 +86,7 @@ pocket-calcsheet_cca/
 │   │   ├── calculation/              # 計算関連ユーティリティ
 │   │   │   ├── mathEngine.ts         # math.js ラッパー・計算エンジン
 │   │   │   ├── expressionParser.ts   # 数式パース・変数抽出
-│   │   │   ├── numberFormatter.ts    # 数値フォーマット(SI接頭語等)
-│   │   │   └── latexConverter.ts     # LaTeX変換・数式レンダリング用
+│   │   │   └── numberFormatter.ts    # 数値フォーマット(SI接頭語等)
 │   │   ├── constants/                # 定数定義
 │   │   │   ├── routes.ts             # ルート定義・タブバリデーション
 │   │   │   └── functions.ts          # 対応関数一覧定義
@@ -121,14 +116,12 @@ pocket-calcsheet_cca/
 │   │   │   ├── TabNavigation.test.tsx # タブナビゲーション関連テスト
 │   │   │   ├── VariableSlot.test.tsx # 変数スロットテスト
 │   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
-│   │   │   ├── ResultDisplay.test.tsx # 計算結果表示テスト
-│   │   │   └── ExpressionRenderer.test.tsx # LaTeX式表示テスト
+│   │   │   └── ResultDisplay.test.tsx # 計算結果表示テスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   ├── utils/
 │   │   │   ├── validation.test.ts    # バリデーションテスト
-│   │   │   ├── mathEngine.test.ts    # 計算エンジンユニットテスト
-│   │   │   └── latexConverter.test.ts # LaTeX変換ユニットテスト
+│   │   │   └── mathEngine.test.ts    # 計算エンジンユニットテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
 │   │       └── storageManager.test.ts # StorageManager + MigrationManagerテスト
@@ -149,8 +142,48 @@ pocket-calcsheet_cca/
 ├── index.html                        # アプリケーションのエントリーHTML (Viteが処理) + iOS PWAメタタグ
 ├── pwa-assets.config.ts              # PWAアセット生成設定
 ├── package.json                      # 依存関係・スクリプト定義
+├── AGENTS.md                         # Jules 用
 └── CLAUDE.md                         # Claude Code 用
 ```
+
+## 実装ガイドライン( ISSUE への対応)
+
+- はじめにタスクの全体像(指示された参照先ドキュメントを含む)を把握し、実行計画を作成すること
+  - 実装に関連する知識を過去1年分に絞ってweb検索し、最新知識を十分に把握してから実装計画を立てること。
+  - 実行漏れをなくすため、リストが長くなっても構わない
+- ツールの結果を受け取った後、その品質を慎重に検討し、次に進む前に最適な次のステップを決定すること
+  - この新しい情報に基づいて計画し、反復するために拡張思考を使用し、最善の次のアクションを取ること。
+- 反復のために一時的な新しいファイル、スクリプト、またはヘルパーファイルを作成した場合は、タスクの最後にこれらのファイルを削除してクリーンアップすること。
+- テストを書いてから実装を開始すること(TDD)
+- コードベースにまだ存在しない機能であっても、テスト用のモック実装を作成しないこと
+- コードを実装しながらテストがグリーンになるようコードをデバッグすること(テストは修正しない)
+- ユーザーが予測可能な、客観的に妥当性のある一般的な実装を維持すること
+  - IMPORTANT: Predictability beats cleverness.
+- テストケース以外の機能は実装しないこと
+- 各実装ステップ後にテストを実行して確認すること
+- テストが通ることを確認したら確認したら以下の観点でリファクタリングを行うこと
+  - 重複コードの除去
+  - 可読性の向上
+  - パフォーマンスの最適化
+  - ドキュメントの更新(AGENTS.md, design.md)
+  - コメントの記載、実装と乖離した古いコメントの修正
+- IMPORTANT: 途中で間違いに気がついたら即座に軌道修正すること。
+- YOU MUST: 最後にlint/format/型チェック/build/テストを行い、警告・エラーがない状態でcommit/push/PRを行う
+
+## デバッグガイドライン
+
+- テストが失敗した場合、テストにデバッグログを含め、実行時にログから問題解決のヒントを収集すること
+  - IMPORTANT: 問題が解決した後、デバッグログは消去すること
+- 同じアプローチが2回失敗した場合、web検索で同様の事例を収集し、拡張思考で問題を分析すること
+
+## 修正ガイドライン( Pull Request へのレビューコメントへの対応)
+
+- issue の内容・ Pull Request コメント・ Pull Request の変化点を再度確認し理解する
+- レビュー内容を深く読み込み理解する
+- レビュー内容が妥当であれば修正を行う
+- どこまでが実装されており、何をする必要があるかを、コードベースと Pull Request のコメントから正確に把握する
+- 修正の全体像を把握し、実行計画を作成すること
+  - 実行漏れをなくすため、リストが長くなっても構わない
 
 ## git commit ガイドライン
 
@@ -188,11 +221,6 @@ pocket-calcsheet_cca/
   ```
 - Issueに対する Pull Request は備考に`Close #1`等と記載しissue番号と紐付ける。
 
-## compactコマンドガイドライン(要約)
-
-- compact 機能を使用する際は、ターミナル出力(test/build/dev等)と、コード変更処理、デバッグ時の経緯を主に圧縮すること。
-- 指示、デバッグの結果、進捗の情報は残すこと。
-
 ## Project Overview
 
 ぽけっと計算表 (Pocket Calcsheet) - PWA対応のスマートフォン専用計算シートアプリ
@@ -200,7 +228,6 @@ pocket-calcsheet_cca/
 - 計算式を保存できる計算シートアプリ
 - 保存した名前付き変数を参照し、関数を組み合わせて結果を算出
 - 計算結果を自然な数式(LaTeX形式)で表示
-- iPhoneアプリの再構築としてのWebアプリ実装
 
 ## Technology Stack
 
@@ -218,7 +245,7 @@ pocket-calcsheet_cca/
 ### Specialized Libraries
 
 - math.js: 数式処理・計算エンジン
-- KaTeX: LaTeX数式レンダリング (Step6-2で追加)
+- KaTeX: LaTeX数式レンダリング
 - dnd-kit: ドラッグ&ドロップ (リスト並び替え)
 - React Router + HashRouter: ルーティング
 
@@ -240,8 +267,6 @@ npm run build
 # TDD実装時のテストコマンド
 npm run test:unit path/to/test/file #TDD実行時の個別vitest実行(path/to/test/fileは機能ごとに作成したテストファイル名)
 npx playwright test --grep @tag     #TDD実行時の個別playwrightテスト実行(tagはステップ毎に定義)
-## playwrightブラウザインストールが必要な場合
-npx playwright install webkit chromium --with-deps
 
 # 最終テスト実行(時間がかかるので全ての実装が完了してから実行すること)
 npm run test          # Vitest + Playwright
@@ -333,5 +358,4 @@ npm run preview       # ビルド後のプレビュー
 
 ### その他
 
-- Progress is tracked through dynamic comment updates with checkboxes
 - YOU MUST: 全ての工程で全力を尽くし最善の結果を残すこと。遠慮は要らない。

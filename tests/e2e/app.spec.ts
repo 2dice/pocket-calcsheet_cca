@@ -764,4 +764,249 @@ test.describe('アプリケーション基本動作確認', () => {
     const errors = monitor.getAllErrors()
     expect(errors).toEqual([])
   })
+
+  test('Formula表示エリアが基本動作する @step6-2', async ({ page }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('数式表示テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=数式表示テスト').click()
+
+    // Formulaタブで数式を入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page.locator('button:has-text("2")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("3")').click()
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // Overviewタブに遷移
+    await page.locator('[data-testid="tab-overview"]').click()
+
+    // Formula表示エリアが表示される
+    await expect(
+      page
+        .locator('[data-testid="formula-display"]')
+        .locator('..')
+        .locator('label:has-text("Formula")')
+    ).toBeVisible()
+
+    // 元の式が表示される（最初のdivで確認）
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("2+3")'
+      )
+    ).toBeVisible()
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('関数を含む数式のLaTeX変換表示 @step6-2', async ({ page }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('LaTeXテスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=LaTeXテスト').click()
+
+    // Variablesタブで変数を設定
+    await page.locator('[data-testid="tab-variables"]').click()
+    const nameInput1 = page.locator('[data-testid="variable-name-1"]')
+    await nameInput1.fill('var1')
+    await nameInput1.blur()
+    const valueInput1 = page.locator('[data-testid="variable-value-1"]')
+    await valueInput1.click()
+    await page.locator('button:has-text("2")').click()
+    await page.locator('button:has-text("↵")').click()
+
+    const nameInput2 = page.locator('[data-testid="variable-name-2"]')
+    await nameInput2.fill('var2')
+    await nameInput2.blur()
+    const valueInput2 = page.locator('[data-testid="variable-value-2"]')
+    await valueInput2.click()
+    await page.locator('button:has-text("3")').click()
+    await page.locator('button:has-text("↵")').click()
+
+    // Formulaタブで関数を含む数式を入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+
+    // atan(2*[var1]/[var2])を入力
+    await page.locator('button:has-text("f(x)")').click()
+    await page.locator('text=atan - アークタンジェント(度)').click()
+    await page.locator('button:has-text("2")').click()
+    await page.locator('button:has-text("*")').click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    await page.locator('[role="dialog"] >> text=var1').click()
+    await page.locator('button:has-text("/")').click()
+    await page
+      .locator('[data-testid="custom-keyboard"] button:has-text("var")')
+      .click()
+    await page.locator('[role="dialog"] >> text=var2').click()
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // Overviewタブに遷移してLaTeX表示を確認
+    await page.locator('[data-testid="tab-overview"]').click()
+
+    // Formula表示エリアが表示される
+    await expect(
+      page
+        .locator('[data-testid="formula-display"]')
+        .locator('..')
+        .locator('label:has-text("Formula")')
+    ).toBeVisible()
+
+    // 1行目：元の式
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("atan(2*[var1]/[var2])")'
+      )
+    ).toBeVisible()
+
+    // 3行のLaTeX表示が確認できる（関数を含むため）
+    const formulaSection = page.locator('[data-testid="formula-display"]')
+    if (await formulaSection.isVisible()) {
+      // KaTeX が正常にレンダリングされることを確認
+      // math要素（KaTeXが生成）または.katexクラスが存在することを確認
+      const mathElements = formulaSection.locator('.katex, math')
+      await expect(mathElements.first()).toBeVisible()
+    }
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('関数なしの数式のLaTeX表示（2行目スキップ） @step6-2', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('関数なしテスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=関数なしテスト').click()
+
+    // Formulaタブで関数を含まない数式を入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page.locator('button:has-text("2")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("3")').click()
+    await page.locator('button:has-text("*")').click()
+    await page.locator('button:has-text("4")').click()
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // データの保存を待つ
+    await page.waitForTimeout(100)
+
+    // Overviewタブに遷移
+    await page.locator('[data-testid="tab-overview"]').click()
+
+    // Formula表示エリアが表示される
+    await expect(
+      page
+        .locator('[data-testid="formula-display"]')
+        .locator('..')
+        .locator('label:has-text("Formula")')
+    ).toBeVisible()
+
+    // 1行目：元の式
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("2+3*4")'
+      )
+    ).toBeVisible()
+
+    // 関数がないため2行目はスキップされ、2行のみの表示になる
+    const formulaSection = page.locator('[data-testid="formula-display"]')
+    if (await formulaSection.isVisible()) {
+      // ExpressionRendererの子要素（1行目と3行目）をチェック
+      const displayLines = formulaSection.locator('> div > div')
+      await expect(displayLines).toHaveCount(2) // 1行目と3行目のみ
+    }
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('数式変更時のLaTeX表示更新 @step6-2', async ({ page }) => {
+    await page.goto('/')
+    const monitor = setupConsoleMonitoring(page)
+
+    // シート作成
+    await page.locator('button:has-text("編集")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('[data-testid="new-sheet-input"]').fill('更新テスト')
+    await page.locator('[data-testid="new-sheet-input"]').press('Enter')
+    await page.locator('button:has-text("完了")').click()
+    await page.locator('text=更新テスト').click()
+
+    // 最初は関数なしの数式を入力
+    await page.locator('[data-testid="tab-formula"]').click()
+    const textarea = page.locator('textarea')
+    await textarea.click()
+    await page.locator('button:has-text("1")').click()
+    await page.locator('button:has-text("+")').click()
+    await page.locator('button:has-text("2")').click()
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // Overviewタブで表示確認
+    await page.locator('[data-testid="tab-overview"]').click()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("1+2")'
+      )
+    ).toBeVisible()
+
+    // 数式を関数ありに変更
+    await page.locator('[data-testid="tab-formula"]').click()
+    await textarea.click()
+    await textarea.fill('') // クリア
+    await page.locator('button:has-text("f(x)")').click()
+    await page.locator('text=sin - サイン(度)').click()
+    await page.locator('button:has-text("3")').click()
+    await page.locator('button:has-text("0")').click()
+    await page.locator('body').click({ position: { x: 50, y: 50 } })
+
+    // Overviewタブで更新確認
+    await page.locator('[data-testid="tab-overview"]').click()
+    await expect(
+      page.locator(
+        '[data-testid="formula-display"] div.font-mono:has-text("sin(30)")'
+      )
+    ).toBeVisible()
+
+    // LaTeX表示も更新される（関数ありなので3行表示）
+    const formulaSection = page.locator('[data-testid="formula-display"]')
+    if (await formulaSection.isVisible()) {
+      const mathElements = formulaSection.locator('.katex, math')
+      await expect(mathElements.first()).toBeVisible()
+    }
+
+    // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
 })
