@@ -44,7 +44,9 @@ describe('OverviewTab - Result表示', () => {
       },
     }
     renderOverviewTab()
-    expect(screen.getByText('= 1.234567000000000 × 10^6')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain(
+      '1.234567000000000'
+    )
   })
 
   it('error表示', () => {

@@ -1,5 +1,7 @@
 import { formatWithSIPrefix } from '@/utils/calculation/numberFormatter'
 import type { FormulaError } from '@/types/calculation'
+import katex from 'katex'
+import 'katex/dist/katex.min.css'
 
 interface Props {
   result: number | null
@@ -22,6 +24,28 @@ export function ResultDisplay({
   className,
   formatter = formatWithSIPrefix,
 }: Props) {
+  const renderLatexResult = (text: string) => {
+    const latexBody = text
+      .replace('×', '\\times')
+      .replace(/10\^(-?\d+)/g, '10^{$1}')
+    const latex = `= ${latexBody}`
+
+    try {
+      const html = katex.renderToString(latex, {
+        throwOnError: false,
+        displayMode: false,
+      })
+      return (
+        <span
+          data-testid="result-latex"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      )
+    } catch {
+      return <span>= {text}</span>
+    }
+  }
+
   return (
     <div className={className} role="region">
       <label className="text-sm font-medium" id="result-label">
@@ -38,7 +62,7 @@ export function ResultDisplay({
             = {errorMessages[error] || 'Error'}
           </span>
         ) : result !== null ? (
-          <span>= {formatter(result)}</span>
+          renderLatexResult(formatter(result))
         ) : (
           <span className="text-gray-400">= -</span>
         )}
