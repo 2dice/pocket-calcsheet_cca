@@ -444,6 +444,8 @@ function formatStructuralLatexFunction(
   )
   const firstArg = args[0] ?? ''
   const useScaledParens = firstArg.includes('\\frac{')
+  const useScaledParensForAtan =
+    useScaledParens && !firstArg.includes('\\times')
   const wrapParens = (content: string): string =>
     useScaledParens ? `\\left(${content}\\right)` : `(${content})`
 
@@ -475,7 +477,7 @@ function formatStructuralLatexFunction(
         ? `\\cos^{-1}\\left(${firstArg}\\right)°`
         : `\\cos^{-1}(${firstArg})°`
     case 'atan':
-      return useScaledParens
+      return useScaledParensForAtan
         ? `\\tan^{-1}\\left(${firstArg}\\right)°`
         : `\\tan^{-1}(${firstArg})°`
     case 'dtor':
@@ -508,7 +510,7 @@ function convertPowers(expression: string): string {
         return { value: expression.slice(start, end), end }
       }
 
-      const tokenMatch = expression.slice(start).match(/^-?[\d.a-zA-Z[\]_]+/)
+      const tokenMatch = expression.slice(start).match(/^-?[\d.a-zA-Z[\]_\\]+/)
       if (!tokenMatch) return null
       return { value: tokenMatch[0], end: start + tokenMatch[0].length }
     }

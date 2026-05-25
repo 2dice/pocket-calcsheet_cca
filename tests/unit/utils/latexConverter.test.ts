@@ -499,5 +499,15 @@ describe('latexConverter', () => {
         '\\tan^{-1}\\left(\\frac{1+2}{3+4}\\right)°'
       )
     })
+
+    it('構造化パーサ経由でも atan の left/right 条件が一致する', () => {
+      expect(convertToLatexWithFunctionNames('atan(1/2*3)^2/3')).toBe(
+        '\\frac{\\tan^{-1}(\\frac{1}{2}\\times 3)°^{2}}{3}'
+      )
+    })
+
+    it('指数内の LaTeX コマンドを atomic として扱う', () => {
+      expect(convertToLatexWithFunctionNames('2^pi()')).toBe('2^{\\pi}')
+    })
   })
 })
