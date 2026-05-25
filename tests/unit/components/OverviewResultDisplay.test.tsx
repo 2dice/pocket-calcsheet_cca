@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const calculateAllMock = vi.fn()
+const mockCalculateAll = vi.fn()
 const mockStoreState = {
   entities: {} as Record<string, unknown>,
   updateOverviewData: vi.fn(),
@@ -15,7 +15,7 @@ vi.mock('@/components/calculator/ExpressionRenderer', () => ({
   ),
 }))
 vi.mock('@/hooks/useCalculation', () => ({
-  useCalculation: () => ({ calculateAll: calculateAllMock }),
+  useCalculation: () => ({ calculateAll: mockCalculateAll }),
 }))
 vi.mock('@/store', () => ({ useSheetsStore: () => mockStoreState }))
 import { OverviewTab } from '@/pages/OverviewTab'

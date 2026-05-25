@@ -3,14 +3,12 @@ import { useParams } from 'react-router-dom'
 import { Textarea } from '@/components/ui/textarea'
 import { ExpressionRenderer } from '@/components/calculator/ExpressionRenderer'
 import { ResultDisplay } from '@/components/calculator/ResultDisplay'
-import { useCalculation } from '@/hooks/useCalculation'
 import { useSheetsStore } from '@/store'
 import { formatForFormula } from '@/utils/calculation/numberFormatter'
 
 export function OverviewTab() {
   const { id } = useParams<{ id: string }>()
   const { entities, updateOverviewData, initializeSheet } = useSheetsStore()
-  const { calculateAll } = useCalculation()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const sheet = useMemo(() => entities[id || ''], [entities, id])
@@ -20,13 +18,6 @@ export function OverviewTab() {
       initializeSheet(id)
     }
   }, [id, sheet, initializeSheet])
-
-  useEffect(() => {
-    if (id && sheet?.formulaData) {
-      calculateAll(id)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
 
   const handleBlur = () => {
     if (id && textareaRef.current) {
