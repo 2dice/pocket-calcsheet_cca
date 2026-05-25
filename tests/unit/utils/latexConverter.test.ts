@@ -482,4 +482,47 @@ describe('latexConverter', () => {
       )
     })
   })
+
+  describe('Issue #104 追加ケース', () => {
+    it('一般的な 1/(a+b) 形式を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(2+3+4)')).toBe(
+        '\\frac{1}{(2+3+4)}'
+      )
+    })
+
+    it('べき乗連鎖を右結合で変換する', () => {
+      expect(convertToLatexWithFunctionNames('2^3^4')).toBe('2^{3^{4}}')
+    })
+
+    it('atan の分数引数で left/right を一貫して付与する', () => {
+      expect(convertToLatexWithFunctionNames('atan((1+2)/(3+4))')).toBe(
+        '\\tan^{-1}\\left(\\frac{1+2}{3+4}\\right)°'
+      )
+    })
+
+    it('構造化パーサ経由でも atan の left/right 条件が一致する', () => {
+      expect(convertToLatexWithFunctionNames('atan(1/2*3)^2/3')).toBe(
+        '\\frac{\\tan^{-1}(\\frac{1}{2}\\times 3)°^{2}}{3}'
+      )
+    })
+
+    it('asin/acos も分数引数の left/right 条件を atan と揃える', () => {
+      expect(convertToLatexWithFunctionNames('asin(1/(2+3))')).toBe(
+        '\\sin^{-1}\\left(\\frac{1}{(2+3)}\\right)°'
+      )
+      expect(convertToLatexWithFunctionNames('acos(1/(2+3))')).toBe(
+        '\\cos^{-1}\\left(\\frac{1}{(2+3)}\\right)°'
+      )
+      expect(convertToLatexWithFunctionNames('asin(1/(2+3)*4)')).toBe(
+        '\\sin^{-1}(\\frac{1}{(2+3)}\\times 4)°'
+      )
+      expect(convertToLatexWithFunctionNames('acos(1/(2+3)*4)')).toBe(
+        '\\cos^{-1}(\\frac{1}{(2+3)}\\times 4)°'
+      )
+    })
+
+    it('指数内の LaTeX コマンドを atomic として扱う', () => {
+      expect(convertToLatexWithFunctionNames('2^pi()')).toBe('2^{\\pi}')
+    })
+  })
 })
