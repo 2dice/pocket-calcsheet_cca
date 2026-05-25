@@ -538,7 +538,9 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 計算結果"200.000000000000000"が表示される
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(page.locator('text=200.000000000000000')).toBeVisible()
+    await expect(page.getByTestId('result-latex')).toContainText(
+      '200.000000000000000'
+    )
   })
 
   test('計算エラーが表示される @step5-2', async ({ page }) => {
@@ -641,9 +643,9 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
     // 計算結果確認（6.28で始まることを確認）
-    await expect(
-      page.locator('text=Result').locator('..').locator('text=/6\\.28/')
-    ).toBeVisible()
+    await expect(page.getByTestId('result-latex').first()).toContainText(
+      '6.280000000000000'
+    )
 
     // 他のタブに移動してからFormulaタブに戻る
     await page.locator('[data-testid="tab-variables"]').click()
@@ -651,9 +653,9 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 計算結果が維持されている
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(
-      page.locator('text=Result').locator('..').locator('text=/6\\.28/')
-    ).toBeVisible()
+    await expect(page.getByTestId('result-latex').first()).toContainText(
+      '6.280000000000000'
+    )
   })
 
   test('Overviewタブでテキスト入力ができる @step6-1', async ({ page }) => {

@@ -10,6 +10,14 @@ interface Props {
   formatter?: (value: number) => string
 }
 
+type KatexRenderToString = (
+  expression: string,
+  options: { throwOnError: boolean; displayMode: boolean }
+) => string
+
+const renderKatexToString = (katex as { renderToString: KatexRenderToString })
+  .renderToString
+
 // エラーメッセージのマッピング
 const errorMessages: Record<FormulaError, string> = {
   'Undefined variable': 'Undefined Variable',
@@ -31,7 +39,7 @@ export function ResultDisplay({
     const latex = `= ${latexBody}`
 
     try {
-      const html = katex.renderToString(latex, {
+      const html = renderKatexToString(latex, {
         throwOnError: false,
         displayMode: false,
       })
