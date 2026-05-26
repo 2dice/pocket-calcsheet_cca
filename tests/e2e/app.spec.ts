@@ -538,7 +538,9 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 計算結果"200.000000000000000"が表示される
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(page.locator('text=200.000000000000000')).toBeVisible()
+    await expect(page.getByTestId('result-latex')).toContainText(
+      '200.000000000000000'
+    )
   })
 
   test('計算エラーが表示される @step5-2', async ({ page }) => {
@@ -641,9 +643,9 @@ test.describe('アプリケーション基本動作確認', () => {
     await page.locator('body').click({ position: { x: 50, y: 50 } })
 
     // 計算結果確認（6.28で始まることを確認）
-    await expect(
-      page.locator('text=Result').locator('..').locator('text=/6\\.28/')
-    ).toBeVisible()
+    await expect(page.getByTestId('result-latex').first()).toContainText(
+      '6.280000000000000'
+    )
 
     // 他のタブに移動してからFormulaタブに戻る
     await page.locator('[data-testid="tab-variables"]').click()
@@ -651,9 +653,9 @@ test.describe('アプリケーション基本動作確認', () => {
 
     // 計算結果が維持されている
     await expect(page.locator('text=Result')).toBeVisible()
-    await expect(
-      page.locator('text=Result').locator('..').locator('text=/6\\.28/')
-    ).toBeVisible()
+    await expect(page.getByTestId('result-latex').first()).toContainText(
+      '6.280000000000000'
+    )
   })
 
   test('Overviewタブでテキスト入力ができる @step6-1', async ({ page }) => {
@@ -1006,6 +1008,92 @@ test.describe('アプリケーション基本動作確認', () => {
     }
 
     // コンソールエラーがないことを確認
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('OverviewタブでFormula計算結果が表示される @step6-3', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const state = {
+        state: {
+          schemaVersion: 1,
+          savedAt: '2026-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 's1',
+              name: 'S1',
+              order: 0,
+              createdAt: '2026-01-01T00:00:00.000Z',
+              updatedAt: '2026-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            s1: {
+              id: 's1',
+              name: 'S1',
+              order: 0,
+              createdAt: '2026-01-01T00:00:00.000Z',
+              updatedAt: '2026-01-01T00:00:00.000Z',
+              overviewData: { description: '' },
+              variableSlots: [],
+              formulaData: { inputExpr: '1+2', result: 1234567, error: null },
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(state))
+    })
+    await page.goto('/#/s1/formula')
+    await expect(page.getByText(/Result/)).toBeVisible()
+    await page.locator('[data-testid="tab-overview"]').click()
+    await expect(page.getByText(/Result/)).toBeVisible()
+
+    const errors = monitor.getAllErrors()
+    expect(errors).toEqual([])
+  })
+
+  test('Overview - 計算エラーが"Error"と表示される @step6-3', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const state = {
+        state: {
+          schemaVersion: 1,
+          savedAt: '2026-01-01T00:00:00.000Z',
+          sheets: [
+            {
+              id: 's2',
+              name: 'S2',
+              order: 0,
+              createdAt: '2026-01-01T00:00:00.000Z',
+              updatedAt: '2026-01-01T00:00:00.000Z',
+            },
+          ],
+          entities: {
+            s2: {
+              id: 's2',
+              name: 'S2',
+              order: 0,
+              createdAt: '2026-01-01T00:00:00.000Z',
+              updatedAt: '2026-01-01T00:00:00.000Z',
+              overviewData: { description: '' },
+              variableSlots: [],
+              formulaData: { inputExpr: '1/0', result: null, error: 'Error' },
+            },
+          },
+        },
+        version: 0,
+      }
+      localStorage.setItem('pocket-calcsheet/1', JSON.stringify(state))
+    })
+    await page.goto('/#/s2/overview')
+    await expect(page.locator('[role="alert"]')).toContainText(
+      /Error|Division by Zero/
+    )
+
     const errors = monitor.getAllErrors()
     expect(errors).toEqual([])
   })

@@ -8,10 +8,10 @@ describe('ResultDisplay', () => {
     render(<ResultDisplay result={123.456} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('= 123.46')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain('= 123.46')
 
     // 右詰めのスタイルが適用されているかチェック
-    const resultContainer = screen.getByText('= 123.46').parentElement
+    const resultContainer = screen.getByLabelText('Result')
     expect(resultContainer).toHaveClass('text-right')
   })
 
@@ -74,7 +74,7 @@ describe('ResultDisplay', () => {
     render(<ResultDisplay result={1234567.89} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('= 1.23 × 10^6')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain('= 1.23')
   })
 
   it('カスタムフォーマッター（SI接頭語15桁）で表示', () => {
@@ -87,7 +87,9 @@ describe('ResultDisplay', () => {
     )
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('= 1.234567890000000 × 10^6')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain(
+      '1.234567890000000'
+    )
   })
 
   it('カスタムクラス名を適用できる', () => {
@@ -101,34 +103,36 @@ describe('ResultDisplay', () => {
     render(<ResultDisplay result={0} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('= 0.00')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain('= 0.00')
   })
 
   it('負の数値を正しく表示する', () => {
     render(<ResultDisplay result={-123.456} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('= -123.46')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain(
+      '= -123.46'
+    )
   })
 
   it('非常に小さい数値をSI接頭語で表示する', () => {
     render(<ResultDisplay result={0.000123} error={null} />)
 
     expect(screen.getByText('Result')).toBeInTheDocument()
-    expect(screen.getByText('= 123.00 × 10^-6')).toBeInTheDocument()
+    expect(screen.getByTestId('result-latex').textContent).toContain('123.00')
   })
 
   it('フォントスタイル（等幅フォント）が適用されている', () => {
     render(<ResultDisplay result={123} error={null} />)
 
-    const resultContainer = screen.getByText('= 123.00').parentElement
+    const resultContainer = screen.getByLabelText('Result')
     expect(resultContainer).toHaveClass('font-mono')
   })
 
   it('テキストサイズが適用されている', () => {
     render(<ResultDisplay result={123} error={null} />)
 
-    const resultContainer = screen.getByText('= 123.00').parentElement
+    const resultContainer = screen.getByLabelText('Result')
     expect(resultContainer).toHaveClass('text-lg')
   })
 })

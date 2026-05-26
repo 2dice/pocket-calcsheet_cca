@@ -2,7 +2,9 @@ import { useEffect, useRef, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { Textarea } from '@/components/ui/textarea'
 import { ExpressionRenderer } from '@/components/calculator/ExpressionRenderer'
+import { ResultDisplay } from '@/components/calculator/ResultDisplay'
 import { useSheetsStore } from '@/store'
+import { formatForFormula } from '@/utils/calculation/numberFormatter'
 
 export function OverviewTab() {
   const { id } = useParams<{ id: string }>()
@@ -64,6 +66,13 @@ export function OverviewTab() {
           >
             <ExpressionRenderer expression={sheet.formulaData.inputExpr} />
           </div>
+
+          <ResultDisplay
+            result={sheet.formulaData.result}
+            error={sheet.formulaData.error}
+            className="mt-4"
+            formatter={formatForFormula}
+          />
         </div>
       )}
     </div>

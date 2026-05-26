@@ -29,7 +29,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "katex": "^0.16.22",
+    "katex": "^0.16.47",
     "lucide-react": "^0.514.0",
     "mathjs": "^14.5.2",
     "react": "^19.1.0",
