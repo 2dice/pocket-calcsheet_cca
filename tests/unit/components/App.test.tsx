@@ -5,6 +5,7 @@ import { TopPage } from '../../../src/pages/TopPage'
 import { StorageManager } from '../../../src/utils/storage/storageManager'
 import { useUIStore } from '../../../src/store/uiStore'
 import { useSheetsStore } from '../../../src/store/sheetsStore'
+import { MemoryRouter } from 'react-router-dom'
 
 // テスト用のRouter wrapper - App.tsxには既にHashRouterがあるので包む必要なし
 const renderWithRouter = (
@@ -109,22 +110,44 @@ describe('App - Step2-1対応後のテスト', () => {
 })
 
 describe('TopPage', () => {
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore()
+  })
+
   test('正常にレンダリングされる', () => {
-    render(<TopPage />)
+    render(
+      <MemoryRouter>
+        <TopPage />
+      </MemoryRouter>
+    )
 
     const topPage = screen.getByTestId('top-page')
     expect(topPage).toBeInTheDocument()
   })
 
   test('アプリ名「ぽけっと計算表」が表示される', () => {
-    render(<TopPage />)
+    render(
+      <MemoryRouter>
+        <TopPage />
+      </MemoryRouter>
+    )
 
     const appName = screen.getByText('ぽけっと計算表')
     expect(appName).toBeInTheDocument()
   })
 
   test('編集ボタンが存在する', () => {
-    render(<TopPage />)
+    render(
+      <MemoryRouter>
+        <TopPage />
+      </MemoryRouter>
+    )
 
     const editButton = screen.getByTestId('edit-button')
     expect(editButton).toBeInTheDocument()
@@ -132,7 +155,11 @@ describe('TopPage', () => {
   })
 
   test('SheetListコンポーネントが表示される', () => {
-    render(<TopPage />)
+    render(
+      <MemoryRouter>
+        <TopPage />
+      </MemoryRouter>
+    )
 
     const sheetList = screen.getByTestId('sheet-list')
     expect(sheetList).toBeInTheDocument()

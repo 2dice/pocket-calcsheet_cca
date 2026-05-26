@@ -106,6 +106,23 @@ describe('SheetsStore', () => {
       })
     })
 
+    it('プリセットを編集しても再ロード時に初期値が維持される', () => {
+      const { loadPresets, updateOverviewData, removeSheet } =
+        useSheetsStore.getState()
+      loadPresets()
+
+      const firstSheetId = useSheetsStore.getState().sheets[0].id
+      updateOverviewData(firstSheetId, { description: '編集済み' })
+
+      useSheetsStore.getState().sheets.forEach(sheet => removeSheet(sheet.id))
+
+      const reloadedFirstSheetId = useSheetsStore.getState().sheets[0].id
+      expect(
+        useSheetsStore.getState().entities[reloadedFirstSheetId].overviewData
+          .description
+      ).toContain('自由落下の落下時間から落下距離を算出する。')
+    })
+
     it('最後の1件削除でプリセットが再ロードされる', () => {
       const { loadPresets, removeSheet } = useSheetsStore.getState()
       loadPresets()

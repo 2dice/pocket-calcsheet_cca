@@ -109,7 +109,7 @@ const createPresetState = () => {
   )
 
   const entities = Object.fromEntries(
-    PRESET_SHEETS.map(sheet => [sheet.id, sheet])
+    PRESET_SHEETS.map(sheet => [sheet.id, structuredClone(sheet)])
   )
 
   return {

@@ -104,7 +104,7 @@ test.describe('アプリケーション基本動作確認', () => {
     await expect(page.locator('text=編集後の名前')).toBeVisible()
 
     // 3. 削除実行
-    await page.locator('[data-testid="delete-button"]').click()
+    await page.getByRole('button', { name: '編集後の名前を削除' }).click()
     await page.locator('button:has-text("削除")').click()
     await expect(page.locator('text=編集後の名前')).not.toBeVisible()
   })
@@ -120,7 +120,7 @@ test.describe('アプリケーション基本動作確認', () => {
     await input.press('Enter')
 
     // 削除ダイアログ表示確認
-    await page.locator('[data-testid="delete-button"]').click()
+    await page.getByRole('button', { name: '削除テストシートを削除' }).click()
     const alertDialog = page.locator('[role="alertdialog"]')
     await expect(alertDialog).toBeVisible()
     await expect(
