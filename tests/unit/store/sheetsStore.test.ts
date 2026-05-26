@@ -937,8 +937,8 @@ describe('SheetsStore', () => {
       // フォールバック後のデータを確認
       const state = useSheetsStore.getState()
       expect(state.schemaVersion).toBe(1)
-      expect(state.sheets).toEqual([])
-      expect(state.entities).toEqual({})
+      expect(state.sheets).toHaveLength(5)
+      expect(Object.keys(state.entities)).toHaveLength(5)
       expect(state.savedAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
       )
@@ -961,8 +961,8 @@ describe('SheetsStore', () => {
       // 初期状態が設定されることを確認
       const state = useSheetsStore.getState()
       expect(state.schemaVersion).toBe(1)
-      expect(state.sheets).toEqual([])
-      expect(state.entities).toEqual({})
+      expect(state.sheets).toHaveLength(5)
+      expect(Object.keys(state.entities)).toHaveLength(5)
       expect(state.savedAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
       )
@@ -985,9 +985,11 @@ describe('SheetsStore', () => {
       // デフォルト値が設定されることを確認
       const state = useSheetsStore.getState()
       expect(state.schemaVersion).toBe(1)
-      expect(state.savedAt).toBe('2023-01-01T00:00:00.000Z')
-      expect(state.sheets).toEqual([])
-      expect(state.entities).toEqual({})
+      expect(state.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+      expect(state.sheets).toHaveLength(5)
+      expect(Object.keys(state.entities)).toHaveLength(5)
     })
 
     it('複数のシートを含む旧データのマイグレーション', async () => {

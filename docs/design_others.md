@@ -90,19 +90,23 @@
   - `\frac{e^{[var_a]} - e^{-[var_a]}}{e^{[var_a]} + e^{-[var_a]}} + \tan(\sin^{-1}([var_b])°)` ※`°`が重複した場合は1つ削除
 
 # プリセットデータ
+
 - 初回起動時にプリセットデータをロードする。
 - ユーザーがトップページの編集でリストを全て削除した場合にプリセットデータを再度ロードする。
 
 ### sample1
+
 - 要素名: "sample1"
 - Overviewタブ(Formula,Resultは自動計算し表示)
   - Overview
+
 ```
 自由落下の落下時間から落下距離を算出する。
 g:重力加速度[m/s^2]
 t:落下時間[sec]
 result:落下距離[m]
 ```
+
 - Variablesタブ(Resultは自動計算し表示)
   - Variable1
     - name: "g"
@@ -112,10 +116,13 @@ result:落下距離[m]
     - value: "5"
 - Formulaタブ(Resultは自動計算し表示)
   - Formula: "1/2*[g]*[t]^2"
+
 ### sample2
+
 - 要素名: "sample2"
 - Overviewタブ(Formula,Resultは自動計算し表示)
   - Overview
+
 ```
 標高と気温から気圧を算出する。
 h:標高[m]
@@ -123,6 +130,7 @@ T:気温[℃]
 P0:海面気圧[hPa]
 result:気圧[hPa]
 ```
+
 - Variablesタブ(Resultは自動計算し表示)
   - Variable1
     - name: "h"
@@ -134,17 +142,21 @@ result:気圧[hPa]
     - name: "P0"
     - value: "1013.25"
 - Formulaタブ(Resultは自動計算し表示)
-  - Formula: "[P0]*(1-((0.0065*[h])/([T]+0.0065*[h]+273.15)))^5.257"
+  - Formula: "[P0]_(1-((0.0065_[h])/([T]+0.0065\*[h]+273.15)))^5.257"
+
 ### sample3
+
 - 要素名: "sample3"
 - Overviewタブ(Formula,Resultは自動計算し表示)
   - Overview
+
 ```
 二等辺三角形の底辺と高さから底角を算出する。
 h:高さ
 a:底辺の長さ
 result:底角[°]
 ```
+
 - Variablesタブ(Resultは自動計算し表示)
   - Variable1
     - name: "h"
@@ -153,30 +165,37 @@ result:底角[°]
     - name: "a"
     - value: "2"
 - Formulaタブ(Resultは自動計算し表示)
-  - Formula: "atan(2*[h]/[a])"
+  - Formula: "atan(2\*[h]/[a])"
+
 ### sample4
+
 - 要素名: "sample4"
 - Overviewタブ(Formula,Resultは自動計算し表示)
   - Overview
+
 ```
 インダクタとキャパシタの値からLCローパスフィルタのカットオフ周波数を算出。
 L:インダクタンス[H]
 C:キャパシタンス[F]
 result:カットオフ周波数[Hz]
 ```
+
 - Variablesタブ(Resultは自動計算し表示)
   - Variable1
     - name: "L"
-    - value: "1*10^(-6)"
+    - value: "1\*10^(-6)"
   - Variable2
     - name: "C"
-    - value: "12*10^(-12)"
+    - value: "12\*10^(-12)"
 - Formulaタブ(Resultは自動計算し表示)
-  - Formula: "1/(2*pi()*sqrt([L]*[C]))"
+  - Formula: "1/(2*pi()*sqrt([L]\*[C]))"
+
 ### sample5
+
 - 要素名: "sample5"
 - Overviewタブ(Formula,Resultは自動計算し表示)
   - Overview
+
 ```
 距離の変化から音圧の減衰量を算出する。
 pointA:音圧が既知である点の音源からの距離[m]
@@ -184,6 +203,7 @@ pointB:音圧を算出したい点の音源からの距離[m]
 volumeA:pointAの音圧[dB]
 result:pointBの音圧[dB]
 ```
+
 - Variablesタブ(Resultは自動計算し表示)
   - Variable1
     - name: "pointA"
@@ -195,4 +215,4 @@ result:pointBの音圧[dB]
     - name: "volumeA"
     - value: "100"
 - Formulaタブ(Resultは自動計算し表示)
-  - Formula: "[volumeA]-20*log([pointB]/[pointA])"
+  - Formula: "[volumeA]-20\*log([pointB]/[pointA])"
