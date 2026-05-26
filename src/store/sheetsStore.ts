@@ -11,6 +11,7 @@ import type {
 import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { MigrationManager } from '@/utils/storage/migrationManager'
+import { PRESET_SHEETS } from '@/utils/storage/presetData'
 
 interface SheetsStore extends RootModel {
   schemaVersion: number
@@ -39,6 +40,7 @@ interface SheetsStore extends RootModel {
     overviewData: Partial<OverviewData>
   ) => void
   initializeSheet: (sheetId: string) => void
+  loadPresets: () => void
   reset: () => void
 }
 
@@ -85,6 +87,7 @@ const getInitialState = (): Omit<
   | 'reset'
   | 'setStorageError'
   | 'setPersistenceError'
+  | 'loadPresets'
 > => ({
   schemaVersion: MigrationManager.LATEST_SCHEMA_VERSION,
   savedAt: new Date().toISOString(),
@@ -94,6 +97,27 @@ const getInitialState = (): Omit<
   persistenceError: false,
 })
 
+const createPresetState = () => {
+  const sheets = PRESET_SHEETS.map(
+    ({ id, name, order, createdAt, updatedAt }) => ({
+      id,
+      name,
+      order,
+      createdAt,
+      updatedAt,
+    })
+  )
+
+  const entities = Object.fromEntries(
+    PRESET_SHEETS.map(sheet => [sheet.id, sheet])
+  )
+
+  return {
+    sheets,
+    entities,
+    savedAt: new Date().toISOString(),
+  }
+}
 export const useSheetsStore = create<SheetsStore>()(
   persist(
     (set, get) => ({
@@ -145,12 +169,21 @@ export const useSheetsStore = create<SheetsStore>()(
           savedAt: new Date().toISOString(),
         }))
       },
+      loadPresets: () => {
+        set(createPresetState())
+      },
       removeSheet: (id: string) => {
         set(state => {
+          const remainingSheets = state.sheets.filter(sheet => sheet.id !== id)
           const remainingEntities = { ...state.entities }
           delete remainingEntities[id]
+
+          if (remainingSheets.length === 0) {
+            return createPresetState()
+          }
+
           return {
-            sheets: state.sheets.filter(sheet => sheet.id !== id),
+            sheets: remainingSheets,
             entities: remainingEntities,
             savedAt: new Date().toISOString(),
           }
@@ -386,10 +419,15 @@ export const useSheetsStore = create<SheetsStore>()(
         entities: state.entities,
         // storageErrorとpersistenceErrorは永続化しない
       }),
-      onRehydrateStorage: () => (_state, error) => {
+      onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error('Failed to rehydrate storage:', error)
           useSheetsStore.getState().setStorageError(true)
+          return
+        }
+
+        if (state && state.sheets.length === 0) {
+          state.loadPresets()
         }
       },
       migrate: (persistedState: unknown): RootModel => {

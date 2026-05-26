@@ -39,7 +39,7 @@ describe('SheetsStore', () => {
       removeSheet(sheetId)
 
       const { sheets, entities } = useSheetsStore.getState()
-      expect(sheets).toHaveLength(0)
+      expect(sheets).toHaveLength(5)
       expect(entities[sheetId]).toBeUndefined()
     })
 
@@ -82,6 +82,45 @@ describe('SheetsStore', () => {
     })
   })
 
+  describe('プリセットデータ', () => {
+    beforeEach(() => {
+      useSheetsStore.getState().reset?.()
+    })
+
+    it('loadPresetsで5件ロードされる', () => {
+      const { loadPresets } = useSheetsStore.getState()
+      loadPresets()
+
+      const { sheets, entities } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(5)
+      expect(Object.keys(entities)).toHaveLength(5)
+    })
+
+    it('loadPresets後にsheetsとentitiesのキーが一致する', () => {
+      const { loadPresets } = useSheetsStore.getState()
+      loadPresets()
+
+      const { sheets, entities } = useSheetsStore.getState()
+      sheets.forEach(sheet => {
+        expect(entities[sheet.id]).toBeDefined()
+      })
+    })
+
+    it('最後の1件削除でプリセットが再ロードされる', () => {
+      const { loadPresets, removeSheet } = useSheetsStore.getState()
+      loadPresets()
+
+      useSheetsStore
+        .getState()
+        .sheets.slice(0, 4)
+        .forEach(sheet => removeSheet(sheet.id))
+
+      const lastSheet = useSheetsStore.getState().sheets[0]
+      removeSheet(lastSheet.id)
+
+      expect(useSheetsStore.getState().sheets).toHaveLength(5)
+    })
+  })
   describe('初期状態', () => {
     it('初期状態では空の配列を持つ', () => {
       const state = useSheetsStore.getState()
@@ -568,7 +607,7 @@ describe('SheetsStore', () => {
       expect(unchangedSheets[2].name).toBe('シート3')
     })
 
-    it('すべてのシートを削除して空にできる', () => {
+    it('すべてのシートを削除するとプリセットが再ロードされる', () => {
       const { removeSheet } = useSheetsStore.getState()
       const initialSheets = useSheetsStore.getState().sheets
 
@@ -578,7 +617,7 @@ describe('SheetsStore', () => {
       })
 
       const emptySheets = useSheetsStore.getState().sheets
-      expect(emptySheets).toHaveLength(0)
+      expect(emptySheets).toHaveLength(5)
     })
 
     it('削除処理が配列の整合性を保つ', () => {
