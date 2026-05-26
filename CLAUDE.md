@@ -99,7 +99,8 @@ pocket-calcsheet_cca/
 │   │   │   └── variableValidation.ts # 変数名バリデーション
 │   │   └── storage/                  # ストレージ関連ユーティリティ
 │   │       ├── storageManager.ts     # localStorage抽象化レイヤー
-│   │       └── migrationManager.ts   # スキーママイグレーション
+│   │       ├── migrationManager.ts   # スキーママイグレーション
+│   │       └── presetData.ts         # プリセットデータ定義（sample1〜5）
 │   ├── lib/
 │   │   └── utils.ts                  # cnユーティリティ関数
 │   ├── types/
@@ -131,7 +132,8 @@ pocket-calcsheet_cca/
 │   │   │   └── latexConverter.test.ts # LaTeX変換ユニットテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
-│   │       └── storageManager.test.ts # StorageManager + MigrationManagerテスト
+│   │       ├── storageManager.test.ts # StorageManager + MigrationManagerテスト
+│   │       └── presetData.test.ts     # プリセットデータ構造テスト
 │   └── e2e/
 │       ├── app.spec.ts               # 基本動作E2Eテスト
 │       └── pwa.spec.ts               # PWA機能テスト

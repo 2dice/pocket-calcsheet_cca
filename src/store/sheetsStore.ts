@@ -11,6 +11,12 @@ import type {
 import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { MigrationManager } from '@/utils/storage/migrationManager'
+import { PRESET_SHEETS } from '@/utils/storage/presetData'
+import {
+  evaluateExpression,
+  evaluateFormulaExpression,
+} from '@/utils/calculation/mathEngine'
+import type { CalculationContext } from '@/types/calculation'
 
 interface SheetsStore extends RootModel {
   schemaVersion: number
@@ -39,6 +45,7 @@ interface SheetsStore extends RootModel {
     overviewData: Partial<OverviewData>
   ) => void
   initializeSheet: (sheetId: string) => void
+  loadPresets: () => void
   reset: () => void
 }
 
@@ -85,6 +92,7 @@ const getInitialState = (): Omit<
   | 'reset'
   | 'setStorageError'
   | 'setPersistenceError'
+  | 'loadPresets'
 > => ({
   schemaVersion: MigrationManager.LATEST_SCHEMA_VERSION,
   savedAt: new Date().toISOString(),
@@ -94,6 +102,82 @@ const getInitialState = (): Omit<
   persistenceError: false,
 })
 
+const createPresetState = () => {
+  const calculatePresetSheet = (sheet: Sheet): Sheet => {
+    const variables: Record<string, number | null> = {}
+    const variableSlots = sheet.variableSlots.map(slot => ({ ...slot }))
+
+    for (let iteration = 0; iteration < 2; iteration++) {
+      variableSlots.forEach((slot, index) => {
+        if (!slot.expression.trim()) {
+          variableSlots[index] = { ...slot, value: null, error: null }
+          if (slot.varName) {
+            variables[slot.varName] = null
+          }
+          return
+        }
+
+        const context: CalculationContext = {
+          variables,
+          variableSlots,
+        }
+
+        const result = evaluateExpression(slot.expression, context)
+
+        variableSlots[index] = {
+          ...slot,
+          value: result.value,
+          error: result.error,
+        }
+
+        if (slot.varName) {
+          variables[slot.varName] = result.value
+        }
+      })
+    }
+
+    const formulaResult = evaluateFormulaExpression(
+      sheet.formulaData.inputExpr,
+      {
+        variables,
+        variableSlots,
+      }
+    )
+
+    return {
+      ...sheet,
+      variableSlots,
+      formulaData: {
+        ...sheet.formulaData,
+        result: formulaResult.value,
+        error: formulaResult.error,
+      },
+    }
+  }
+
+  const sheets = PRESET_SHEETS.map(
+    ({ id, name, order, createdAt, updatedAt }) => ({
+      id,
+      name,
+      order,
+      createdAt,
+      updatedAt,
+    })
+  )
+
+  const entities = Object.fromEntries(
+    PRESET_SHEETS.map(sheet => {
+      const clonedSheet = structuredClone(sheet)
+      return [sheet.id, calculatePresetSheet(clonedSheet)]
+    })
+  )
+
+  return {
+    sheets,
+    entities,
+    savedAt: new Date().toISOString(),
+  }
+}
 export const useSheetsStore = create<SheetsStore>()(
   persist(
     (set, get) => ({
@@ -145,12 +229,21 @@ export const useSheetsStore = create<SheetsStore>()(
           savedAt: new Date().toISOString(),
         }))
       },
+      loadPresets: () => {
+        set(createPresetState())
+      },
       removeSheet: (id: string) => {
         set(state => {
+          const remainingSheets = state.sheets.filter(sheet => sheet.id !== id)
           const remainingEntities = { ...state.entities }
           delete remainingEntities[id]
+
+          if (remainingSheets.length === 0) {
+            return createPresetState()
+          }
+
           return {
-            sheets: state.sheets.filter(sheet => sheet.id !== id),
+            sheets: remainingSheets,
             entities: remainingEntities,
             savedAt: new Date().toISOString(),
           }
@@ -386,10 +479,15 @@ export const useSheetsStore = create<SheetsStore>()(
         entities: state.entities,
         // storageErrorとpersistenceErrorは永続化しない
       }),
-      onRehydrateStorage: () => (_state, error) => {
+      onRehydrateStorage: () => (state, error) => {
         if (error) {
           console.error('Failed to rehydrate storage:', error)
           useSheetsStore.getState().setStorageError(true)
+          return
+        }
+
+        if (state && state.sheets.length === 0) {
+          state.loadPresets()
         }
       },
       migrate: (persistedState: unknown): RootModel => {

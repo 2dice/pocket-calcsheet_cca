@@ -39,7 +39,7 @@ describe('SheetsStore', () => {
       removeSheet(sheetId)
 
       const { sheets, entities } = useSheetsStore.getState()
-      expect(sheets).toHaveLength(0)
+      expect(sheets).toHaveLength(5)
       expect(entities[sheetId]).toBeUndefined()
     })
 
@@ -82,6 +82,75 @@ describe('SheetsStore', () => {
     })
   })
 
+  describe('プリセットデータ', () => {
+    beforeEach(() => {
+      useSheetsStore.getState().reset?.()
+    })
+
+    it('loadPresetsで5件ロードされる', () => {
+      const { loadPresets } = useSheetsStore.getState()
+      loadPresets()
+
+      const { sheets, entities } = useSheetsStore.getState()
+      expect(sheets).toHaveLength(5)
+      expect(Object.keys(entities)).toHaveLength(5)
+    })
+
+    it('loadPresetsでプリセットのVariablesとFormula結果が計算済みになる', () => {
+      const { loadPresets } = useSheetsStore.getState()
+      loadPresets()
+
+      const state = useSheetsStore.getState()
+      const sample1 = state.entities[state.sheets[0].id]
+
+      expect(sample1.variableSlots[0].value).not.toBeNull()
+      expect(sample1.variableSlots[1].value).not.toBeNull()
+      expect(sample1.formulaData.result).not.toBeNull()
+      expect(sample1.formulaData.error).toBeNull()
+    })
+
+    it('loadPresets後にsheetsとentitiesのキーが一致する', () => {
+      const { loadPresets } = useSheetsStore.getState()
+      loadPresets()
+
+      const { sheets, entities } = useSheetsStore.getState()
+      sheets.forEach(sheet => {
+        expect(entities[sheet.id]).toBeDefined()
+      })
+    })
+
+    it('プリセットを編集しても再ロード時に初期値が維持される', () => {
+      const { loadPresets, updateOverviewData, removeSheet } =
+        useSheetsStore.getState()
+      loadPresets()
+
+      const firstSheetId = useSheetsStore.getState().sheets[0].id
+      updateOverviewData(firstSheetId, { description: '編集済み' })
+
+      useSheetsStore.getState().sheets.forEach(sheet => removeSheet(sheet.id))
+
+      const reloadedFirstSheetId = useSheetsStore.getState().sheets[0].id
+      expect(
+        useSheetsStore.getState().entities[reloadedFirstSheetId].overviewData
+          .description
+      ).toContain('自由落下の落下時間から落下距離を算出する。')
+    })
+
+    it('最後の1件削除でプリセットが再ロードされる', () => {
+      const { loadPresets, removeSheet } = useSheetsStore.getState()
+      loadPresets()
+
+      useSheetsStore
+        .getState()
+        .sheets.slice(0, 4)
+        .forEach(sheet => removeSheet(sheet.id))
+
+      const lastSheet = useSheetsStore.getState().sheets[0]
+      removeSheet(lastSheet.id)
+
+      expect(useSheetsStore.getState().sheets).toHaveLength(5)
+    })
+  })
   describe('初期状態', () => {
     it('初期状態では空の配列を持つ', () => {
       const state = useSheetsStore.getState()
@@ -568,7 +637,7 @@ describe('SheetsStore', () => {
       expect(unchangedSheets[2].name).toBe('シート3')
     })
 
-    it('すべてのシートを削除して空にできる', () => {
+    it('すべてのシートを削除するとプリセットが再ロードされる', () => {
       const { removeSheet } = useSheetsStore.getState()
       const initialSheets = useSheetsStore.getState().sheets
 
@@ -578,7 +647,7 @@ describe('SheetsStore', () => {
       })
 
       const emptySheets = useSheetsStore.getState().sheets
-      expect(emptySheets).toHaveLength(0)
+      expect(emptySheets).toHaveLength(5)
     })
 
     it('削除処理が配列の整合性を保つ', () => {
@@ -898,8 +967,8 @@ describe('SheetsStore', () => {
       // フォールバック後のデータを確認
       const state = useSheetsStore.getState()
       expect(state.schemaVersion).toBe(1)
-      expect(state.sheets).toEqual([])
-      expect(state.entities).toEqual({})
+      expect(state.sheets).toHaveLength(5)
+      expect(Object.keys(state.entities)).toHaveLength(5)
       expect(state.savedAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
       )
@@ -922,8 +991,8 @@ describe('SheetsStore', () => {
       // 初期状態が設定されることを確認
       const state = useSheetsStore.getState()
       expect(state.schemaVersion).toBe(1)
-      expect(state.sheets).toEqual([])
-      expect(state.entities).toEqual({})
+      expect(state.sheets).toHaveLength(5)
+      expect(Object.keys(state.entities)).toHaveLength(5)
       expect(state.savedAt).toMatch(
         /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
       )
@@ -946,9 +1015,11 @@ describe('SheetsStore', () => {
       // デフォルト値が設定されることを確認
       const state = useSheetsStore.getState()
       expect(state.schemaVersion).toBe(1)
-      expect(state.savedAt).toBe('2023-01-01T00:00:00.000Z')
-      expect(state.sheets).toEqual([])
-      expect(state.entities).toEqual({})
+      expect(state.savedAt).toMatch(
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+      )
+      expect(state.sheets).toHaveLength(5)
+      expect(Object.keys(state.entities)).toHaveLength(5)
     })
 
     it('複数のシートを含む旧データのマイグレーション', async () => {
