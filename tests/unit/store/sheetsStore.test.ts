@@ -96,6 +96,19 @@ describe('SheetsStore', () => {
       expect(Object.keys(entities)).toHaveLength(5)
     })
 
+    it('loadPresetsでプリセットのVariablesとFormula結果が計算済みになる', () => {
+      const { loadPresets } = useSheetsStore.getState()
+      loadPresets()
+
+      const state = useSheetsStore.getState()
+      const sample1 = state.entities[state.sheets[0].id]
+
+      expect(sample1.variableSlots[0].value).not.toBeNull()
+      expect(sample1.variableSlots[1].value).not.toBeNull()
+      expect(sample1.formulaData.result).not.toBeNull()
+      expect(sample1.formulaData.error).toBeNull()
+    })
+
     it('loadPresets後にsheetsとentitiesのキーが一致する', () => {
       const { loadPresets } = useSheetsStore.getState()
       loadPresets()

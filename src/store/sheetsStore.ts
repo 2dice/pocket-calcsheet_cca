@@ -12,6 +12,11 @@ import type { RootModel, Sheet } from '@/types/storage'
 import { StorageManager } from '@/utils/storage/storageManager'
 import { MigrationManager } from '@/utils/storage/migrationManager'
 import { PRESET_SHEETS } from '@/utils/storage/presetData'
+import {
+  evaluateExpression,
+  evaluateFormulaExpression,
+} from '@/utils/calculation/mathEngine'
+import type { CalculationContext } from '@/types/calculation'
 
 interface SheetsStore extends RootModel {
   schemaVersion: number
@@ -98,6 +103,58 @@ const getInitialState = (): Omit<
 })
 
 const createPresetState = () => {
+  const calculatePresetSheet = (sheet: Sheet): Sheet => {
+    const variables: Record<string, number | null> = {}
+    const variableSlots = sheet.variableSlots.map(slot => ({ ...slot }))
+
+    for (let iteration = 0; iteration < 2; iteration++) {
+      variableSlots.forEach((slot, index) => {
+        if (!slot.expression.trim()) {
+          variableSlots[index] = { ...slot, value: null, error: null }
+          if (slot.varName) {
+            variables[slot.varName] = null
+          }
+          return
+        }
+
+        const context: CalculationContext = {
+          variables,
+          variableSlots,
+        }
+
+        const result = evaluateExpression(slot.expression, context)
+
+        variableSlots[index] = {
+          ...slot,
+          value: result.value,
+          error: result.error,
+        }
+
+        if (slot.varName) {
+          variables[slot.varName] = result.value
+        }
+      })
+    }
+
+    const formulaResult = evaluateFormulaExpression(
+      sheet.formulaData.inputExpr,
+      {
+        variables,
+        variableSlots,
+      }
+    )
+
+    return {
+      ...sheet,
+      variableSlots,
+      formulaData: {
+        ...sheet.formulaData,
+        result: formulaResult.value,
+        error: formulaResult.error,
+      },
+    }
+  }
+
   const sheets = PRESET_SHEETS.map(
     ({ id, name, order, createdAt, updatedAt }) => ({
       id,
@@ -109,7 +166,10 @@ const createPresetState = () => {
   )
 
   const entities = Object.fromEntries(
-    PRESET_SHEETS.map(sheet => [sheet.id, structuredClone(sheet)])
+    PRESET_SHEETS.map(sheet => {
+      const clonedSheet = structuredClone(sheet)
+      return [sheet.id, calculatePresetSheet(clonedSheet)]
+    })
   )
 
   return {
