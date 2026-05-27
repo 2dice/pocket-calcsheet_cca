@@ -525,4 +525,14 @@ describe('latexConverter', () => {
       expect(convertToLatexWithFunctionNames('2^pi()')).toBe('2^{\\pi}')
     })
   })
+
+  describe('Issue #111 追加ケース', () => {
+    it('減算項内の括弧加算/除算を正しい位置で分数化する', () => {
+      const input = '(1-(4+1)/2)'
+      const expected = '(1-\\frac{(4+1)}{2})'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(expected)
+      expect(convertToLatexWithFunctionNames(input)).toBe(expected)
+    })
+  })
 })
