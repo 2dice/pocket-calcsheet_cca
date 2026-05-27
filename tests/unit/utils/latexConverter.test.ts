@@ -534,5 +534,13 @@ describe('latexConverter', () => {
       expect(convertToLatexWithoutFunctionNames(input)).toBe(expected)
       expect(convertToLatexWithFunctionNames(input)).toBe(expected)
     })
+
+    it('先頭以外の二重括弧分子も分数化する', () => {
+      const input = '1 + ((2+3))/4'
+      const expected = '1+\\frac{((2+3))}{4}'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(expected)
+      expect(convertToLatexWithFunctionNames(input)).toBe(expected)
+    })
   })
 })

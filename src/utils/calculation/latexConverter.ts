@@ -748,6 +748,7 @@ function shouldUseStructuralFractionConverter(expression: string): boolean {
 
   return (
     expression.startsWith('((') ||
+    /\(\([^()]+\)\)\s*\/\s*[^/]+/.test(expression) ||
     /\/\s*\(\(/.test(expression) ||
     /\/\s*\([^()]*\/[^()]*\)/.test(expression) ||
     /\([^)]*\b(?:sin|cos|tan|asin|acos|atan|sqrt|log|ln|exp|dtor|rtod)\([^)]*\)[^)]*[+-][^)]*\)\s*\//.test(
