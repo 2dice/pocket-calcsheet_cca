@@ -186,12 +186,13 @@ export const useSheetsStore = create<SheetsStore>()(
       setPersistenceError: (error: boolean) => set({ persistenceError: error }),
       addSheet: (name: string) => {
         // 新規シートとエンティティを一度だけ作成
+        const now = new Date().toISOString()
         const newSheet: SheetMeta = {
           id: generateId(),
           name,
           order: get().sheets.length,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: now,
+          updatedAt: now,
         }
 
         const sheetEntity: Sheet = {

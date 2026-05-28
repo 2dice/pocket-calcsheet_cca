@@ -553,9 +553,7 @@ describe('latexConverter', () => {
       expect(convertToLatexWithoutFunctionNames(input)).toBe(
         expectedWithoutFunctions
       )
-      expect(convertToLatexWithFunctionNames(input)).toBe(
-        expectedWithFunctions
-      )
+      expect(convertToLatexWithFunctionNames(input)).toBe(expectedWithFunctions)
     })
   })
 })
