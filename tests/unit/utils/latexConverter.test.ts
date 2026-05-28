@@ -542,5 +542,20 @@ describe('latexConverter', () => {
       expect(convertToLatexWithoutFunctionNames(input)).toBe(expected)
       expect(convertToLatexWithFunctionNames(input)).toBe(expected)
     })
+
+    it('sample2の式を崩さず分数化する', () => {
+      const input = '[P0]*(1-((0.0065*[h])/([T]+0.0065*[h]+273.15)))^5.257'
+      const expectedWithoutFunctions =
+        '[P0]\\times (1-(\\frac{(0.0065\\times [h])}{([T]+0.0065\\times [h]+273.15)}))^{5.257}'
+      const expectedWithFunctions =
+        '[P0]\\times (1-(\\frac{0.0065\\times [h]}{[T]+0.0065\\times [h]+273.15}))^{5.257}'
+
+      expect(convertToLatexWithoutFunctionNames(input)).toBe(
+        expectedWithoutFunctions
+      )
+      expect(convertToLatexWithFunctionNames(input)).toBe(
+        expectedWithFunctions
+      )
+    })
   })
 })
