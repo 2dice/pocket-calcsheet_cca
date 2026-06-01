@@ -3,16 +3,17 @@ import {
   minimal2023Preset,
 } from '@vite-pwa/assets-generator/config'
 
-const maskableIconBackground = '#20363c'
+export const maskableIconBackground = '#20363c'
+export const maskableIconPadding = 0.12
 
 export default defineConfig({
   preset: {
     ...minimal2023Preset,
     maskable: {
       ...minimal2023Preset.maskable,
-      padding: 0,
+      padding: maskableIconPadding,
       resizeOptions: {
-        fit: 'cover',
+        fit: 'contain',
         background: maskableIconBackground,
       },
     },

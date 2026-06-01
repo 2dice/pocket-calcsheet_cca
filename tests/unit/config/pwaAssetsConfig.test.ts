@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { generateMaskableAsset } from '@vite-pwa/assets-generator/api'
 import type { Preset } from '@vite-pwa/assets-generator/config'
-import pwaAssetsConfig from '../../../pwa-assets.config'
+import pwaAssetsConfig, {
+  maskableIconBackground,
+  maskableIconPadding,
+} from '../../../pwa-assets.config'
 
+const BRAND_BACKGROUND_PIXEL = [32, 54, 60, 255]
 const WHITE_PIXEL = [255, 255, 255, 255]
 const pwaAssetsPreset = pwaAssetsConfig.preset as Preset
 const [pwaAssetsImage] = pwaAssetsConfig.images as string[]
@@ -34,11 +38,11 @@ const readCornerPixels = async () => {
 }
 
 describe('PWAアセット設定', () => {
-  it('maskable iconをフルブリードで生成する設定になっている', () => {
-    expect(pwaAssetsPreset.maskable.padding).toBe(0)
+  it('maskable iconをブランド背景色の余白付きで生成する設定になっている', () => {
+    expect(pwaAssetsPreset.maskable.padding).toBe(maskableIconPadding)
     expect(pwaAssetsPreset.maskable.resizeOptions).toMatchObject({
-      fit: 'cover',
-      background: '#20363c',
+      fit: 'contain',
+      background: maskableIconBackground,
     })
   })
 
@@ -54,6 +58,7 @@ describe('PWAアセット設定', () => {
       corners.bottomLeft,
       corners.bottomRight,
     ]) {
+      expect(corner).toEqual(BRAND_BACKGROUND_PIXEL)
       expect(corner).not.toEqual(WHITE_PIXEL)
       expect(corner[3]).toBe(OPAQUE_ALPHA)
     }
