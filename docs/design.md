@@ -47,6 +47,7 @@ https://2dice.tech/category/ios-app/calcsheet/
     - vite.config.ts設定
     - iOS 用 meta タグ追加
     - iconの登録
+      - Android PWA用のmaskable iconはフルブリード生成(padding: 0)とし、白余白を出さない
     - SafeAreaInsets (iPhone X 系の notch) を考慮した padding。
 - トップページ
   - リスト方式の一覧(iphoneのリストをイメージ)(step2-1)
