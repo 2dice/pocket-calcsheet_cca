@@ -272,7 +272,7 @@ npm run preview       # ビルド後のプレビュー
 - **pages/**: 各画面のルートコンポーネント (Top, Overview, Variables, Formula タブ)
 - **components/sheets/**: シート一覧・編集機能
 - **components/keyboard/**: カスタムキーボード実装 (ネイティブキーボード無効)
-- **components/calculator/**: 変数スロット・数式入力・結果表示
+- **components/calculator/**: 変数スロット・数式入力・LaTeX式表示・結果表示
 - **utils/calculation/**: 数式パース・LaTeX変換・数値フォーマット
 
 ### Mobile-First Design
@@ -292,7 +292,7 @@ npm run preview       # ビルド後のプレビュー
 - **変数参照**: `[var1]` 形式での相互参照
 - **循環参照対応**: 2回再計算で打ち切り
 - **SI接頭語表示**: 10の3の倍数乗での数値表示
-- **LaTeX変換**: 関数名変換 (atan → tan^{-1}) とカスタムTeX生成
+- **LaTeX変換**: 関数名変換 (atan → tan^{-1}) とカスタムTeX生成。OverviewタブとFormulaタブで同じ`ExpressionRenderer`を使用
 
 ## Development Guidelines
 
