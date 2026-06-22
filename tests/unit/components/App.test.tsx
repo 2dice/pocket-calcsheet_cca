@@ -421,3 +421,75 @@ describe('Navigation Components - React Router対応', () => {
     })
   })
 })
+
+describe('FormulaTab - LaTeX式表示', () => {
+  let mockRequestPersistentStorage: ReturnType<typeof vi.spyOn>
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockRequestPersistentStorage = vi
+      .spyOn(StorageManager, 'requestPersistentStorage')
+      .mockResolvedValue(true)
+
+    act(() => {
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+      useUIStore.setState({
+        isEditMode: false,
+        keyboardState: { visible: false, target: null },
+        keyboardInput: null,
+      })
+      useSheetsStore.getState().addSheet('数式表示テスト')
+      const sheet = useSheetsStore.getState().sheets[0]
+      useSheetsStore
+        .getState()
+        .updateFormulaData(sheet.id, { inputExpr: 'atan(2*[var1]/[var2])' })
+    })
+  })
+
+  afterEach(() => {
+    mockRequestPersistentStorage.mockRestore()
+    consoleWarnSpy.mockRestore()
+    act(() => {
+      useSheetsStore.setState({
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        sheets: [],
+        entities: {},
+        storageError: false,
+        persistenceError: false,
+      })
+    })
+  })
+
+  test('Formula入力欄とResultの間にOverviewと同じLaTeX式を表示する', async () => {
+    const sheet = useSheetsStore.getState().sheets[0]
+
+    renderWithRouter(<App />, { initialEntries: [`/${sheet.id}/formula`] })
+
+    const formulaInput = screen.getByRole('textbox')
+    const formulaDisplay = await screen.findByTestId('formula-display')
+    const resultRegion = screen.getByRole('region')
+
+    expect(formulaDisplay).toHaveTextContent('= atan(2*[var1]/[var2])')
+    expect(
+      formulaInput.compareDocumentPosition(formulaDisplay) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(
+      formulaDisplay.compareDocumentPosition(resultRegion) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+
+    await waitFor(() => {
+      expect(mockRequestPersistentStorage).toHaveBeenCalled()
+    })
+  })
+})
