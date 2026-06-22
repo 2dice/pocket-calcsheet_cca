@@ -55,7 +55,8 @@ pocket-calcsheet_cca/
 │   │   ├── calculator/               # 計算機能コンポーネント
 │   │   │   ├── VariableSlot.tsx      # 変数スロット(名前+式+値)
 │   │   │   ├── FormulaInput.tsx      # 数式入力コンポーネント
-│   │   │   └── ResultDisplay.tsx     # 計算結果表示
+│   │   │   ├── ResultDisplay.tsx     # 計算結果表示
+│   │   │   └── ExpressionRenderer.tsx # Formula/Overview用LaTeX式表示
 │   │   ├── keyboard/                 # カスタムキーボード関連コンポーネント
 │   │   │   ├── CustomKeyboard.tsx    # カスタムキーボード本体
 │   │   │   ├── FunctionPicker.tsx    # 関数選択ドラムロールUI
@@ -117,12 +118,14 @@ pocket-calcsheet_cca/
 │   │   │   ├── TabNavigation.test.tsx # タブナビゲーション関連テスト
 │   │   │   ├── VariableSlot.test.tsx # 変数スロットテスト
 │   │   │   ├── CustomKeyboard.test.tsx # カスタムキーボードテスト
-│   │   │   └── ResultDisplay.test.tsx # 計算結果表示テスト
+│   │   │   ├── ResultDisplay.test.tsx # 計算結果表示テスト
+│   │   │   └── ExpressionRenderer.test.tsx # LaTeX式表示テスト
 │   │   ├── hooks/
 │   │   │   └── useScrollToInput.test.ts # スクロール制御フックテスト
 │   │   ├── utils/
 │   │   │   ├── validation.test.ts    # バリデーションテスト
-│   │   │   └── mathEngine.test.ts    # 計算エンジンユニットテスト
+│   │   │   ├── mathEngine.test.ts    # 計算エンジンユニットテスト
+│   │   │   └── latexConverter.test.ts # LaTeX変換ユニットテスト
 │   │   └── store/
 │   │       ├── sheetsStore.test.ts   # シートストアテスト
 │   │       ├── storageManager.test.ts # StorageManager + MigrationManagerテスト
@@ -297,7 +300,7 @@ npm run preview       # ビルド後のプレビュー
 - **pages/**: 各画面のルートコンポーネント (Top, Overview, Variables, Formula タブ)
 - **components/sheets/**: シート一覧・編集機能
 - **components/keyboard/**: カスタムキーボード実装 (ネイティブキーボード無効)
-- **components/calculator/**: 変数スロット・数式入力・結果表示
+- **components/calculator/**: 変数スロット・数式入力・LaTeX式表示・結果表示
 - **utils/calculation/**: 数式パース・LaTeX変換・数値フォーマット
 
 ### Mobile-First Design
@@ -317,7 +320,7 @@ npm run preview       # ビルド後のプレビュー
 - **変数参照**: `[var1]` 形式での相互参照
 - **循環参照対応**: 2回再計算で打ち切り
 - **SI接頭語表示**: 10の3の倍数乗での数値表示
-- **LaTeX変換**: 関数名変換 (atan → tan^{-1}) とカスタムTeX生成
+- **LaTeX変換**: 関数名変換 (atan → tan^{-1}) とカスタムTeX生成。OverviewタブとFormulaタブで同じ`ExpressionRenderer`を使用
 
 ## Development Guidelines
 

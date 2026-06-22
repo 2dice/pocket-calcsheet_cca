@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { FormulaInput } from '@/components/calculator/FormulaInput'
+import { ExpressionRenderer } from '@/components/calculator/ExpressionRenderer'
 import { ResultDisplay } from '@/components/calculator/ResultDisplay'
 import { CustomKeyboard } from '@/components/keyboard/CustomKeyboard'
 import { useSheetsStore } from '@/store'
@@ -87,6 +88,15 @@ export function FormulaTab() {
         }}
       >
         <FormulaInput value={sheet.formulaData.inputExpr} />
+
+        {sheet.formulaData.inputExpr && (
+          <div
+            data-testid="formula-display"
+            className="mt-6 p-3 bg-gray-50 rounded-md border"
+          >
+            <ExpressionRenderer expression={sheet.formulaData.inputExpr} />
+          </div>
+        )}
 
         <ResultDisplay
           result={sheet.formulaData.result}

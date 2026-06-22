@@ -114,7 +114,7 @@ result:落下距離[m]
   - Variable2
     - name: "t"
     - value: "5"
-- Formulaタブ(Resultは自動計算し表示)
+- Formulaタブ(FormulaのLaTeX表示とResultは自動計算し表示)
   - Formula: "1/2*[g]*[t]^2"
 
 ### sample2
@@ -141,7 +141,7 @@ result:気圧[hPa]
   - Variable3
     - name: "P0"
     - value: "1013.25"
-- Formulaタブ(Resultは自動計算し表示)
+- Formulaタブ(FormulaのLaTeX表示とResultは自動計算し表示)
   - Formula: "[P0]_(1-((0.0065_[h])/([T]+0.0065\*[h]+273.15)))^5.257"
 
 ### sample3
@@ -164,7 +164,7 @@ result:底角[°]
   - Variable2
     - name: "a"
     - value: "2"
-- Formulaタブ(Resultは自動計算し表示)
+- Formulaタブ(FormulaのLaTeX表示とResultは自動計算し表示)
   - Formula: "atan(2\*[h]/[a])"
 
 ### sample4
@@ -187,7 +187,7 @@ result:カットオフ周波数[Hz]
   - Variable2
     - name: "C"
     - value: "12\*10^(-12)"
-- Formulaタブ(Resultは自動計算し表示)
+- Formulaタブ(FormulaのLaTeX表示とResultは自動計算し表示)
   - Formula: "1/(2*pi()*sqrt([L]\*[C]))"
 
 ### sample5
@@ -214,5 +214,5 @@ result:pointBの音圧[dB]
   - Variable3
     - name: "volumeA"
     - value: "100"
-- Formulaタブ(Resultは自動計算し表示)
+- Formulaタブ(FormulaのLaTeX表示とResultは自動計算し表示)
   - Formula: "[volumeA]-20\*log([pointB]/[pointA])"

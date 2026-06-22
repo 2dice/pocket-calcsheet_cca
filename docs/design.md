@@ -155,7 +155,11 @@ https://2dice.tech/category/ios-app/calcsheet/
     - 数式の保存/読み出し(localStorage)
       - タブ表示時に読み出し、入力完了時に保存
       - 状態管理ライブラリのストア内でlocalStorageへの保存・読み込み処理をカプセル化
-  - "Result"ラベルの下に計算結果を表示(テキストボックスの下。結果は右詰)(step5-2)
+  - Formula入力欄とResult表示の間に、Formulaタブで入力した数式のLaTeX表示を配置
+    - 表示内容はoverviewタブのFormula表示(step6-2)と同じ
+    - Formula欄の入力完了時に保存された数式をもとに表示し、Resultの再計算と同じ状態更新に追従する
+    - 入力式が空の場合はLaTeX表示エリアを表示しない
+  - "Result"ラベルの下に計算結果を表示(LaTeX表示の下。結果は右詰)(step5-2)
     - 計算結果の表示ルールはvariablesタブの計算値と同様
       - ただし小数点以下の表示桁数だけは15桁まで表示する
     - variablesタブの変数は計算後のラベルでは無く計算式の計算結果を使用(ラベルは値を丸めているため)
@@ -173,6 +177,7 @@ https://2dice.tech/category/ios-app/calcsheet/
       - タブ表示時に読み出し、入力完了時に保存
   - Formula表示(step6-2)
     - Formulaラベルをoverviewテキストボックス左下に配置
+    - Formulaタブ内にも同じ表示をFormula入力欄とResult表示の間に配置
     - 1行目にFormulaタブで入力した数式をそのまま記述(改行含む)
     - 2行目に関数名以外の数式をKaTeXで自然な数式に変換した式を記述(改行削除、LaTeX)
       - 例:atan関数はatan表記のまま。tan^{-1}の形式に変換しない
