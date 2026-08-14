@@ -526,6 +526,32 @@ describe('latexConverter', () => {
     })
   })
 
+  describe('Issue #117 追加ケース', () => {
+    it('べき乗付きの括弧式を分子全体として分数化する', () => {
+      expect(convertToLatexWithFunctionNames('(sin(30)+1)^2/3')).toBe(
+        '\\frac{(\\sin(30°)+1)^{2}}{3}'
+      )
+    })
+
+    it('べき乗を含む括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(2^3)')).toBe(
+        '\\frac{1}{(2^{3})}'
+      )
+    })
+
+    it('べき乗付き定数関数を含む括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(e()^2)')).toBe(
+        '\\frac{1}{(e^{2})}'
+      )
+    })
+
+    it('べき乗付き関数呼び出しを含む括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(sqrt(2)^2)')).toBe(
+        '\\frac{1}{(\\sqrt{2}^{2})}'
+      )
+    })
+  })
+
   describe('Issue #111 追加ケース', () => {
     it('減算項内の括弧加算/除算を正しい位置で分数化する', () => {
       const input = '(1-(4+1)/2)'
