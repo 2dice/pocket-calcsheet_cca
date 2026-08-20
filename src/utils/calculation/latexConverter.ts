@@ -161,6 +161,12 @@ function convertStructuralLatexExpression(
 function shouldUseStructuralLatexParser(expression: string): boolean {
   return (
     /^[^+\-*/]+\^\([^()]+\)\s*\//.test(expression) ||
+    /\([^)]*\b[a-zA-Z_]\w*\([^)]*\)[^)]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(
+      expression
+    ) ||
+    /\/\s*\(\s*[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\)/.test(
+      expression
+    ) ||
     /\b[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(expression) ||
     /\/\([^()]*[+-][^()]*\)\s*\//.test(expression) ||
     /\(\([^()]+\)\/\([^()]+\)\)\s*\^/.test(expression) ||
@@ -1071,6 +1077,18 @@ function convertBasicFractions(expression: string): string {
   )
   result = result.replace(
     /([^\s/()]+)\s*\/\s*(\(\\frac\{[^{}]+\}\{[^{}]+\}\))/g,
+    '\\frac{$1}{$2}'
+  )
+
+  // パターン3c: べき乗付き括弧式 / 項
+  result = result.replace(
+    /(\([^()]+\)\^\{[^{}]+\})\s*\/\s*([^\s/()+*-]+)/g,
+    '\\frac{$1}{$2}'
+  )
+
+  // パターン3d: 項 / (べき乗を含む括弧式)
+  result = result.replace(
+    /([^\s/()+*-]+)\s*\/\s*(\([^()]*\^\{[^{}]+\}[^()]*\))/g,
     '\\frac{$1}{$2}'
   )
 
