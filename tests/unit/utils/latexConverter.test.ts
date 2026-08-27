@@ -582,6 +582,24 @@ describe('latexConverter', () => {
         '\\frac{(2+1)^{2}}{(3+4)}'
       )
     })
+
+    it('括弧付き加算の外枠をべき乗の前で保持する', () => {
+      expect(convertToLatexWithFunctionNames('((1)+(1/2))^2')).toBe(
+        '((1)+(\\frac{1}{2}))^{2}'
+      )
+      expect(convertToLatexWithFunctionNames('((1/2)+(3/4))^2')).toBe(
+        '((\\frac{1}{2})+(\\frac{3}{4}))^{2}'
+      )
+      expect(convertToLatexWithFunctionNames('(([x])+([y]/[z]))^2')).toBe(
+        '(([x])+(\\frac{[y]}{[z]}))^{2}'
+      )
+    })
+
+    it('括弧付き加算の外枠を乗算の後で保持する', () => {
+      expect(convertToLatexWithFunctionNames('2*((1)+(1/2))')).toBe(
+        '2\\times ((1)+(\\frac{1}{2}))'
+      )
+    })
   })
 
   describe('Issue #111 追加ケース', () => {

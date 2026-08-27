@@ -506,11 +506,8 @@ function formatStructuralLatexParen(
     convertFunctions,
     'paren'
   )
-  if (
-    content.startsWith('(') &&
-    content.endsWith(')') &&
-    content.includes('\\frac{')
-  ) {
+  // 冗長な二重括弧だけ畳む。中置式の外枠は落とさない
+  if (node.value.type === 'paren') {
     return content
   }
   return `(${content})`
