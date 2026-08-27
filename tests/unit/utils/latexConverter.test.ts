@@ -91,7 +91,7 @@ describe('latexConverter', () => {
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '\\tan^{-1}(2\\times \\frac{[var1]}{[var2]})°'
+        '\\tan^{-1}\\left(2\\times \\frac{[var1]}{[var2]}\\right)°'
       )
     })
 
@@ -139,7 +139,7 @@ describe('latexConverter', () => {
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '1 + e^{-\\sin(30\\times [var1]°)}'
+        '1 + e^{-\\sin((30\\times [var1])°)}'
       )
     })
 
@@ -199,7 +199,7 @@ describe('latexConverter', () => {
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '\\frac{\\log_{e}\\left(\\frac{[var1]+1}{[var1]-1}\\right)}{2}'
+        '\\frac{\\log_{e}\\left(\\frac{([var1]+1)}{([var1]-1)}\\right)}{2}'
       )
     })
 
@@ -248,7 +248,7 @@ describe('latexConverter', () => {
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '\\frac{e^{[var1]} - e^{-[var1]}}{e^{[var1]} + e^{-[var1]}} + \\tan(\\sin^{-1}([var2])°)'
+        '\\frac{(e^{[var1]} - e^{-[var1]})}{(e^{[var1]} + e^{-[var1]})} + \\tan(\\sin^{-1}([var2])°)'
       )
     })
   })
@@ -273,20 +273,20 @@ describe('latexConverter', () => {
     })
 
     it('括弧で囲まれた式の除算でグループ化を維持する', () => {
-      // (1+1)/(1+1) は \frac{({1+1})}{({1+1})} となるべき
+      // (1+1)/(1+1) は入力括弧を残し、余分な {} は付けない
       expect(convertToLatexWithoutFunctionNames('(1+1)/(1+1)')).toBe(
-        '\\frac{({1+1})}{({1+1})}'
+        '\\frac{(1+1)}{(1+1)}'
       )
       expect(convertToLatexWithFunctionNames('(1+1)/(1+1)')).toBe(
-        '\\frac{({1+1})}{({1+1})}'
+        '\\frac{(1+1)}{(1+1)}'
       )
 
       // (a+b)/(c+d) の場合も同様
       expect(convertToLatexWithoutFunctionNames('([a]+[b])/([c]+[d])')).toBe(
-        '\\frac{({[a]+[b]})}{({[c]+[d]})}'
+        '\\frac{([a]+[b])}{([c]+[d])}'
       )
       expect(convertToLatexWithFunctionNames('([a]+[b])/([c]+[d])')).toBe(
-        '\\frac{({[a]+[b]})}{({[c]+[d]})}'
+        '\\frac{([a]+[b])}{([c]+[d])}'
       )
     })
 
@@ -328,10 +328,10 @@ describe('latexConverter', () => {
         '\\frac{\\frac{8}{4}}{2}'
       )
       expect(convertToLatexWithFunctionNames('2*1/3-4')).toBe(
-        '2\\times\\frac{1}{3}-4'
+        '2\\times \\frac{1}{3}-4'
       )
       expect(convertToLatexWithFunctionNames('2*(1/3)-4')).toBe(
-        '2\\times(\\frac{1}{3})-4'
+        '2\\times (\\frac{1}{3})-4'
       )
     })
   })
@@ -356,7 +356,7 @@ describe('latexConverter', () => {
   describe('Issue #96 追加ケース', () => {
     it('sin(2/3-4) を正しく変換する', () => {
       expect(convertToLatexWithFunctionNames('sin(2/3-4)')).toBe(
-        '\\sin(\\frac{2}{3}-4°)'
+        '\\sin((\\frac{2}{3}-4)°)'
       )
     })
 
@@ -380,7 +380,7 @@ describe('latexConverter', () => {
 
     it('log((9-1)/8) を正しく変換する', () => {
       expect(convertToLatexWithFunctionNames('log((9-1)/8)')).toBe(
-        '\\log_{10}(\\frac{(9-1)}{8})'
+        '\\log_{10}\\left(\\frac{(9-1)}{8}\\right)'
       )
     })
 
@@ -496,13 +496,13 @@ describe('latexConverter', () => {
 
     it('atan の分数引数で left/right を一貫して付与する', () => {
       expect(convertToLatexWithFunctionNames('atan((1+2)/(3+4))')).toBe(
-        '\\tan^{-1}\\left(\\frac{1+2}{3+4}\\right)°'
+        '\\tan^{-1}\\left(\\frac{(1+2)}{(3+4)}\\right)°'
       )
     })
 
     it('構造化パーサ経由でも atan の left/right 条件が一致する', () => {
       expect(convertToLatexWithFunctionNames('atan(1/2*3)^2/3')).toBe(
-        '\\frac{\\tan^{-1}(\\frac{1}{2}\\times 3)°^{2}}{3}'
+        '\\frac{(\\tan^{-1}\\left(\\frac{1}{2}\\times 3\\right)°)^{2}}{3}'
       )
     })
 
@@ -514,10 +514,10 @@ describe('latexConverter', () => {
         '\\cos^{-1}\\left(\\frac{1}{(2+3)}\\right)°'
       )
       expect(convertToLatexWithFunctionNames('asin(1/(2+3)*4)')).toBe(
-        '\\sin^{-1}(\\frac{1}{(2+3)}\\times 4)°'
+        '\\sin^{-1}\\left(\\frac{1}{(2+3)}\\times 4\\right)°'
       )
       expect(convertToLatexWithFunctionNames('acos(1/(2+3)*4)')).toBe(
-        '\\cos^{-1}(\\frac{1}{(2+3)}\\times 4)°'
+        '\\cos^{-1}\\left(\\frac{1}{(2+3)}\\times 4\\right)°'
       )
     })
 
@@ -555,7 +555,7 @@ describe('latexConverter', () => {
   describe('Issue #119 追加ケース', () => {
     it('べき乗と加減算を含む括弧分母を分数化する', () => {
       expect(convertToLatexWithFunctionNames('1/(sin(30)^2+1)')).toBe(
-        '\\frac{1}{(\\sin(30°)^{2}+1)}'
+        '\\frac{1}{((\\sin(30°))^{2}+1)}'
       )
     })
 
@@ -624,7 +624,7 @@ describe('latexConverter', () => {
       const expectedWithoutFunctions =
         '[P0]\\times (1-(\\frac{(0.0065\\times [h])}{([T]+0.0065\\times [h]+273.15)}))^{5.257}'
       const expectedWithFunctions =
-        '[P0]\\times (1-(\\frac{0.0065\\times [h]}{[T]+0.0065\\times [h]+273.15}))^{5.257}'
+        '[P0]\\times (1-(\\frac{(0.0065\\times [h])}{([T]+0.0065\\times [h]+273.15)}))^{5.257}'
 
       expect(convertToLatexWithoutFunctionNames(input)).toBe(
         expectedWithoutFunctions
