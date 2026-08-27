@@ -23,7 +23,7 @@
 - `atan(2\*[var1]/[var2])`
 
   - `atan(2\times\frac{[var1]}{[var2]})`
-  - `\tan^{-1}(2\times\frac{[var1]}{[var2]})°`
+  - `\tan^{-1}\left(2\times\frac{[var1]}{[var2]}\right)°`
 
 - `(100 + [var_x]) % [var_y]`
 
@@ -48,7 +48,7 @@
 - `1 + exp(-sin(30*[var1]))`
 
   - `1 + exp(-sin(30\times[var1]))`
-  - `1 + e^{-\sin(30\times[var1]°)}`
+  - `1 + e^{-\sin((30\times[var1])°)}`
 
 - `random(0, 1) * ([max] - [min]) + [min]`
 
@@ -67,8 +67,8 @@
 
 - `ln(([var1]+1)/([var1]-1)) / 2`
 
-  - `\frac{ln(\frac{[var1]+1}{[var1]-1})}{2}`
-  - `\frac{\log_{e}\left(\frac{[var1]+1}{[var1]-1}\right)}{2}`
+  - `\frac{ln(\frac{([var1]+1)}{([var1]-1)})}{2}`
+  - `\frac{\log_{e}\left(\frac{([var1]+1)}{([var1]-1)}\right)}{2}`
 
 - `([x]^2 + [y]^2)^0.5 / (1 + [z]^-2)`
 
@@ -86,8 +86,8 @@
   - `e^{1} \times \sin(rtod(\frac{\pi}{6})°) - \log_{10}(10)` ※`°`が重複した場合は1つ削除
 
 - `(e()^[var1] - e()^-[var1])/(e()^[var1] + e()^-[var1]) + tan(asin([var2]))`
-  - `\frac{e^{[var_a]} - e^{-[var_a]}}{e^{[var_a]} + e^{-[var_a]}} + tan(asin([var_b]))`
-  - `\frac{e^{[var_a]} - e^{-[var_a]}}{e^{[var_a]} + e^{-[var_a]}} + \tan(\sin^{-1}([var_b])°)` ※`°`が重複した場合は1つ削除
+  - `\frac{(e^{[var1]} - e^{-[var1]})}{(e^{[var1]} + e^{-[var1]})} + tan(asin([var2]))`
+  - `\frac{(e^{[var1]} - e^{-[var1]})}{(e^{[var1]} + e^{-[var1]})} + \tan(\sin^{-1}([var2])°)` ※`°`が重複した場合は1つ削除
 
 # プリセットデータ
 

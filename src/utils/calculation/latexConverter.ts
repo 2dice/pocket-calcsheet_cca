@@ -93,7 +93,7 @@ function convertToCustomLatex(
   result = result.replace(/\s*\*\s*/g, '\\times ')
 
   // 4. 分数の変換（演算子の優先順位を考慮）
-  result = convertFractions(result, convertFunctions)
+  result = convertFractions(result)
 
   // 5. 関数変換（必要な場合のみ）
   if (convertFunctions) {
@@ -484,7 +484,7 @@ function formatStructuralLatexAst(
     case 'function':
       return formatStructuralLatexFunction(node, convertFunctions)
     case 'binary':
-      return formatStructuralLatexBinary(node, convertFunctions, parent)
+      return formatStructuralLatexBinary(node, convertFunctions)
   }
 }
 
@@ -515,11 +515,10 @@ function formatStructuralLatexParen(
 
 function formatStructuralLatexBinary(
   node: Extract<StructuralLatexAstNode, { type: 'binary' }>,
-  convertFunctions: boolean,
-  parent: StructuralFormatParent
+  convertFunctions: boolean
 ): string {
   if (node.operator === '/') {
-    return formatStructuralLatexFraction(node, convertFunctions, parent)
+    return formatStructuralLatexFraction(node, convertFunctions)
   }
 
   const left = formatStructuralLatexAst(
@@ -538,7 +537,8 @@ function formatStructuralLatexBinary(
   }
 
   if (node.operator === '^') {
-    return `${left}^{${right}}`
+    const base = shouldWrapFunctionPowerBase(node.left) ? `(${left})` : left
+    return `${base}^{${right}}`
   }
 
   if (node.operator === '%') {
@@ -554,135 +554,61 @@ function formatStructuralLatexBinary(
 
 function formatStructuralLatexFraction(
   node: Extract<StructuralLatexAstNode, { type: 'binary' }>,
-  convertFunctions: boolean,
-  parent: StructuralFormatParent
+  convertFunctions: boolean
 ): string {
-  const bothParens = node.left.type === 'paren' && node.right.type === 'paren'
-  const left = formatStructuralLatexFracOperand(
-    node.left,
-    convertFunctions,
-    bothParens,
-    parent
-  )
-  const right = formatStructuralLatexFracOperand(
-    node.right,
-    convertFunctions,
-    bothParens,
-    parent
-  )
+  const left = formatStructuralLatexFracOperand(node.left, convertFunctions)
+  const right = formatStructuralLatexFracOperand(node.right, convertFunctions)
   return `\\frac{${left}}{${right}}`
 }
 
 function formatStructuralLatexFracOperand(
   node: StructuralLatexAstNode,
-  convertFunctions: boolean,
-  bothParens: boolean,
-  fracParent: StructuralFormatParent
+  convertFunctions: boolean
 ): string {
   if (node.type !== 'paren') {
     return formatStructuralLatexAst(node, convertFunctions, '/')
   }
 
-  const inner = node.value
-  const innerFormatted = formatStructuralLatexAst(inner, convertFunctions, '/')
-  const innerHasFunctionOrParen = structuralAstContainsFunctionOrParen(inner)
-  const containsTimes = structuralAstContainsOperator(inner, '*')
-  const isComplex =
-    containsTimes ||
-    structuralAstContainsOperator(inner, '^') ||
-    structuralAstContainsOperator(inner, '/') ||
-    /\\times|\^\{|\\frac/.test(innerFormatted)
-  const isTopLevelFrac =
-    fracParent === 'root' || fracParent === '+' || fracParent === '-'
-
-  if (convertFunctions && bothParens && !innerHasFunctionOrParen) {
-    if (fracParent === 'function') {
-      return innerFormatted
-    }
-    if (containsTimes || (isTopLevelFrac && isComplex)) {
-      return innerFormatted
-    }
-  }
-
-  if (
-    bothParens &&
-    fracParent === 'root' &&
-    isSimpleAdditiveStructuralAst(inner)
-  ) {
-    return `({${innerFormatted}})`
-  }
-
+  const innerFormatted = formatStructuralLatexAst(
+    node.value,
+    convertFunctions,
+    '/'
+  )
   return `(${innerFormatted})`
 }
 
 function formatStructuralLatexTimes(left: string, right: string): string {
-  if (
-    /^\d+(?:\.\d+)?$/.test(left) &&
-    /^\\frac\{\d+(?:\.\d+)?\}\{\d+(?:\.\d+)?\}$/.test(right)
-  ) {
-    return `${left}\\times${right}`
-  }
-  if (/^\(\\frac\{\d+(?:\.\d+)?\}\{\d+(?:\.\d+)?\}\)$/.test(right)) {
-    return `${left}\\times${right}`
-  }
   return `${left}\\times ${right}`
 }
 
-function structuralAstContainsOperator(
-  node: StructuralLatexAstNode,
-  operator: StructuralLatexOperator
-): boolean {
-  switch (node.type) {
-    case 'binary':
-      return (
-        node.operator === operator ||
-        structuralAstContainsOperator(node.left, operator) ||
-        structuralAstContainsOperator(node.right, operator)
-      )
-    case 'unary':
-    case 'paren':
-      return structuralAstContainsOperator(node.value, operator)
-    case 'function':
-      return node.args.some(arg => structuralAstContainsOperator(arg, operator))
-    case 'raw':
-      return false
-  }
+function shouldWrapFunctionPowerBase(node: StructuralLatexAstNode): boolean {
+  return node.type === 'function' && node.name !== 'sqrt'
 }
 
-function structuralAstContainsFunctionOrParen(
-  node: StructuralLatexAstNode
-): boolean {
-  switch (node.type) {
-    case 'function':
-    case 'paren':
-      return true
-    case 'unary':
-      return structuralAstContainsFunctionOrParen(node.value)
-    case 'binary':
-      return (
-        structuralAstContainsFunctionOrParen(node.left) ||
-        structuralAstContainsFunctionOrParen(node.right)
-      )
-    case 'raw':
-      return false
-  }
+function isCompoundStructuralLatexArg(node: StructuralLatexAstNode): boolean {
+  return node.type === 'binary'
 }
 
-function isSimpleAdditiveStructuralAst(node: StructuralLatexAstNode): boolean {
-  if (node.type === 'raw') return true
-  if (node.type === 'unary') {
-    return isSimpleAdditiveStructuralAst(node.value)
+function formatDegreeTarget(
+  argNode: StructuralLatexAstNode | undefined,
+  formatted: string
+): string {
+  if (formatted.includes('°')) return formatted
+  if (argNode && isCompoundStructuralLatexArg(argNode)) {
+    return `(${formatted})°`
   }
-  if (
-    node.type === 'binary' &&
-    (node.operator === '+' || node.operator === '-')
-  ) {
-    return (
-      isSimpleAdditiveStructuralAst(node.left) &&
-      isSimpleAdditiveStructuralAst(node.right)
-    )
-  }
-  return false
+  return `${formatted}°`
+}
+
+function formatScaledFunctionParens(name: string, inner: string): string {
+  const usesScaledParens =
+    inner.includes('\\frac{') &&
+    (name === 'log' ||
+      name === 'ln' ||
+      name === 'asin' ||
+      name === 'acos' ||
+      name === 'atan')
+  return usesScaledParens ? `\\left(${inner}\\right)` : `(${inner})`
 }
 
 function joinStructuralLatexArgs(
@@ -706,24 +632,20 @@ function formatStructuralLatexFunction(
   )
   const joinedArgs = joinStructuralLatexArgs(args, node.commaPadded)
   const firstArg = args[0] ?? ''
-  const useScaledParens =
-    firstArg.includes('\\frac{') && !firstArg.includes('\\times')
 
   if (!convertFunctions) {
     return `${node.name}(${joinedArgs})`
   }
 
-  const degreeArg = firstArg.includes('°') ? firstArg : `${firstArg}°`
+  const degreeArg = formatDegreeTarget(node.args[0], firstArg)
 
   switch (node.name) {
     case 'sqrt':
       return `\\sqrt{${firstArg}}`
     case 'log':
-      return `\\log_{10}(${firstArg})`
+      return `\\log_{10}${formatScaledFunctionParens('log', firstArg)}`
     case 'ln':
-      return firstArg.includes('\\frac{')
-        ? `\\log_{e}\\left(${firstArg}\\right)`
-        : `\\log_{e}(${firstArg})`
+      return `\\log_{e}${formatScaledFunctionParens('ln', firstArg)}`
     case 'exp':
       return `e^{${firstArg}}`
     case 'sin':
@@ -733,19 +655,13 @@ function formatStructuralLatexFunction(
     case 'tan':
       return `\\tan(${degreeArg})`
     case 'asin':
-      return useScaledParens
-        ? `\\sin^{-1}\\left(${firstArg}\\right)°`
-        : `\\sin^{-1}(${firstArg})°`
+      return `\\sin^{-1}${formatScaledFunctionParens('asin', firstArg)}°`
     case 'acos':
-      return useScaledParens
-        ? `\\cos^{-1}\\left(${firstArg}\\right)°`
-        : `\\cos^{-1}(${firstArg})°`
+      return `\\cos^{-1}${formatScaledFunctionParens('acos', firstArg)}°`
     case 'atan':
-      return useScaledParens
-        ? `\\tan^{-1}\\left(${firstArg}\\right)°`
-        : `\\tan^{-1}(${firstArg})°`
+      return `\\tan^{-1}${formatScaledFunctionParens('atan', firstArg)}°`
     case 'dtor':
-      return `dtor(${firstArg}°)`
+      return `dtor(${formatDegreeTarget(node.args[0], firstArg)})`
     case 'rtod':
       return `rtod(${firstArg})°`
     default:
@@ -817,68 +733,37 @@ function convertFunctionNames(expression: string): string {
 
   // 1. 三角関数（度記号付き）
   result = replaceFunctionWithBalancedParens(result, 'sin', content => {
-    // dtor/rtodが含まれている場合は度記号を重複させない
-    if (content.includes('rtod(') && !content.includes('°')) {
-      return `\\sin(${content}°)`
-    } else if (content.includes('°')) {
-      return `\\sin(${content})`
-    }
-    return `\\sin(${content}°)`
+    return `\\sin(${formatFallbackDegreeArg(content)})`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'cos', content => {
-    if (content.includes('rtod(') && !content.includes('°')) {
-      return `\\cos(${content}°)`
-    } else if (content.includes('°')) {
-      return `\\cos(${content})`
-    }
-    return `\\cos(${content}°)`
+    return `\\cos(${formatFallbackDegreeArg(content)})`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'tan', content => {
-    if (content.includes('rtod(') && !content.includes('°')) {
-      return `\\tan(${content}°)`
-    } else if (content.includes('°')) {
-      return `\\tan(${content})`
-    }
-    return `\\tan(${content}°)`
+    return `\\tan(${formatFallbackDegreeArg(content)})`
   })
 
-  // 2. 逆三角関数（度記号付き、複雑な場合は\left \right追加）
+  // 2. 逆三角関数（度記号付き、分数引数は\left \right）
   result = replaceFunctionWithBalancedParens(result, 'asin', content => {
-    if (content.includes('\\frac{') && !content.includes('\\times')) {
-      return `\\sin^{-1}\\left(${content}\\right)°`
-    }
-    return `\\sin^{-1}(${content})°`
+    return `\\sin^{-1}${formatScaledFunctionParens('asin', content)}°`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'acos', content => {
-    if (content.includes('\\frac{') && !content.includes('\\times')) {
-      return `\\cos^{-1}\\left(${content}\\right)°`
-    }
-    return `\\cos^{-1}(${content})°`
+    return `\\cos^{-1}${formatScaledFunctionParens('acos', content)}°`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'atan', content => {
-    // \left \right を追加する条件：
-    // 1. 分数を含む場合
-    // 2. ただし、乗算演算子 (\times) を含む場合は除外
-    if (content.includes('\\frac{') && !content.includes('\\times')) {
-      return `\\tan^{-1}\\left(${content}\\right)°`
-    }
-    return `\\tan^{-1}(${content})°`
+    return `\\tan^{-1}${formatScaledFunctionParens('atan', content)}°`
   })
 
-  // 3. 対数関数（複雑な分数には\left \right追加）
+  // 3. 対数関数（分数引数は\left \right）
   result = replaceFunctionWithBalancedParens(result, 'log', content => {
-    return `\\log_{10}(${content})`
+    return `\\log_{10}${formatScaledFunctionParens('log', content)}`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'ln', content => {
-    if (content.includes('\\frac{')) {
-      return `\\log_{e}\\left(${content}\\right)`
-    }
-    return `\\log_{e}(${content})`
+    return `\\log_{e}${formatScaledFunctionParens('ln', content)}`
   })
 
   // 4. 平方根
@@ -893,7 +778,7 @@ function convertFunctionNames(expression: string): string {
 
   // 6. 度・ラジアン変換（度記号の位置を正しく配置）
   result = replaceFunctionWithBalancedParens(result, 'dtor', content => {
-    return `dtor(${content}°)`
+    return `dtor(${formatFallbackDegreeArg(content)})`
   })
 
   result = replaceFunctionWithBalancedParens(result, 'rtod', content => {
@@ -903,11 +788,20 @@ function convertFunctionNames(expression: string): string {
   return result
 }
 
+function formatFallbackDegreeArg(content: string): string {
+  if (content.includes('°')) return content
+  if (content.includes('rtod(')) {
+    return `${content}°`
+  }
+  const withoutLeadingUnary = content.trim().replace(/^[+-]/, '')
+  if (/[+\-*/]|\\times|\\frac|\\bmod/.test(withoutLeadingUnary)) {
+    return `(${content})°`
+  }
+  return `${content}°`
+}
+
 // 分数変換の改良版（段階的な処理）
-function convertFractions(
-  expression: string,
-  convertFunctions: boolean = false
-): string {
+function convertFractions(expression: string): string {
   const structuralResult = convertFractionsStructurally(expression)
   if (structuralResult !== null) {
     return structuralResult
@@ -916,35 +810,18 @@ function convertFractions(
   let result = expression
 
   // 1. 関数の引数内での分数変換（最優先で処理）
-  result = replaceFunctionArgsWithFractions(result, convertFunctions)
+  result = replaceFunctionArgsWithFractions(result)
 
   // 2. 複雑な関数全体 / 項 (例: ln(([var1]+1)/([var1]-1)) / 2)
   // バランスした括弧を考慮した関数全体の分数変換
   result = replaceFunctionCallFractions(result)
 
-  // 3. 複雑な括弧同士の除算
-  // パターンA: 複雑な式（LaTeX記号や関数呼び出しを含む）の処理
-  if (convertFunctions) {
-    // 関数名変換時：複雑な式は括弧を除去、単純な式は二重括弧を保持
-    result = result.replace(
-      /\(([^()]*[\^{}\\][^()]*)\)\/\(([^()]*[\^{}\\][^()]*)\)/g,
-      '\\frac{$1}{$2}'
-    )
-    result = result.replace(
-      /\(([^()]+)\)\/\(([^()]+)\)/g,
-      '\\frac{({$1})}{({$2})}'
-    )
-  } else {
-    // 関数名非変換時：複雑な式は単一括弧、単純な式は二重括弧
-    result = result.replace(
-      /\(([^()]*[\^{}\\][^()]*)\)\/\(([^()]*[\^{}\\][^()]*)\)/g,
-      '\\frac{($1)}{($2)}'
-    )
-    result = result.replace(
-      /\(([^()]+)\)\/\(([^()]+)\)/g,
-      '\\frac{({$1})}{({$2})}'
-    )
-  }
+  // 3. 複雑な括弧同士の除算。入力括弧は残し、余分な {} は付けない
+  result = result.replace(
+    /\(([^()]*[\^{}\\][^()]*)\)\/\(([^()]*[\^{}\\][^()]*)\)/g,
+    '\\frac{($1)}{($2)}'
+  )
+  result = result.replace(/\(([^()]+)\)\/\(([^()]+)\)/g, '\\frac{($1)}{($2)}')
 
   // 4. 括弧式 / 項
   result = result.replace(
@@ -954,16 +831,6 @@ function convertFractions(
 
   // 5. 演算子優先順位を考慮した基本分数
   result = convertBasicFractions(result)
-  if (convertFunctions) {
-    result = result.replace(
-      /(\d+)\\times \\frac\{(\d+)\}\{(\d+)\}/g,
-      '$1\\times\\frac{$2}{$3}'
-    )
-    result = result.replace(
-      /\\times \((\\frac\{[^{}]+\}\{[^{}]+\})\)/g,
-      '\\times($1)'
-    )
-  }
 
   return result
 }
@@ -1375,10 +1242,7 @@ function convertBasicFractions(expression: string): string {
 }
 
 // 関数の引数内で分数変換を実行（バランスした括弧を考慮）
-function replaceFunctionArgsWithFractions(
-  expression: string,
-  convertFunctions: boolean = false
-): string {
+function replaceFunctionArgsWithFractions(expression: string): string {
   let result = expression
   const functionRegex = /(\w+)\(/g
   let match
@@ -1437,20 +1301,11 @@ function replaceFunctionArgsWithFractions(
           '\\frac{$1}{$2}'
         )
 
-        // パターン3: 括弧で囲まれた複雑な式の分数
-        if (convertFunctions) {
-          // 関数名変換時は括弧を除去
-          convertedArgs = convertedArgs.replace(
-            /\(([^)]+)\)\/\(([^)]+)\)/g,
-            '\\frac{$1}{$2}'
-          )
-        } else {
-          // 関数名非変換時は括弧を保持
-          convertedArgs = convertedArgs.replace(
-            /(\([^)]+\))\/(\([^)]+\))/g,
-            '\\frac{$1}{$2}'
-          )
-        }
+        // パターン3: 括弧で囲まれた複雑な式の分数。入力括弧は残す
+        convertedArgs = convertedArgs.replace(
+          /(\([^)]+\))\/(\([^)]+\))/g,
+          '\\frac{$1}{$2}'
+        )
 
         // パターン4: 基本的な分数（関数呼び出し以外）
         convertedArgs = convertedArgs.replace(

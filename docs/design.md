@@ -188,7 +188,7 @@ https://2dice.tech/category/ios-app/calcsheet/
       - 変換エラー時は生テキスト表示
       - 長い場合は折り返し表示
     - 3行目に関数名も含めてKaTeXで自然な数式に変換した式を記述(LaTeX)
-      - 例："atan(2\*[var1]/[var2])"は"tan^{-1}(2\times\frac{[var1]}{[var2]})"に変換(`docs/design_others.md`に全関数記載)
+      - 例："atan(2\*[var1]/[var2])"は"tan^{-1}\left(2\times\frac{[var1]}{[var2]}\right)"に変換(`docs/design_others.md`に全関数記載)
       - 変換エラー時は生テキスト表示
       - 長い場合は折り返し表示
     - LaTeX形式への変換テストケースは別ファイルに記載
