@@ -207,11 +207,11 @@ describe('latexConverter', () => {
       const input = '([x]^2 + [y]^2)^0.5 / (1 + [z]^-2)'
 
       expect(convertToLatexWithoutFunctionNames(input)).toBe(
-        '\\frac{([x]^{2} + [y]^{2})^{0.5}}{1 + [z]^{-2}}'
+        '\\frac{([x]^{2} + [y]^{2})^{0.5}}{(1 + [z]^{-2})}'
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '\\frac{([x]^{2} + [y]^{2})^{0.5}}{1 + [z]^{-2}}'
+        '\\frac{([x]^{2} + [y]^{2})^{0.5}}{(1 + [z]^{-2})}'
       )
     })
 
@@ -311,7 +311,7 @@ describe('latexConverter', () => {
         '\\frac{9}{\\sqrt{3}^{2}}'
       )
       expect(convertToLatexWithFunctionNames('(9/sqrt(3))/3')).toBe(
-        '\\frac{\\frac{9}{\\sqrt{3}}}{3}'
+        '\\frac{(\\frac{9}{\\sqrt{3}})}{3}'
       )
       expect(convertToLatexWithFunctionNames('(9-1)/log(8)')).toBe(
         '\\frac{(9-1)}{\\log_{10}(8)}'
@@ -552,6 +552,38 @@ describe('latexConverter', () => {
     })
   })
 
+  describe('Issue #119 追加ケース', () => {
+    it('べき乗と加減算を含む括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(sin(30)^2+1)')).toBe(
+        '\\frac{1}{(\\sin(30°)^{2}+1)}'
+      )
+    })
+
+    it('べき乗付き関数呼び出しと加減算を含む括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/(sqrt(2)^2+1)')).toBe(
+        '\\frac{1}{(\\sqrt{2}^{2}+1)}'
+      )
+    })
+
+    it('変数のべき乗和を含む括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('1/([x]^2+[y]^2)')).toBe(
+        '\\frac{1}{([x]^{2}+[y]^{2})}'
+      )
+    })
+
+    it('べき乗付き括弧分子と複合括弧分母を分数化する', () => {
+      expect(
+        convertToLatexWithFunctionNames('(sin(30)+1)^2/(sqrt(2)^2+1)')
+      ).toBe('\\frac{(\\sin(30°)+1)^{2}}{(\\sqrt{2}^{2}+1)}')
+    })
+
+    it('べき乗付き括弧分子と加減算の括弧分母を分数化する', () => {
+      expect(convertToLatexWithFunctionNames('(2+1)^2/(3+4)')).toBe(
+        '\\frac{(2+1)^{2}}{(3+4)}'
+      )
+    })
+  })
+
   describe('Issue #111 追加ケース', () => {
     it('減算項内の括弧加算/除算を正しい位置で分数化する', () => {
       const input = '(1-(4+1)/2)'
@@ -563,7 +595,7 @@ describe('latexConverter', () => {
 
     it('先頭以外の二重括弧分子も分数化する', () => {
       const input = '1 + ((2+3))/4'
-      const expected = '1+\\frac{((2+3))}{4}'
+      const expected = '1 + \\frac{((2+3))}{4}'
 
       expect(convertToLatexWithoutFunctionNames(input)).toBe(expected)
       expect(convertToLatexWithFunctionNames(input)).toBe(expected)
