@@ -123,27 +123,38 @@ type StructuralLatexAstNode =
   | { type: 'unary'; operator: '+' | '-'; value: StructuralLatexAstNode }
   | {
       type: 'binary'
-      operator: '+' | '-' | '*' | '/' | '^'
+      operator: '+' | '-' | '*' | '/' | '^' | '%'
       left: StructuralLatexAstNode
       right: StructuralLatexAstNode
+      padded?: boolean
     }
   | { type: 'paren'; value: StructuralLatexAstNode }
-  | { type: 'function'; name: string; args: StructuralLatexAstNode[] }
+  | {
+      type: 'function'
+      name: string
+      args: StructuralLatexAstNode[]
+      commaPadded: boolean[]
+    }
+
+type StructuralLatexOperator = '+' | '-' | '*' | '/' | '^' | '%'
 
 type StructuralLatexToken =
   | { type: 'raw'; value: string }
-  | { type: 'operator'; value: '+' | '-' | '*' | '/' | '^' }
+  | { type: 'operator'; value: StructuralLatexOperator; padded: boolean }
   | { type: 'paren'; value: '(' | ')' }
-  | { type: 'comma'; value: ',' }
+  | { type: 'comma'; padded: boolean }
+
+type StructuralFormatParent =
+  | 'root'
+  | 'unary'
+  | 'paren'
+  | 'function'
+  | StructuralLatexOperator
 
 function convertStructuralLatexExpression(
   expression: string,
   convertFunctions: boolean
 ): string | null {
-  if (!shouldUseStructuralLatexParser(expression)) {
-    return null
-  }
-
   const tokens = tokenizeStructuralLatexExpression(expression)
   if (tokens === null) {
     return null
@@ -158,32 +169,16 @@ function convertStructuralLatexExpression(
   return formatStructuralLatexAst(ast, convertFunctions)
 }
 
-function shouldUseStructuralLatexParser(expression: string): boolean {
-  return (
-    /^[^+\-*/]+\^\([^()]+\)\s*\//.test(expression) ||
-    /\([^)]*\b[a-zA-Z_]\w*\([^)]*\)[^)]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(
-      expression
-    ) ||
-    /\/\s*\(\s*[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\)/.test(
-      expression
-    ) ||
-    /\b[a-zA-Z_]\w*\([^()]*\)\s*\^\s*[^+\-*/()]+\s*\//.test(expression) ||
-    /\/\([^()]*[+-][^()]*\)\s*\//.test(expression) ||
-    /\(\([^()]+\)\/\([^()]+\)\)\s*\^/.test(expression) ||
-    /\^[a-zA-Z_]\w*\s*\(/.test(expression) ||
-    /\*\s*\(\s*[^()]+\s*\/\s*\([^()]*[+-][^()]*\)\s*\)/.test(expression)
-  )
-}
-
 function isStructuralLatexOperator(
   value: string
-): value is '+' | '-' | '*' | '/' | '^' {
+): value is StructuralLatexOperator {
   return (
     value === '+' ||
     value === '-' ||
     value === '*' ||
     value === '/' ||
-    value === '^'
+    value === '^' ||
+    value === '%'
   )
 }
 
@@ -202,9 +197,13 @@ function tokenizeStructuralLatexExpression(
     }
 
     if (isStructuralLatexOperator(current)) {
+      const padded =
+        (index > 0 && /\s/.test(expression[index - 1])) ||
+        (index + 1 < expression.length && /\s/.test(expression[index + 1]))
       tokens.push({
         type: 'operator',
         value: current,
+        padded,
       })
       index++
       continue
@@ -217,7 +216,10 @@ function tokenizeStructuralLatexExpression(
     }
 
     if (current === ',') {
-      tokens.push({ type: 'comma', value: current })
+      const padded =
+        (index > 0 && /\s/.test(expression[index - 1])) ||
+        (index + 1 < expression.length && /\s/.test(expression[index + 1]))
+      tokens.push({ type: 'comma', padded })
       index++
       continue
     }
@@ -267,28 +269,80 @@ class StructuralLatexExpressionParser {
   }
 
   private parseAdditive(): StructuralLatexAstNode | null {
-    let node = this.parseMultiplicative()
+    let node = this.parseModulo()
     if (node === null) return null
 
     while (this.matchOperator('+') || this.matchOperator('-')) {
-      const operator = this.previous().value as '+' | '-'
+      const operator = this.previousOperator()
+      const right = this.parseModulo()
+      if (operator === null || right === null) return null
+      node = {
+        type: 'binary',
+        operator: operator.value as '+' | '-',
+        left: node,
+        right,
+        padded: operator.padded,
+      }
+    }
+
+    return node
+  }
+
+  private parseModulo(): StructuralLatexAstNode | null {
+    let node = this.parseMultiplicative()
+    if (node === null) return null
+
+    while (this.matchOperator('%')) {
+      const operator = this.previousOperator()
       const right = this.parseMultiplicative()
-      if (right === null) return null
-      node = { type: 'binary', operator, left: node, right }
+      if (operator === null || right === null) return null
+      node = {
+        type: 'binary',
+        operator: '%',
+        left: node,
+        right,
+        padded: operator.padded,
+      }
     }
 
     return node
   }
 
   private parseMultiplicative(): StructuralLatexAstNode | null {
+    let node = this.parseDivision()
+    if (node === null) return null
+
+    while (this.matchOperator('*')) {
+      const operator = this.previousOperator()
+      const right = this.parseDivision()
+      if (operator === null || right === null) return null
+      node = {
+        type: 'binary',
+        operator: '*',
+        left: node,
+        right,
+        padded: operator.padded,
+      }
+    }
+
+    return node
+  }
+
+  private parseDivision(): StructuralLatexAstNode | null {
     let node = this.parsePower()
     if (node === null) return null
 
-    while (this.matchOperator('*') || this.matchOperator('/')) {
-      const operator = this.previous().value as '*' | '/'
+    while (this.matchOperator('/')) {
+      const operator = this.previousOperator()
       const right = this.parsePower()
-      if (right === null) return null
-      node = { type: 'binary', operator, left: node, right }
+      if (operator === null || right === null) return null
+      node = {
+        type: 'binary',
+        operator: '/',
+        left: node,
+        right,
+        padded: operator.padded,
+      }
     }
 
     return node
@@ -309,10 +363,10 @@ class StructuralLatexExpressionParser {
 
   private parseUnary(): StructuralLatexAstNode | null {
     if (this.matchOperator('+') || this.matchOperator('-')) {
-      const operator = this.previous().value as '+' | '-'
+      const operator = this.previousOperator()
       const value = this.parseUnary()
-      if (value === null) return null
-      return { type: 'unary', operator, value }
+      if (operator === null || value === null) return null
+      return { type: 'unary', operator: operator.value as '+' | '-', value }
     }
 
     return this.parsePrimary()
@@ -324,9 +378,14 @@ class StructuralLatexExpressionParser {
       if (rawToken.type !== 'raw') return null
 
       if (this.matchParen('(')) {
-        const args = this.parseFunctionArgs()
-        if (args === null) return null
-        return { type: 'function', name: rawToken.value, args }
+        const parsedArgs = this.parseFunctionArgs()
+        if (parsedArgs === null) return null
+        return {
+          type: 'function',
+          name: rawToken.value,
+          args: parsedArgs.args,
+          commaPadded: parsedArgs.commaPadded,
+        }
       }
 
       return { type: 'raw', value: rawToken.value }
@@ -343,21 +402,31 @@ class StructuralLatexExpressionParser {
     return null
   }
 
-  private parseFunctionArgs(): StructuralLatexAstNode[] | null {
+  private parseFunctionArgs(): {
+    args: StructuralLatexAstNode[]
+    commaPadded: boolean[]
+  } | null {
     const args: StructuralLatexAstNode[] = []
-    if (this.matchParen(')')) return args
+    const commaPadded: boolean[] = []
+    if (this.matchParen(')')) return { args, commaPadded }
 
-    do {
+    const first = this.parseAdditive()
+    if (first === null) return null
+    args.push(first)
+
+    while (this.matchComma()) {
+      const comma = this.previous()
+      commaPadded.push(comma.type === 'comma' && comma.padded)
       const arg = this.parseAdditive()
       if (arg === null) return null
       args.push(arg)
-    } while (this.matchComma())
+    }
 
     if (!this.matchParen(')')) return null
-    return args
+    return { args, commaPadded }
   }
 
-  private matchOperator(operator: StructuralLatexToken['value']): boolean {
+  private matchOperator(operator: StructuralLatexOperator): boolean {
     const token = this.peek()
     if (token?.type !== 'operator' || token.value !== operator) return false
     this.current++
@@ -390,55 +459,242 @@ class StructuralLatexExpressionParser {
   private previous(): StructuralLatexToken {
     return this.tokens[this.current - 1]
   }
+
+  private previousOperator(): Extract<
+    StructuralLatexToken,
+    { type: 'operator' }
+  > | null {
+    const token = this.previous()
+    return token.type === 'operator' ? token : null
+  }
 }
 
 function formatStructuralLatexAst(
   node: StructuralLatexAstNode,
-  convertFunctions: boolean
+  convertFunctions: boolean,
+  parent: StructuralFormatParent = 'root'
 ): string {
   switch (node.type) {
     case 'raw':
       return node.value
     case 'unary':
-      return `${node.operator}${formatStructuralLatexAst(node.value, convertFunctions)}`
-    case 'paren': {
-      const content = formatStructuralLatexAst(node.value, convertFunctions)
-      if (
-        content.startsWith('(') &&
-        content.endsWith(')') &&
-        content.includes('\\frac{')
-      ) {
-        return content
-      }
-      return `(${content})`
-    }
+      return `${node.operator}${formatStructuralLatexAst(node.value, convertFunctions, 'unary')}`
+    case 'paren':
+      return formatStructuralLatexParen(node, convertFunctions, parent)
     case 'function':
       return formatStructuralLatexFunction(node, convertFunctions)
     case 'binary':
-      return formatStructuralLatexBinary(node, convertFunctions)
+      return formatStructuralLatexBinary(node, convertFunctions, parent)
   }
+}
+
+function formatStructuralLatexParen(
+  node: Extract<StructuralLatexAstNode, { type: 'paren' }>,
+  convertFunctions: boolean,
+  parent: StructuralFormatParent
+): string {
+  if (
+    node.value.type === 'binary' &&
+    node.value.operator === '/' &&
+    parent === 'function'
+  ) {
+    return formatStructuralLatexAst(node.value, convertFunctions, 'function')
+  }
+
+  const content = formatStructuralLatexAst(
+    node.value,
+    convertFunctions,
+    'paren'
+  )
+  // 冗長な二重括弧だけ畳む。中置式の外枠は落とさない
+  if (node.value.type === 'paren') {
+    return content
+  }
+  return `(${content})`
 }
 
 function formatStructuralLatexBinary(
   node: Extract<StructuralLatexAstNode, { type: 'binary' }>,
-  convertFunctions: boolean
+  convertFunctions: boolean,
+  parent: StructuralFormatParent
 ): string {
-  const left = formatStructuralLatexAst(node.left, convertFunctions)
-  const right = formatStructuralLatexAst(node.right, convertFunctions)
-
   if (node.operator === '/') {
-    return `\\frac{${left}}{${right}}`
+    return formatStructuralLatexFraction(node, convertFunctions, parent)
   }
 
+  const left = formatStructuralLatexAst(
+    node.left,
+    convertFunctions,
+    node.operator
+  )
+  const right = formatStructuralLatexAst(
+    node.right,
+    convertFunctions,
+    node.operator
+  )
+
   if (node.operator === '*') {
-    return `${left}\\times ${right}`
+    return formatStructuralLatexTimes(left, right)
   }
 
   if (node.operator === '^') {
     return `${left}^{${right}}`
   }
 
+  if (node.operator === '%') {
+    return `${left} \\bmod ${right}`
+  }
+
+  if (node.padded) {
+    return `${left} ${node.operator} ${right}`
+  }
+
   return `${left}${node.operator}${right}`
+}
+
+function formatStructuralLatexFraction(
+  node: Extract<StructuralLatexAstNode, { type: 'binary' }>,
+  convertFunctions: boolean,
+  parent: StructuralFormatParent
+): string {
+  const bothParens = node.left.type === 'paren' && node.right.type === 'paren'
+  const left = formatStructuralLatexFracOperand(
+    node.left,
+    convertFunctions,
+    bothParens,
+    parent
+  )
+  const right = formatStructuralLatexFracOperand(
+    node.right,
+    convertFunctions,
+    bothParens,
+    parent
+  )
+  return `\\frac{${left}}{${right}}`
+}
+
+function formatStructuralLatexFracOperand(
+  node: StructuralLatexAstNode,
+  convertFunctions: boolean,
+  bothParens: boolean,
+  fracParent: StructuralFormatParent
+): string {
+  if (node.type !== 'paren') {
+    return formatStructuralLatexAst(node, convertFunctions, '/')
+  }
+
+  const inner = node.value
+  const innerFormatted = formatStructuralLatexAst(inner, convertFunctions, '/')
+  const innerHasFunctionOrParen = structuralAstContainsFunctionOrParen(inner)
+  const containsTimes = structuralAstContainsOperator(inner, '*')
+  const isComplex =
+    containsTimes ||
+    structuralAstContainsOperator(inner, '^') ||
+    structuralAstContainsOperator(inner, '/') ||
+    /\\times|\^\{|\\frac/.test(innerFormatted)
+  const isTopLevelFrac =
+    fracParent === 'root' || fracParent === '+' || fracParent === '-'
+
+  if (convertFunctions && bothParens && !innerHasFunctionOrParen) {
+    if (fracParent === 'function') {
+      return innerFormatted
+    }
+    if (containsTimes || (isTopLevelFrac && isComplex)) {
+      return innerFormatted
+    }
+  }
+
+  if (
+    bothParens &&
+    fracParent === 'root' &&
+    isSimpleAdditiveStructuralAst(inner)
+  ) {
+    return `({${innerFormatted}})`
+  }
+
+  return `(${innerFormatted})`
+}
+
+function formatStructuralLatexTimes(left: string, right: string): string {
+  if (
+    /^\d+(?:\.\d+)?$/.test(left) &&
+    /^\\frac\{\d+(?:\.\d+)?\}\{\d+(?:\.\d+)?\}$/.test(right)
+  ) {
+    return `${left}\\times${right}`
+  }
+  if (/^\(\\frac\{\d+(?:\.\d+)?\}\{\d+(?:\.\d+)?\}\)$/.test(right)) {
+    return `${left}\\times${right}`
+  }
+  return `${left}\\times ${right}`
+}
+
+function structuralAstContainsOperator(
+  node: StructuralLatexAstNode,
+  operator: StructuralLatexOperator
+): boolean {
+  switch (node.type) {
+    case 'binary':
+      return (
+        node.operator === operator ||
+        structuralAstContainsOperator(node.left, operator) ||
+        structuralAstContainsOperator(node.right, operator)
+      )
+    case 'unary':
+    case 'paren':
+      return structuralAstContainsOperator(node.value, operator)
+    case 'function':
+      return node.args.some(arg => structuralAstContainsOperator(arg, operator))
+    case 'raw':
+      return false
+  }
+}
+
+function structuralAstContainsFunctionOrParen(
+  node: StructuralLatexAstNode
+): boolean {
+  switch (node.type) {
+    case 'function':
+    case 'paren':
+      return true
+    case 'unary':
+      return structuralAstContainsFunctionOrParen(node.value)
+    case 'binary':
+      return (
+        structuralAstContainsFunctionOrParen(node.left) ||
+        structuralAstContainsFunctionOrParen(node.right)
+      )
+    case 'raw':
+      return false
+  }
+}
+
+function isSimpleAdditiveStructuralAst(node: StructuralLatexAstNode): boolean {
+  if (node.type === 'raw') return true
+  if (node.type === 'unary') {
+    return isSimpleAdditiveStructuralAst(node.value)
+  }
+  if (
+    node.type === 'binary' &&
+    (node.operator === '+' || node.operator === '-')
+  ) {
+    return (
+      isSimpleAdditiveStructuralAst(node.left) &&
+      isSimpleAdditiveStructuralAst(node.right)
+    )
+  }
+  return false
+}
+
+function joinStructuralLatexArgs(
+  args: string[],
+  commaPadded: boolean[]
+): string {
+  if (args.length === 0) return ''
+  let result = args[0]
+  for (let i = 1; i < args.length; i++) {
+    result += commaPadded[i - 1] ? `, ${args[i]}` : `,${args[i]}`
+  }
+  return result
 }
 
 function formatStructuralLatexFunction(
@@ -446,34 +702,36 @@ function formatStructuralLatexFunction(
   convertFunctions: boolean
 ): string {
   const args = node.args.map(arg =>
-    formatStructuralLatexAst(arg, convertFunctions)
+    formatStructuralLatexAst(arg, convertFunctions, 'function')
   )
+  const joinedArgs = joinStructuralLatexArgs(args, node.commaPadded)
   const firstArg = args[0] ?? ''
-  const useScaledParens = firstArg.includes('\\frac{')
-  const useScaledParensForAtan =
-    useScaledParens && !firstArg.includes('\\times')
-  const wrapParens = (content: string): string =>
-    useScaledParens ? `\\left(${content}\\right)` : `(${content})`
+  const useScaledParens =
+    firstArg.includes('\\frac{') && !firstArg.includes('\\times')
 
   if (!convertFunctions) {
-    return `${node.name}(${args.join(', ')})`
+    return `${node.name}(${joinedArgs})`
   }
+
+  const degreeArg = firstArg.includes('°') ? firstArg : `${firstArg}°`
 
   switch (node.name) {
     case 'sqrt':
       return `\\sqrt{${firstArg}}`
     case 'log':
-      return `\\log_{10}${wrapParens(firstArg)}`
+      return `\\log_{10}(${firstArg})`
     case 'ln':
-      return `\\log_{e}${wrapParens(firstArg)}`
+      return firstArg.includes('\\frac{')
+        ? `\\log_{e}\\left(${firstArg}\\right)`
+        : `\\log_{e}(${firstArg})`
     case 'exp':
       return `e^{${firstArg}}`
     case 'sin':
-      return `\\sin${wrapParens(`${firstArg}°`)}`
+      return `\\sin(${degreeArg})`
     case 'cos':
-      return `\\cos${wrapParens(`${firstArg}°`)}`
+      return `\\cos(${degreeArg})`
     case 'tan':
-      return `\\tan${wrapParens(`${firstArg}°`)}`
+      return `\\tan(${degreeArg})`
     case 'asin':
       return useScaledParens
         ? `\\sin^{-1}\\left(${firstArg}\\right)°`
@@ -483,7 +741,7 @@ function formatStructuralLatexFunction(
         ? `\\cos^{-1}\\left(${firstArg}\\right)°`
         : `\\cos^{-1}(${firstArg})°`
     case 'atan':
-      return useScaledParensForAtan
+      return useScaledParens
         ? `\\tan^{-1}\\left(${firstArg}\\right)°`
         : `\\tan^{-1}(${firstArg})°`
     case 'dtor':
@@ -491,7 +749,7 @@ function formatStructuralLatexFunction(
     case 'rtod':
       return `rtod(${firstArg})°`
     default:
-      return `${node.name}(${args.join(', ')})`
+      return `${node.name}(${joinedArgs})`
   }
 }
 
