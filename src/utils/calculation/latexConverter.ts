@@ -269,36 +269,16 @@ class StructuralLatexExpressionParser {
   }
 
   private parseAdditive(): StructuralLatexAstNode | null {
-    let node = this.parseModulo()
-    if (node === null) return null
-
-    while (this.matchOperator('+') || this.matchOperator('-')) {
-      const operator = this.previousOperator()
-      const right = this.parseModulo()
-      if (operator === null || right === null) return null
-      node = {
-        type: 'binary',
-        operator: operator.value as '+' | '-',
-        left: node,
-        right,
-        padded: operator.padded,
-      }
-    }
-
-    return node
-  }
-
-  private parseModulo(): StructuralLatexAstNode | null {
     let node = this.parseMultiplicative()
     if (node === null) return null
 
-    while (this.matchOperator('%')) {
+    while (this.matchOperator('+') || this.matchOperator('-')) {
       const operator = this.previousOperator()
       const right = this.parseMultiplicative()
       if (operator === null || right === null) return null
       node = {
         type: 'binary',
-        operator: '%',
+        operator: operator.value as '+' | '-',
         left: node,
         right,
         padded: operator.padded,
@@ -332,13 +312,13 @@ class StructuralLatexExpressionParser {
     let node = this.parsePower()
     if (node === null) return null
 
-    while (this.matchOperator('/')) {
+    while (this.matchOperator('/') || this.matchOperator('%')) {
       const operator = this.previousOperator()
       const right = this.parsePower()
       if (operator === null || right === null) return null
       node = {
         type: 'binary',
-        operator: '/',
+        operator: operator.value as '/' | '%',
         left: node,
         right,
         padded: operator.padded,
@@ -476,7 +456,7 @@ function formatStructuralLatexAst(
 ): string {
   switch (node.type) {
     case 'raw':
-      return node.value
+      return formatStructuralLatexRaw(node.value)
     case 'unary':
       return `${node.operator}${formatStructuralLatexAst(node.value, convertFunctions, 'unary')}`
     case 'paren':
@@ -486,6 +466,13 @@ function formatStructuralLatexAst(
     case 'binary':
       return formatStructuralLatexBinary(node, convertFunctions)
   }
+}
+
+function formatStructuralLatexRaw(value: string): string {
+  if (value.startsWith('[') && value.endsWith(']')) {
+    return value.replace(/_/g, '\\_')
+  }
+  return value
 }
 
 function formatStructuralLatexParen(
@@ -1110,7 +1097,7 @@ class FractionExpressionParser {
 function formatFractionAst(node: FractionAstNode): string {
   switch (node.type) {
     case 'raw':
-      return node.value
+      return formatStructuralLatexRaw(node.value)
     case 'unary':
       return `-${formatFractionAst(node.value)}`
     case 'paren':
