@@ -99,11 +99,11 @@ describe('latexConverter', () => {
       const input = '(100 + [var_x]) % [var_y]'
 
       expect(convertToLatexWithoutFunctionNames(input)).toBe(
-        '(100 + [var_x]) \\bmod [var_y]'
+        '(100 + [var\\_x]) \\bmod [var\\_y]'
       )
 
       expect(convertToLatexWithFunctionNames(input)).toBe(
-        '(100 + [var_x]) \\bmod [var_y]'
+        '(100 + [var\\_x]) \\bmod [var\\_y]'
       )
     })
 
@@ -630,6 +630,80 @@ describe('latexConverter', () => {
         expectedWithoutFunctions
       )
       expect(convertToLatexWithFunctionNames(input)).toBe(expectedWithFunctions)
+    })
+  })
+
+  describe('変数名のアンダースコア', () => {
+    it('[...] 内の _ を\\_ にする', () => {
+      expect(convertToLatexWithFunctionNames('[var_x]')).toBe('[var\\_x]')
+      expect(convertToLatexWithoutFunctionNames('[var_x]')).toBe('[var\\_x]')
+      expect(convertToLatexWithFunctionNames('[a_1]^2 + [a_2]^2')).toBe(
+        '[a\\_1]^{2} + [a\\_2]^{2}'
+      )
+      expect(convertToLatexWithFunctionNames('sin([theta_deg])')).toBe(
+        '\\sin([theta\\_deg]°)'
+      )
+      expect(convertToLatexWithFunctionNames('2*[var_x]/[var_y]')).toBe(
+        '2\\times \\frac{[var\\_x]}{[var\\_y]}'
+      )
+      expect(convertToLatexWithFunctionNames('log([x_1]/[x_2])')).toBe(
+        '\\log_{10}\\left(\\frac{[x\\_1]}{[x\\_2]}\\right)'
+      )
+      expect(convertToLatexWithFunctionNames('atan([y_1]/[x_1])')).toBe(
+        '\\tan^{-1}\\left(\\frac{[y\\_1]}{[x\\_1]}\\right)°'
+      )
+    })
+
+    it('_ のない変数名と LaTeX 構造の _ はそのまま', () => {
+      expect(convertToLatexWithFunctionNames('[varx]+[a1]')).toBe('[varx]+[a1]')
+      expect(convertToLatexWithFunctionNames('log(10)')).toBe('\\log_{10}(10)')
+      expect(convertToLatexWithoutFunctionNames('[varx]+[a1]')).toBe(
+        '[varx]+[a1]'
+      )
+    })
+  })
+
+  describe('% の優先度', () => {
+    it('乗算と同じ左結合にする', () => {
+      expect(convertToLatexWithFunctionNames('2%3*4')).toBe(
+        '2 \\bmod 3\\times 4'
+      )
+      expect(convertToLatexWithoutFunctionNames('2%3*4')).toBe(
+        '2 \\bmod 3\\times 4'
+      )
+      expect(convertToLatexWithFunctionNames('2*3%4')).toBe(
+        '2\\times 3 \\bmod 4'
+      )
+      expect(convertToLatexWithFunctionNames('(2%3)*4')).toBe(
+        '(2 \\bmod 3)\\times 4'
+      )
+      expect(convertToLatexWithFunctionNames('2%(3*4)')).toBe(
+        '2 \\bmod (3\\times 4)'
+      )
+    })
+
+    it('% の右の除算を (a%b)/c として分数化する', () => {
+      expect(convertToLatexWithFunctionNames('8%4/2')).toBe(
+        '\\frac{8 \\bmod 4}{2}'
+      )
+      expect(convertToLatexWithoutFunctionNames('8%4/2')).toBe(
+        '\\frac{8 \\bmod 4}{2}'
+      )
+      expect(convertToLatexWithFunctionNames('2%3/4')).toBe(
+        '\\frac{2 \\bmod 3}{4}'
+      )
+      expect(convertToLatexWithFunctionNames('5%4/3')).toBe(
+        '\\frac{5 \\bmod 4}{3}'
+      )
+      expect(convertToLatexWithFunctionNames('2+8%4/2')).toBe(
+        '2+\\frac{8 \\bmod 4}{2}'
+      )
+      expect(convertToLatexWithFunctionNames('8/4%2')).toBe(
+        '\\frac{8}{4} \\bmod 2'
+      )
+      expect(convertToLatexWithFunctionNames('6/2%4')).toBe(
+        '\\frac{6}{2} \\bmod 4'
+      )
     })
   })
 })
